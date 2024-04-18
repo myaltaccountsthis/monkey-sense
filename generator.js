@@ -60,7 +60,7 @@ class Fraction {
   }
 
   isMixed() {
-    return this.getWhole() > 0;
+    return this.getWhole() !== 0;
   }
 
   getMixed() {
@@ -69,22 +69,25 @@ class Fraction {
   }
 
   simplify() {
-    const _gcd_ = gcd(this.numerator, this.denominator);
+    const _gcd_ = gcd(Math.abs(this.numerator), this.denominator);
     this.numerator /= _gcd_;
     this.denominator /= _gcd_;
   }
 
   formatted({useImproper, overrideNum, overrideDenom, overrideMixed} = {}) {
-    const sign = this.numerator < 0 ? "-" : "";
+    const num = overrideNum ?? this.numerator;
+    const sign = (num) < 0 ? "-" : "";
     if (this.isMixed() && !useImproper) {
       const mixed = this.getMixed();
       // if (useLatex)
       //   return `${sign}${overrideMixed ?? mixed.whole} \\frac{${overrideNum ?? mixed.frac.numerator}}{${overrideDenom ?? mixed.frac.denominator}}`;
-      return `${sign}${overrideMixed ?? mixed.whole} ${overrideNum ?? mixed.frac.numerator}/${overrideDenom ?? mixed.frac.denominator}`;
+      if ((overrideNum ?? mixed.frac.numerator) === 0)
+        return `${sign}${overrideMixed ?? mixed.whole}`;
+      return `${sign}${overrideMixed ?? mixed.whole} ${Math.abs(overrideNum ?? mixed.frac.numerator)}/${overrideDenom ?? mixed.frac.denominator}`;
     }
     // if (useLatex)
     //   return `${sign}\\frac{${overrideNum ?? this.numerator}}{${overrideDenom ?? this.denominator}}`;
-    return `${sign}${overrideNum ?? this.numerator}/${overrideDenom ?? this.denominator}`;
+    return `${sign}${Math.abs(num)}/${overrideDenom ?? this.denominator}`;
   }
 
   toString() {
