@@ -78,6 +78,8 @@ class Fraction {
       const mixed = this.getMixed();
       // if (useLatex)
       //   return `${sign}${overrideMixed ?? mixed.whole} \\frac{${overrideNum ?? mixed.frac.numerator}}{${overrideDenom ?? mixed.frac.denominator}}`;
+      if ((overrideNum ?? mixed.frac.numerator) === 0)
+        return `${sign}${overrideMixed ?? mixed.whole}`;
       return `${sign}${overrideMixed ?? mixed.whole} ${overrideNum ?? mixed.frac.numerator}/${overrideDenom ?? mixed.frac.denominator}`;
     }
     // if (useLatex)
