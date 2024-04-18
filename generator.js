@@ -92,7 +92,7 @@ class Fraction {
       return `${sign}${overrideMixed ?? mixed.whole} ${Math.abs(overrideNum ?? mixed.frac.numerator)}/${overrideDenom ?? mixed.frac.denominator}`;
     }
     if (this.denominator === 1) {
-      return `${sign}${num}`;
+      return `${sign}${Math.abs(num)}`;
     }
     // if (useLatex)
     //   return `${sign}\\frac{${overrideNum ?? this.numerator}}{${overrideDenom ?? this.denominator}}`;
@@ -639,37 +639,29 @@ const questionGens = {
       return { ans: a, str: `Convert \`${conv}_${base}\` to base \`10\`` };
     }
   },
-  baseadd: {
-    weight: 1,
+  basearith: {
+    weight: 3,
     func: () => {
-      const a = randomInt(10, 250);
-      const b = randomInt(10, 250);
-      const base = randomInt(4, 9);
-      return { ans: parseInt((a + b).toString(base)), str: `\`${a.toString(base)}_${base}+${b.toString(base)}_${base}\`` };
-    },
-  },
-  basesub: {
-    weight: 1,
-    func: () => {
-      const a = randomInt(10, 250);
-      const b = randomInt(10, 250);
-      const base = randomInt(4, 9);
-      return { ans: parseInt((a - b).toString(base)), str: `\`${a.toString(base)}_${base} - ${b.toString(base)}_${base}\`` };
-    },
-  },
-  basemult: {
-    weight: 1,
-    func: () => {
-      const a = randomInt(10, 250);
-      const b = randomInt(10, 25);
-      const base = randomInt(4, 9);
-      return { ans: parseInt((a * b).toString(base)), str: `\`${a.toString(base)}_${base} ${signs.mult} ${b.toString(base)}_${base}\`` };
-    },
-  },
-  basediv: {
-    weight: 1,
-    func: () => {
-      const b = randomInt(5, 25);
+      const mode = randomInt(1, 4);
+      if (mode == 1) {
+        const a = randomInt(10, 250);
+        const b = randomInt(10, 250);
+        const base = randomInt(4, 9);
+        return { ans: parseInt((a + b).toString(base)), str: `\`${a.toString(base)}_${base}+${b.toString(base)}_${base}\`` };
+      }
+      else if (mode == 2) {
+        const a = randomInt(10, 250);
+        const b = randomInt(10, 250);
+        const base = randomInt(4, 9);
+        return { ans: parseInt((a - b).toString(base)), str: `\`${a.toString(base)}_${base} - ${b.toString(base)}_${base}\`` };
+      }
+      else if (mode == 3) {
+        const a = randomInt(10, 250);
+        const b = randomInt(10, 25);
+        const base = randomInt(4, 9);
+        return { ans: parseInt((a * b).toString(base)), str: `\`${a.toString(base)}_${base} ${signs.mult} ${b.toString(base)}_${base}\`` };
+      }
+      const b = randomInt(2, 9);
       const a = b * randomInt(5, 50);
       const base = randomInt(4, 9);
       return { ans: parseInt((a / b).toString(base)), str: `\`${a.toString(base)}_${base} ${signs.div} ${b.toString(base)}_${base}\`` };
