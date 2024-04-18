@@ -1,4 +1,4 @@
-const blueEnd = 3000, green = 5000, yellow = 7500, redEnd = 12500;
+const blueEnd = 3000, green = 5000, yellow = 7500, redEnd = 15000;
 /**
  * Returns a CSS color string based on how good the answer time is
  */
@@ -13,11 +13,17 @@ let questionCount = 0;
 let startT = 0;
 let interval = null;
 
+// MathJax config
+let useAsciiMath = true;
+MathJax = {
+  loader: {load: ['input/asciimath', 'output/chtml', 'ui/menu']},
+}
+
 function updateData() {
   const time = (Date.now() - startT);
   document.getElementById("questioncount").innerText = questionCount;
   if (questionCount > 0) {
-    document.getElementById("averagetime").innerText = `${(time / questionCount).toFixed(1)}ms`;
+    document.getElementById("averagetime").innerText = `${Math.round(time / questionCount)}ms`;
     document.getElementById("averagetime").style.color = getTimeColor(time / questionCount);
   }
   else
@@ -27,7 +33,8 @@ function updateData() {
 function handleMessages(arr) {
   for (const message of arr) {
     if (message.type === "question") {
-      document.getElementById("question").innerText = message.data;
+      document.getElementById("question").innerText = `${message.data}`;
+      MathJax.typeset();
     }
     else if (message.type === "reply") {
       document.getElementById("inputbox").value = "";
@@ -58,18 +65,31 @@ function handleMessages(arr) {
       else if (message.tag === "answer") {
         document.getElementById("lastanswer").innerText = message.data;
       }
+      else if (message.tag === "wrong" && document.getElementById("hardcore").checked) {
+        doStop();
+      }
     }
   }
 }
 
 function doStart() {
-  handleMessages(startMode(""));
+  handleMessages(startMode(document.getElementById("inputbox").value.toLowerCase()));
+  document.getElementById("inputbox").value = "";
 }
 
 function doStop() {
+  document.getElementById("inputbox").value = "";
   handleMessages(stopMode());
 }
 
 function onInputChange(input) {
+  if (document.getElementById("requireenter").checked || document.getElementById("hardcore").checked)
+    return;
   handleMessages(onMessage(input.value));
+}
+
+function onEnterPressed(e, input) {
+  if (e.key === "Enter") {
+    handleMessages(onMessage(input.value));
+  }
 }

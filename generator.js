@@ -1,4 +1,10 @@
 // UTIL
+window.useAsciiMath = window.useAsciiMath ?? false;
+
+const signs = {
+  mult: "xx",
+  div: "÷"
+}
 
 // Inclusive random
 function randomInt(min, max) {
@@ -36,18 +42,59 @@ function getNumberRankStr(n) {
   }
 }
 
-function formatFraction(numerator, denominator) {
-  const arr = simplifyFraction(numerator, denominator);
-  const whole = Math.floor(Math.abs(arr[0]) / arr[1]);
-  const hasFrac = arr[0] % arr[1] !== 0;
-  return `${Math.sign(numerator * denominator) < 0 ? "-" : ""}${whole > 0 ? whole + (hasFrac ? " " : "") : ""}${hasFrac ? `${Math.abs(arr[0]) % Math.abs(arr[1])}/${arr[1]}` : ""}`;
-}
+class Fraction {
+  constructor(numerator, denominator) {
+    this.numerator = numerator;
+    this.denominator = denominator;
+    this.simplify();
+  }
 
-function simplifyFraction(numerator, denominator) {
-  const _gcd_ = gcd(numerator, denominator);
-  numerator /= _gcd_;
-  denominator /= _gcd_;
-  return [numerator, denominator];
+  getWhole() {
+    return Math.floor(Math.abs(this.numerator) / this.denominator);
+  }
+
+  hasFrac() {
+    return this.numerator % this.denominator !== 0;
+  }
+
+  isMixed() {
+    return this.getWhole() > 0;
+  }
+
+  getMixed() {
+    const whole = this.getWhole();
+    return {whole: whole, frac: new Fraction(Math.abs(this.numerator) % this.denominator, this.denominator)};
+  }
+
+  simplify() {
+    const _gcd_ = gcd(this.numerator, this.denominator);
+    this.numerator /= _gcd_;
+    this.denominator /= _gcd_;
+  }
+
+  formatted({useImproper, overrideNum, overrideDenom, overrideMixed} = {}) {
+    const sign = this.numerator < 0 ? "-" : "";
+    if (this.isMixed() && !useImproper) {
+      const mixed = this.getMixed();
+      // if (useLatex)
+      //   return `${sign}${overrideMixed ?? mixed.whole} \\frac{${overrideNum ?? mixed.frac.numerator}}{${overrideDenom ?? mixed.frac.denominator}}`;
+      return `${sign}${overrideMixed ?? mixed.whole} ${overrideNum ?? mixed.frac.numerator}/${overrideDenom ?? mixed.frac.denominator}`;
+    }
+    // if (useLatex)
+    //   return `${sign}\\frac{${overrideNum ?? this.numerator}}{${overrideDenom ?? this.denominator}}`;
+    return `${sign}${overrideNum ?? this.numerator}/${overrideDenom ?? this.denominator}`;
+  }
+
+  toString() {
+    const sign = this.numerator < 0 ? "-" : "";
+    if (this.isMixed()) {
+      const mixed = this.getMixed();
+      if (mixed.frac.numerator === 0)
+        return `${sign}${mixed.whole}`;
+      return `${sign}${mixed.whole} ${mixed.frac.numerator}/${mixed.frac.denominator}`;
+    }
+    return `${sign}${this.numerator}/${this.denominator}`;
+  }
 }
 
 const polygonStrs = [
@@ -72,7 +119,7 @@ const questionGens = {
     func: () => {
       const a = randomInt(10, 9999);
       const b = randomInt(10, 9999);
-      return { ans: a + b, str: `${a} + ${b}` };
+      return { ans: a + b, str: `\`${a}+${b}\`` };
     },
   },
   sub: {
@@ -80,7 +127,7 @@ const questionGens = {
     func: () => {
       const a = randomInt(10, 9999);
       const b = randomInt(10, 9999);
-      return { ans: a - b, str: `${a} - ${b}` };
+      return { ans: a - b, str: `\`${a} - ${b}\`` };
     },
   },
   mult: {
@@ -88,7 +135,7 @@ const questionGens = {
     func: () => {
       const a = randomInt(10, 999);
       const b = randomInt(10, 99);
-      return { ans: a * b, str: `${a} x ${b}` };
+      return { ans: a * b, str: `\`${a} ${signs.mult} ${b}\`` };
     },
   },
   div: {
@@ -96,7 +143,7 @@ const questionGens = {
     func: () => {
       const b = randomInt(5, 40);
       const a = b * randomInt(5, 100);
-      return { ans: a / b, str: `${a} ÷ ${b}` };
+      return { ans: a / b, str: `\`${a} ${signs.div} ${b}\`` };
     },
   },
   sqrt: {
@@ -104,7 +151,7 @@ const questionGens = {
     func: () => {
       const d = randomInt(4, 8);
       const a = Math.round(Math.random() * Math.pow(10, d));
-      return { ans: Math.sqrt(a), str: `*√${a}`, guess: true };
+      return { ans: Math.sqrt(a), str: `*\`sqrt(${a})\``, guess: true };
     },
   },
   cbrt: {
@@ -112,7 +159,7 @@ const questionGens = {
     func: () => {
       const d = randomInt(4, 9);
       const a = Math.round(Math.random() * Math.pow(10, d));
-      return { ans: Math.cbrt(a), str: `*∛${a}`, guess: true };
+      return { ans: Math.cbrt(a), str: `*\`root(3)(${a})\``, guess: true };
     },
   },
   rDec: {
@@ -125,12 +172,9 @@ const questionGens = {
       let a = randomInt(1, b - 1);
       const rep = `${a % (b / dMult)}`.padStart(bLen, "0");
       const pre = Math.floor((a / b) * dMult);
-      const str = `.${d > 0 ? pre : ""}${rep}${rep}${rep}...`;
-      const gcd_ = gcd(a, b);
-      a /= gcd_;
-      b /= gcd_;
+      const str = `\`.${d > 0 ? pre : ""}${rep}${rep}${rep}...\``;
       return {
-        ans: `${a}/${b}`,
+        ans: new Fraction(a, b).toString(),
         str: str,
         ansStr: true,
       };
@@ -140,14 +184,14 @@ const questionGens = {
     weight: 1,
     func: () => {
       const a = randomInt(2, 60);
-      return { ans: a * a, str: `${a}²` };
+      return { ans: a * a, str: `\`${a}²\`` };
     },
   },
   cb: {
     weight: 1,
     func: () => {
       const a = randomInt(2, 20);
-      return { ans: a * a * a, str: `${a}³` };
+      return { ans: a * a * a, str: `\`${a}³\`` };
     },
   },
   sqadd: {
@@ -173,7 +217,7 @@ const questionGens = {
         }
         a = nums[0] * 10 + nums[1];
         b = nums[2] * 10 + nums[3];
-        return { ans: a * a + b * b, str: `${a}² + ${b}²` };
+        return { ans: a * a + b * b, str: `\`${a}² + ${b}²\`` };
       }
       let a = randomInt(4, 19) * 5;
       let b = Math.sign(Math.random() - 0.5) + a;
@@ -182,7 +226,7 @@ const questionGens = {
         a = b;
         b = d;
       }
-      return { ans: a * a + b * b, str: `${a}² + ${b}²` };
+      return { ans: a * a + b * b, str: `\`${a}² + ${b}²\`` };
     },
   },
   fracadd: {
@@ -191,14 +235,14 @@ const questionGens = {
       if (Math.random() < 0.2) {
         let a = randomInt(5, 15);
         let b = Math.sign(Math.random() - 0.5) * randomInt(1, 3) + a;
-        let _gcd_ = gcd(a, b);
-        a /= _gcd_;
-        b /= _gcd_;
-        const num = Math.pow(b - a, 2);
-        _gcd_ = gcd(num, a * b);
+        const frac1 = new Fraction(a, b);
+        const frac2 = new Fraction(b, a);
+        const num = Math.pow(frac1.denominator - frac1.numerator, 2);
+        const denom = frac1.denominator * frac2.denominator;
+        const ansFrac = new Fraction(2 * denom + num, denom);
         return {
-          ans: `2 ${num / _gcd_}/${(a * b) / _gcd_}`,
-          str: `${a}/${b} + ${b}/${a} (mixed)`,
+          ans: ansFrac.toString(),
+          str: `\`${frac1.formatted({useImproper: true})} + ${frac2.formatted({useImproper: true})}\` (mixed)`,
           ansStr: true,
         };
       }
@@ -210,10 +254,10 @@ const questionGens = {
           .fill(0)
           .map((_, i) => (a + i * diff) * (a + (i + 1) * diff));
         const denom = a * (a + n * diff);
-        const _gcd_ = gcd(n, denom);
+        const ansFrac = new Fraction(n, denom);
         return {
-          ans: `${n / _gcd_}/${denom / _gcd_}`,
-          str: `${arr.map((x) => `1/${x}`).join(" + ")} = `,
+          ans: `${ansFrac.numerator}/${ansFrac.denominator}`,
+          str: `\`${arr.map((x) => `1/${x}`).join(" + ")} = \``,
           ansStr: true,
         };
       }
@@ -223,36 +267,31 @@ const questionGens = {
         const rNum = randomInt(1, rDen - 1) * Math.sign(Math.random() - 0.3);
         let ansNum = a * rDen;
         let ansDen = rDen - rNum;
-        const ans = simplifyFraction(ansNum, ansDen);
+        const ans = new Fraction(ansNum, ansDen);
         const arr = Array(5)
           .fill(0)
           .map((_, i) =>
-            formatFraction(a * Math.pow(rNum, i), Math.pow(rDen, i)),
+            new Fraction(a * Math.pow(rNum, i), Math.pow(rDen, i)).formatted(),
           );
         return {
-          ans: formatFraction(ans[0], ans[1]),
-          str: `${arr
-            .join(" + ")} + ... = `,
+          ans: ans.formatted(),
+          str: `\`${arr
+            .join(" + ")} + ... = \``,
           ansStr: true
         };
       }
-      let b = randomInt(2, 9);
-      let a = randomInt(1, b - 1);
-      let d = randomInt(2, 9);
-      let c = randomInt(1, d - 1);
-      const _gcd1 = gcd(a, b);
-      const _gcd2 = gcd(c, d);
-      a /= _gcd1;
-      b /= _gcd1;
-      c /= _gcd2;
-      d /= _gcd2;
-      const denom = b * d;
-      const improper = a * d + c * b;
-      const _gcd3 = gcd(improper, denom);
-      const whole = Math.floor(improper / denom);
+      const b = randomInt(2, 9);
+      const a = randomInt(1, b - 1);
+      const d = randomInt(2, 9);
+      const c = randomInt(1, d - 1);
+      const frac1 = new Fraction(a, b);
+      const frac2 = new Fraction(c, d);
+      const denom = frac1.denominator * frac2.denominator;
+      const improper = frac1.numerator * frac2.denominator + frac2.numerator * frac1.denominator;
+      const ansFrac = new Fraction(improper, denom);
       return {
-        ans: formatFraction(improper, denom),
-        str: `${a}/${b} + ${c}/${d} (${whole > 0 ? "mixed" : "proper"})`,
+        ans: ansFrac.toString(),
+        str: `\`${frac1.formatted()} + ${frac2.formatted()}\` (${ansFrac.isMixed() > 0 ? "mixed" : "proper"})`,
         ansStr: true,
       };
     },
@@ -281,7 +320,7 @@ const questionGens = {
 
       return {
         ans: binaryExp(base, exp, mod),
-        str: `Find the remainder of ${base}^${exp} ÷ ${mod}`,
+        str: `Find the remainder of \`${base}^${exp} ${signs.div} ${mod}\``,
       };
     },
   },
@@ -296,12 +335,12 @@ const questionGens = {
         const mod = randomInt(3, 8);
         return {
           ans: (a + b * c - d) % mod,
-          str: `Find the remainder of (${a} + ${b} x ${c} - ${d}) ÷ ${mod}`,
+          str: `Find the remainder of \`(${a} + ${b} ${signs.mult} ${c} - ${d}) ${signs.div} ${mod}\``,
         };
       }
       const a = randomInt(1000, 99999);
       const mod = randomInt(3, 12);
-      return { ans: a % mod, str: `Find the remainder of ${a} ÷ ${mod}` };
+      return { ans: a % mod, str: `Find the remainder of \`${a} ${signs.div} ${mod}\`` };
     },
   },
   pow: {
@@ -316,13 +355,13 @@ const questionGens = {
       const ans = aPow * a - b + cPow * c;
       if (ans >= -3 && ans <= 3 && Math.random() < 0.8)
         return {
-          ans: ans > 0 ? Math.pow(base, ans) : `1/${Math.pow(base, -ans)}`,
-          str: `${Math.pow(base, aPow)}^${a} ÷ ${base}^${b} x ${Math.pow(base, cPow)}^${c} = `,
+          ans: ans > 0 ? Math.pow(base, ans) : `\`1/${Math.pow(base, -ans)}\``,
+          str: `\`${Math.pow(base, aPow)}^${a} ${signs.div} ${base}^${b} ${signs.mult} ${Math.pow(base, cPow)}^${c} = \``,
           ansStr: true,
         };
       return {
         ans: ans,
-        str: `Let ${Math.pow(base, aPow)}^${a} ÷ ${base}^${b} x ${Math.pow(base, cPow)}^${c} = ${base}^k. Find k`,
+        str: `Let \`${Math.pow(base, aPow)}^${a} ${signs.div} ${base}^${b} ${signs.mult} ${Math.pow(base, cPow)}^${c} = ${base}^k\`. Find k`,
       };
     },
   },
@@ -333,34 +372,28 @@ const questionGens = {
         const c = randomInt(10, 32);
         let bDen = randomInt(3, 12);
         let bNum = randomInt(bDen * 2, Math.round(Math.sqrt(c) * bDen));
-        let _gcd_ = gcd(bNum, bDen);
-        bDen /= _gcd_;
-        bNum /= _gcd_;
-        _gcd_ = gcd(bNum, c);
-        let aNum = (c * bDen) / _gcd_;
-        let aDen = bNum / _gcd_;
-        _gcd_ = gcd(aNum, aDen);
-        aNum /= _gcd_;
-        aDen /= _gcd_;
-        const str = `${Math.floor(aNum / aDen)} ${aNum % aDen}/m x n ${bNum % bDen}/${bDen} = ${c}. `;
+        const frac2 = new Fraction(bNum, bDen);
+        const frac1 = new Fraction(c * frac2.denominator, frac2.numerator);
+        const m = frac1.denominator, n = frac2.getWhole();
+        const str = `\`${frac1.formatted({overrideDenom: "m"})} ${signs.mult} ${frac2.formatted({overrideMixed: "n"})} = ${c}\`. `;
         switch (Math.floor(Math.random() * 4)) {
           case 0:
             return {
-              ans: aDen + Math.floor(bNum / bDen),
-              str: str + "m + n = ",
+              ans: m + n,
+              str: str + "\`m + n = \`",
             };
           case 1:
             return {
-              ans: aDen - Math.floor(bNum / bDen),
-              str: str + "m - n = ",
+              ans: m - n,
+              str: str + "\`m - n = \`",
             };
           case 2:
             return {
-              ans: Math.floor(bNum / bDen) - aDen,
-              str: str + "n - m = ",
+              ans: n - m,
+              str: str + "\`n - m = \`",
             };
           default:
-            return { ans: aDen * Math.floor(bNum / bDen), str: str + "mn = " };
+            return { ans: m * n, str: str + "\`mn = \`" };
         }
       }
       if (Math.random() < 0.5) {
@@ -378,31 +411,26 @@ const questionGens = {
         numer = ((numer % c) + c) % c;
         return {
           ans: `${val} ${numer}/${c}`,
-          str: `${a} x ${b}/${c} = `,
+          str: `\`${a} ${signs.mult} ${new Fraction(b, c).formatted({useImproper: true})} = \``,
           ansStr: true,
         };
       }
       let d1 = randomInt(2, 12);
       let d2 = randomInt(2, 12);
-      const a = Math.max(randomInt(-2, 3), 1) * d2;
-      const b = Math.max(randomInt(-2, 3), 1) * d1;
       let n1 = Math.max(randomInt(-2, Math.min(5, d1 - 1)), 1);
       let n2 = Math.max(randomInt(-2, Math.min(5, d2 - 1)), 1);
-      let _gcd_ = gcd(d1, n1);
-      d1 /= _gcd_;
-      n1 /= _gcd_;
-      _gcd_ = gcd(d2, n2);
-      d2 /= _gcd_;
-      n2 /= _gcd_;
-      let numer = n1 * n2;
-      let denom = d1 * d2;
-      _gcd_ = gcd(numer, denom);
-      numer /= _gcd_;
-      denom /= _gcd_;
-      const whole = a * b + (a / d2) * n2 + (b / d1) * n1;
+      const frac1 = new Fraction(n1, d1);
+      const frac2 = new Fraction(n2, d2);
+      const a = Math.max(randomInt(-2, 3), 1) * frac2.denominator;
+      const b = Math.max(randomInt(-2, 3), 1) * frac1.denominator;
+      const ansFrac = new Fraction(frac1.numerator * frac2.numerator, frac1.denominator * frac2.denominator);
+      // TODO check this
+      const mixed1 = new Fraction(a * frac1.denominator + frac1.numerator, frac1.denominator);
+      const mixed2 = new Fraction(b * frac2.denominator + frac2.numerator, frac2.denominator);
+      const whole = a * b + (a / frac2.denominator) * frac2.numerator + (b / frac1.denominator) * frac1.numerator;
       return {
-        ans: `${whole} ${numer}/${denom}`,
-        str: `${a} ${n1}/${d1} * ${b} ${n2}/${d2}`,
+        ans: `${new Fraction(whole * ansFrac.denominator + ansFrac.numerator, ansFrac.denominator).formatted()}`,
+        str: `\`${mixed1.formatted()} * ${mixed2.formatted()}\``,
         ansStr: true,
       };
     },
@@ -415,29 +443,29 @@ const questionGens = {
       const c = randomInt(1, 9);
       const d = randomInt(1, 9);
       const neg = Math.random() < 0.5;
-      let str = `(${a} ${neg ? "-" : "+"} ${b}i)(${c} + ${d}i) = a + bi. `;
+      let str = `\`(${a} ${neg ? "-" : "+"} ${b}i)(${c} + ${d}i) = a + bi\`. `;
       switch (Math.floor(Math.random() * 4)) {
         case 0:
           return {
             ans: a * c + a * d + (b * c - b * d) * (neg ? -1 : 1),
-            str: str + "a + b = ",
+            str: str + "\`a + b = \`",
           };
         case 1:
           return {
             ans: a * c - a * d - (b * c + b * d) * (neg ? -1 : 1),
-            str: str + "a - b = ",
+            str: str + "\`a - b = \`",
           };
         case 2:
           return {
             ans: a * d - a * c + (b * c + b * d) * (neg ? -1 : 1),
-            str: str + "b - a = ",
+            str: str + "\`b - a = \`",
           };
         default:
           return {
             ans:
               (a * c - b * d * (neg ? -1 : 1)) *
               (a * d + b * c * (neg ? -1 : 1)),
-            str: str + "ab = ",
+            str: str + "\`ab = \`",
           };
       }
     },
@@ -448,7 +476,7 @@ const questionGens = {
       const a = randomInt(1000, 9999);
       const b = randomInt(1000, 4000);
       const c = randomInt(10, 40);
-      return { ans: a + b * c, str: `*${a} + ${b} x ${c}`, guess: true };
+      return { ans: a + b * c, str: `*\`${a} + ${b} ${signs.mult} ${c}\``, guess: true };
     },
   },
   estDiv: {
@@ -456,10 +484,10 @@ const questionGens = {
     func: () => {
       const a = randomInt(3000, 80000);
       const b = randomInt(10, 80);
-      return { ans: a / b, str: `*${a} ÷ ${b}`, guess: true };
+      return { ans: a / b, str: `*\`${a} ${signs.div} ${b}\``, guess: true };
     },
   },
-  fibSum: {
+  fibsum: {
     weight: 1,
     func: () => {
       let vals = [randomInt(1, 10), randomInt(1, 6)];
@@ -469,38 +497,35 @@ const questionGens = {
       }
       return {
         ans: vals[vals.length - 1] * 2 + vals[vals.length - 2] - vals[1],
-        str: `${vals[0]} + ${vals[1]} + ${vals[2]} + ${vals[3]} + ${vals[4]} + ... + ${vals[vals.length - 2]} + ${vals[vals.length - 1]} = `,
+        str: `\`${vals[0]} + ${vals[1]} + ${vals[2]} + ${vals[3]} + ${vals[4]} + ... + ${vals[vals.length - 2]} + ${vals[vals.length - 1]} = \``,
       };
     },
   },
-  triRecip: {
+  trirecip: {
     weight: 1,
     func: () => {
       const n = randomInt(3, 10);
       let num = n - 1;
       let den = n + 1;
-      const _gcd_ = gcd(num, den);
-      num /= _gcd_;
-      den /= _gcd_;
-      const ans = `${num}/${den}`;
+      const ansFrac = new Fraction(num, den);
       let str = Array(n - 1)
         .fill(0)
-        .map((_, i) => `1/${((i + 2) * (i + 3)) / 2}`)
+        .map((_, i) => new Fraction(1, ((i + 2) * (i + 3)) / 2).formatted())
         .join(" + ");
       str += " = ";
       if (Math.random() < 0.5) {
-        return { ans: ans, str: str, ansStr: true };
+        return { ans: `${ansFrac.numerator}/${ansFrac.denominator}`, str: `\`${str}\``, ansStr: true };
       }
-      return { ans: "1 " + ans, str: `1 + ${str}`, ansStr: true };
+      return { ans: `1 ${ansFrac.numerator}/${ansFrac.denominator}`, str: `\`1 + ${str}\``, ansStr: true };
     },
   },
-  binomExp: {
+  binomexp: {
     weight: 2,
     func: () => {
       const exp = randomInt(3, 6);
       const a = randomInt(1, 8 - exp);
       const b = randomInt(1, 8 - exp) * Math.sign(Math.random() - 0.5);
-      const str = `(${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b) > 1 ? Math.abs(b) : ""}y)^${exp}`;
+      const str = `\`(${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b) > 1 ? Math.abs(b) : ""}y)^${exp}\``;
       if (Math.random() < 0.2) {
         return {
           ans: Math.pow(a + b, exp),
@@ -527,12 +552,12 @@ const questionGens = {
         case 1:
           return {
             ans: coef,
-            str: `The coefficient of the x^${exp - term + 1} y^${term - 1} term of ${str} is `,
+            str: `The coefficient of the \`x^${exp - term + 1} y^${term - 1}\` term of ${str} is `,
           };
         default:
           return {
             ans: coef + exp,
-            str: `If the ${getNumberRankStr(term)} term in the expansion of ${str} is c x^a y^b, then a + b + c = `,
+            str: `If the ${getNumberRankStr(term)} term in the expansion of ${str} is \`cx^ay^b\`, then \`a + b + c = \``,
           };
       }
     },
@@ -556,7 +581,7 @@ let modeHandler = function (str) {
         });
         arr.push({ type: "status", tag: "answer", data: "" });
       }
-      else return arr;
+      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`}];
     }
     else if (!isNaN(n)) {
       if (
@@ -589,7 +614,7 @@ let modeHandler = function (str) {
         });
         arr.push({ type: "status", tag: "answer", data: "" });
       }
-      else return arr;
+      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`}];
     }
     else return arr;
 
@@ -613,6 +638,10 @@ function generateQuestion() {
   }
   const questionGen = questionGens[key];
   modeData.question = questionGen.func();
+  if (!useAsciiMath) {
+    modeData.question.str = modeData.question.str.replace(/`/g, "");
+    // also replace sqrt, cbrt
+  }
   // console.log(modeData.question.ans);
 }
 
@@ -623,13 +652,17 @@ function getQuestionText() {
 function startMode(text) {
   if (mode === "") {
     mode = "math";
-    const keyStr = text.includes(" ")
-      ? text.substring(text.indexOf(" ") + 1).trim()
-      : "";
+    // const keyStr = text.includes(" ")
+    //   ? text.substring(text.indexOf(" ") + 1).trim()
+    //   : "";
+    const keyStr = text.trim();
     if (keyStr.length == 0) {
       keys = Object.keys(questionGens);
     }
-    else keys = keyStr.split(" ");
+    else
+      keys = keyStr.split(" ").filter(key => questionGens[key]);
+    if (keys.length === 0)
+      keys = Object.keys(questionGens);
     modeData = { total: 0, lastT: Date.now() };
     generateQuestion();
     return [{ type: "status", tag: "start", data: "Starting math..." }, { type: "question", data: getQuestionText() }];

@@ -5,11 +5,16 @@
     <meta charset="utf-8">
     <script src="main.js"></script>
     <script src="generator.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
-      * {
+      div, h1, button, input {
         color: white;
         text-align: center;
         font-family: Calibri;
+      }
+      div {
+        font-size: large;
       }
       body {
         background-color: #333;
@@ -17,6 +22,7 @@
       #question {
         font-size: xx-large;
         margin-bottom: 8px;
+        min-height: 40px;
       }
       button {
         color: black;
@@ -25,6 +31,8 @@
       #inputbox {
         color: black;
         font-size: x-large;
+        margin-top: 10px;
+        margin-bottom: 10px;
       }
       .flex-center {
         display: flex;
@@ -36,8 +44,15 @@
   <body>
     <h1>Monkey Sense</h1>
     <div id="question">Click start</div>
-    <input name="inputbox" id="inputbox" type="text" oninput="onInputChange(this);"><br/>
+    <div class="flex-center">
+      <input name="inputbox" id="inputbox" type="text" oninput="onInputChange(this)" onkeydown="onEnterPressed(event, this);"><br/>
+    </div>
     <br/>
+    <div style="margin-bottom: 8px;">
+      <input type="checkbox" id="requireenter" checked>Require Enter</input>
+      <br/>
+      <input type="checkbox" id="hardcore">Hardcore</div>
+    </div>
     <div class="flex-center">
       <button id="start" onclick="doStart();">Start</button>
       <div></div>
@@ -61,7 +76,7 @@
         </div>
         <div class="flex-center">
           <div>Total Time:</div>
-          <div id="totaltime"></div>
+          <div id="totaltime">0.0s</div>
         </div>
       </div>
     </div>
