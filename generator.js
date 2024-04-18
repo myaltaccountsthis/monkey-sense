@@ -6,6 +6,8 @@ const signs = {
   div: "÷"
 }
 
+const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+
 // Inclusive random
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -315,7 +317,7 @@ const questionGens = {
       const mod = randomInt(3, 25);
       let exp = randomInt(3, 20);
       if (Math.random() < 0.4) {
-        exp = mod + Math.floor(Math.random() * 4 - 1);
+        exp = mod + randomInt(-1, 2);
       }
 
       return {
@@ -353,7 +355,7 @@ const questionGens = {
       const aPow = randomInt(1, 3);
       const cPow = randomInt(1, 2);
       const ans = aPow * a - b + cPow * c;
-      if (ans >= -3 && ans <= 3 && Math.random() < 0.8)
+      if (ans >= -3 && ans <= 3 && Math.random() < 0.9)
         return {
           ans: ans > 0 ? Math.pow(base, ans) : `\`1/${Math.pow(base, -ans)}\``,
           str: `\`${Math.pow(base, aPow)}^${a} ${signs.div} ${base}^${b} ${signs.mult} ${Math.pow(base, cPow)}^${c} = \``,
@@ -376,7 +378,7 @@ const questionGens = {
         const frac1 = new Fraction(c * frac2.denominator, frac2.numerator);
         const m = frac1.denominator, n = frac2.getWhole();
         const str = `\`${frac1.formatted({overrideDenom: "m"})} ${signs.mult} ${frac2.formatted({overrideMixed: "n"})} = ${c}\`. `;
-        switch (Math.floor(Math.random() * 4)) {
+        switch (randomInt(0, 3)) {
           case 0:
             return {
               ans: m + n,
@@ -444,7 +446,7 @@ const questionGens = {
       const d = randomInt(1, 9);
       const neg = Math.random() < 0.5;
       let str = `\`(${a} ${neg ? "-" : "+"} ${b}i)(${c} + ${d}i) = a + bi\`. `;
-      switch (Math.floor(Math.random() * 4)) {
+      switch (randomInt(0, 3)) {
         case 0:
           return {
             ans: a * c + a * d + (b * c - b * d) * (neg ? -1 : 1),
@@ -470,7 +472,7 @@ const questionGens = {
       }
     },
   },
-  estMult: {
+  estmult: {
     weight: 1,
     func: () => {
       const a = randomInt(1000, 9999);
@@ -479,7 +481,7 @@ const questionGens = {
       return { ans: a + b * c, str: `*\`${a} + ${b} ${signs.mult} ${c}\``, guess: true };
     },
   },
-  estDiv: {
+  estdiv: {
     weight: 1,
     func: () => {
       const a = randomInt(3000, 80000);
@@ -543,7 +545,7 @@ const questionGens = {
       for (let i = 2; i <= exp - term + 1; i++) {
         coef /= i;
       }
-      switch (Math.floor(Math.random() * 3)) {
+      switch (randomInt(0, 2)) {
         case 0:
           return {
             ans: coef,
@@ -562,6 +564,120 @@ const questionGens = {
       }
     },
   },
+  relprime: {
+    weight: 1,
+    func: () => {
+      let a = 0;
+      do {
+        a = randomInt(8, 50);
+      } while (primes.includes(a));
+      let arr = [];
+      let temp = a;
+      for (let i = 2; i <= temp; i++) {
+        while (temp % i == 0) {
+          if (!arr.includes(i)) arr.push(i);
+          temp /= i;
+        }
+      }
+      let ans = arr.reduce((acc, val) => acc * (val - 1) / val, a);
+      const start = Math.max(randomInt(-2, 5), 1);
+      for (let i = 1; i < start; i++) {
+        if (gcd(i, a) == 1) ans--;
+      }
+      return {
+        ans: ans,
+        str: start == 1 ? `Find the number of integers less than \`${a}\` that are relatively prime to \`${a}\`` : `Find the number of integers between \`${start - 1}\` and \`${a}\` that are relatively prime to \`${a}\``,
+      };
+    }
+  },
+  posfact: {
+    weight: 1,
+    func: () => {
+      let a = 0;
+      do {
+        a = randomInt(8, 50);
+      } while (primes.includes(a));
+      let arr = [];
+      let temp = a;
+      let ans = 1;
+      for (let i = 2; i <= temp; i++) {
+        let count = 1;
+        while (temp % i == 0) {
+          if (!arr.includes(i)) arr.push(i);
+          temp /= i;
+          count++;
+        }
+        ans *= count;
+      }
+      if (Math.random() < .4) {
+        return { ans: arr.length, str: `Find the number of positive prime divisors of \`${a}\`` };
+      }
+      return { ans: ans, str: `Find the number of positive integral divisors of \`${a}\`` };
+    }
+  },
+  base: {
+    weight: 1,
+    func: () => {
+      const base = randomInt(2, 9);
+      const a = randomInt(20, 250);
+      const conv = parseInt(a.toString(base));
+      if (Math.random() < .5) {
+        return { ans: conv, str: `Convert \`${a}\` base \`10\` to base \`${base}\`` };
+      }
+      return { ans: a, str: `Convert \`${conv}_${base}\` to base \`10\`` };
+    }
+  },
+  baseadd: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(10, 250);
+      const b = randomInt(10, 250);
+      const base = randomInt(4, 9);
+      return { ans: parseInt((a + b).toString(base)), str: `\`${a.toString(base)}_${base}+${b.toString(base)}_${base}\`` };
+    },
+  },
+  basesub: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(10, 250);
+      const b = randomInt(10, 250);
+      const base = randomInt(4, 9);
+      return { ans: parseInt((a - b).toString(base)), str: `\`${a.toString(base)}_${base} - ${b.toString(base)}_${base}\`` };
+    },
+  },
+  basemult: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(10, 250);
+      const b = randomInt(10, 25);
+      const base = randomInt(4, 9);
+      return { ans: parseInt((a * b).toString(base)), str: `\`${a.toString(base)}_${base} ${signs.mult} ${b.toString(base)}_${base}\`` };
+    },
+  },
+  basediv: {
+    weight: 1,
+    func: () => {
+      const b = randomInt(5, 25);
+      const a = b * randomInt(5, 50);
+      const base = randomInt(4, 9);
+      return { ans: parseInt((a / b).toString(base)), str: `\`${a.toString(base)}_${base} ${signs.div} ${b.toString(base)}_${base}\`` };
+    },
+  },
+  inverse: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(2, 9);
+      const b = randomInt(2, 9) * Math.sign(Math.random() - 0.3);
+      const c = randomInt(2, 9);
+      const d = randomInt(2, 9) * Math.sign(Math.random() - 0.3);
+      const e = randomInt(1, 4) * Math.sign(Math.random() - 0.5);
+      return {
+        ans: new Fraction(b - e * d, e * c - a).formatted({useImproper: true}),
+        str: `If \`f(x) = (${a}x ${b > 0 ? `+` : `-`} ${Math.abs(b)}) / (${c}x ${d > 0 ? `+` : `-`} ${Math.abs(d)})\`, what is the value of \`f^-1(${e})\`?`,
+        ansStr: true,
+      };
+    }
+  }
 };
 
 let keys;
