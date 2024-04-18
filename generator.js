@@ -76,6 +76,8 @@ class Fraction {
 
   formatted({useImproper, overrideNum, overrideDenom, overrideMixed} = {}) {
     const num = overrideNum ?? this.numerator;
+    if (num == 0)
+      return "0";
     const sign = (num) < 0 ? "-" : "";
     if (this.isMixed() && !useImproper) {
       const mixed = this.getMixed();
@@ -84,6 +86,9 @@ class Fraction {
       if ((overrideNum ?? mixed.frac.numerator) === 0)
         return `${sign}${overrideMixed ?? mixed.whole}`;
       return `${sign}${overrideMixed ?? mixed.whole} ${Math.abs(overrideNum ?? mixed.frac.numerator)}/${overrideDenom ?? mixed.frac.denominator}`;
+    }
+    if (this.denominator === 1) {
+      return `${sign}${num}`;
     }
     // if (useLatex)
     //   return `${sign}\\frac{${overrideNum ?? this.numerator}}{${overrideDenom ?? this.denominator}}`;
@@ -673,7 +678,10 @@ const questionGens = {
       const b = randomInt(2, 9) * Math.sign(Math.random() - 0.3);
       const c = randomInt(2, 9);
       const d = randomInt(2, 9) * Math.sign(Math.random() - 0.3);
-      const e = randomInt(1, 4) * Math.sign(Math.random() - 0.5);
+      let e = 1;
+      do {
+        e = randomInt(1, 4) * Math.sign(Math.random() - 0.5);
+      } while (e * c == a);
       return {
         ans: new Fraction(b - e * d, e * c - a).formatted({useImproper: true}),
         str: `If \`f(x) = (${a}x ${b > 0 ? `+` : `-`} ${Math.abs(b)}) / (${c}x ${d > 0 ? `+` : `-`} ${Math.abs(d)})\`, what is the value of \`f^-1(${e})\`?`,
