@@ -72,6 +72,10 @@ class Fraction {
     const _gcd_ = gcd(Math.abs(this.numerator), this.denominator);
     this.numerator /= _gcd_;
     this.denominator /= _gcd_;
+    if (this.denominator < 0) {
+      this.numerator *= -1;
+      this.denominator *= -1;
+    }
   }
 
   formatted({useImproper, overrideNum, overrideDenom, overrideMixed} = {}) {
