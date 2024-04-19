@@ -191,7 +191,7 @@ const questionGens = {
       return { ans: Math.cbrt(a), str: `*\`root(3)(${a})\``, guess: true };
     },
   },
-  rDec: {
+  rdec: {
     weight: 1,
     func: () => {
       const d = randomInt(0, 1);
