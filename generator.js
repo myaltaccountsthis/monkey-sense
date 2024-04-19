@@ -127,6 +127,21 @@ const polygonStrs = [
   "dodecagonal",
 ];
 
+const months = [
+  "Jan.",
+  "Feb.",
+  "Mar.",
+  "Apr.",
+  "May",
+  "Jun.",
+  "Jul.",
+  "Aug.",
+  "Sep.",
+  "Oct.",
+  "Nov.",
+  "Dec.",
+]
+
 const questionGens = {
   add: {
     weight: 2,
@@ -288,7 +303,7 @@ const questionGens = {
             new Fraction(a * Math.pow(rNum, i), Math.pow(rDen, i)).formatted(),
           );
         return {
-          ans: ans.formatted(),
+          ans: ans.formatted({useImproper: true}),
           str: `\`${arr
             .join(" + ")} + ... = \``,
           ansStr: true
@@ -683,6 +698,74 @@ const questionGens = {
         str: `If \`f(x) = (${a}x ${b > 0 ? `+` : `-`} ${Math.abs(b)}) / (${c}x ${d > 0 ? `+` : `-`} ${Math.abs(d)})\`, what is the value of \`f^-1(${e})\`?`,
         ansStr: true,
       };
+    }
+  },
+  date: {
+    weight: 1,
+    func: () => {
+      const a = new Date(2024, randomInt(0, 6), randomInt(1, 28));
+      const b = new Date(2024, a.getMonth() + randomInt(1, 5), randomInt(1, 28));
+      let diff = Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
+      const aBegin = Math.random() < .5;
+      const bBegin = Math.random() < .5;
+      if (aBegin)
+        diff++;
+      if (bBegin)
+        diff--;
+      return {
+        ans: diff,
+        str: `How many days are between ${aBegin ? "the beginning of " : "the end of "}${months[a.getMonth()]} \`${a.getDate()}, ${a.getFullYear()}\` and ${bBegin ? "the beginning of " : "the end of "}${months[b.getMonth()]} \`${b.getDate()}, ${b.getFullYear()}\`?`
+      };
+    }
+  },
+  set: {
+    weight: 1,
+    func: () => {
+      const n = randomInt(5, 9);
+      const r = randomInt(2, n - 2);
+      const arr = [];
+      for (let i = 0; i < n; i++) {
+        let letter = 0;
+        do {
+          letter = randomInt(0, 25);
+        } while (arr.includes(letter));
+        arr.push(letter);
+      }
+      let ans = 1;
+      for (let i = n; i > n - r; i--) {
+        ans *= i;
+      }
+      for (let i = 2; i <= r; i++) {
+        ans /= i;
+      }
+      return {
+        ans: ans,
+        str: `The set \`[${arr.map(s => String.fromCharCode(65 + s)).join(", ")}]\` contains how many \`${r}\` element subsets?`
+      };
+    }
+  },
+  lcm: {
+    weight: 1,
+    func: () => {
+      const c = randomInt(5, 20);
+      const a = randomInt(2, 9) * c;
+      let b = 0;
+      do {
+        b = randomInt(2, 9) * c;
+      } while (b == a);
+      return { ans: a * b / gcd(a, b), str: `Find the LCM of \`${a}\` and \`${b}\`` };
+    }
+  },
+  gcd: {
+    weight: 1,
+    func: () => {
+      const c = randomInt(5, 20);
+      const a = randomInt(2, 9) * c;
+      let b = 0;
+      do {
+        b = randomInt(2, 9) * c;
+      } while (b == a);
+      return { ans: gcd(a, b), str: `Find the GCD of \`${a}\` and \`${b}\`` };
     }
   }
 };
