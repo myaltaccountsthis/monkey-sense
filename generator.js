@@ -701,6 +701,7 @@ let modeHandler = function (str) {
         arr.push({
           type: "reply",
           data: `Correct! The answer is ${modeData.question.ans}. You took ${t}ms.`,
+          extra: {time: t}
         });
         arr.push({ type: "status", tag: "answer", data: "" });
       }
@@ -725,6 +726,7 @@ let modeHandler = function (str) {
           data: `${prefix} ${(diff * 100).toFixed(1)}% off. The answer is ${Math.round(
             modeData.question.ans * 0.95,
           )}-${Math.round(modeData.question.ans * 1.05)}. You took ${t}ms.`,
+          extra: {time: t}
         });
         arr.push({ type: "status", tag: "answer", data: `${prefix} ${Math.round(diff * 100)}% off. ${Math.round(
           modeData.question.ans * 0.95,
@@ -734,6 +736,7 @@ let modeHandler = function (str) {
         arr.push({
           type: "reply",
           data: `Correct! The answer is ${modeData.question.ans}. You took ${t}ms.`,
+          extra: {time: t}
         });
         arr.push({ type: "status", tag: "answer", data: "" });
       }
@@ -743,9 +746,10 @@ let modeHandler = function (str) {
 
     modeData.total++;
     modeData.lastT = Date.now();
-    generateQuestion();
+    const category = generateQuestion();
     arr.push({ type: "status", tag: "answertime", data: t});
     arr.push({ type: "question", data: getQuestionText() });
+    arr.push({ type: "status", tag: "questionCategory", data: category})
   }
   return arr;
 };
@@ -766,6 +770,7 @@ function generateQuestion() {
     // also replace sqrt, cbrt
   }
   // console.log(modeData.question.ans);
+  return key;
 }
 
 function getQuestionText() {
@@ -787,8 +792,8 @@ function startMode(text) {
     if (keys.length === 0)
       keys = Object.keys(questionGens);
     modeData = { total: 0, lastT: Date.now() };
-    generateQuestion();
-    return [{ type: "status", tag: "start", data: "Starting math..." }, { type: "question", data: getQuestionText() }];
+    const category = generateQuestion();
+    return [{ type: "status", tag: "start", data: "Starting math..." }, { type: "question", data: getQuestionText() }, { type: "status", tag: "questionCategory", data: category }];
   }
   return [{ type: "status", tag: "alreadyrunning", data: "Math is already running!" }];
 }
