@@ -9,6 +9,14 @@ function getTimeColor(ms) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
+function shouldRequireEnter() {
+  return document.getElementById("requireenter").checked || document.getElementById("hardcore").checked || document.getElementById("testmode").checked;
+}
+
+function notTestMode() {
+  return !document.getElementById("testmode").checked;
+}
+
 let questionCount = 0;
 let startT = 0;
 let interval = null;
@@ -25,7 +33,7 @@ MathJax = {
 function updateData() {
   const time = (Date.now() - startT);
   document.getElementById("questioncount").innerText = questionCount;
-  if (questionCount > 0) {
+  if (questionCount > 0 && notTestMode()) {
     document.getElementById("averagetime").innerText = `${Math.round(time / questionCount)}ms`;
     document.getElementById("averagetime").style.color = getTimeColor(time / questionCount);
   }
@@ -33,16 +41,24 @@ function updateData() {
     document.getElementById("averagetime").innerText = "";
 }
 
+function checkForTestEnd() {
+  if (!notTestMode() && questionCount >= parseInt(document.getElementById("testlength").value)) {
+    doStop();
+    return true;
+  }
+  return false;
+}
+
 function handleMessages(arr) {
   for (const message of arr) {
     if (message.type === "question") {
       document.getElementById("question").innerText = `${message.data}`;
+      document.getElementById("inputbox").value = "";
       currentIncorrect = false;
       MathJax.typeset();
     }
     else if (message.type === "reply") {
       // On correct answer
-      document.getElementById("inputbox").value = "";
       answeredQuestions.push({category: currentCategory, incorrect: currentIncorrect, time: message.extra.time});
       currentIncorrect = false;
     }
@@ -63,23 +79,39 @@ function handleMessages(arr) {
         clearInterval(interval);
         document.getElementById("question").innerText = "Click start";
       }
-      else if (message.tag === "answertime") {
-        document.getElementById("answertime").innerText = `${message.data}ms`;
-        document.getElementById("answertime").style.color = getTimeColor(message.data);
-        questionCount++;
-        updateData();
-      }
-      else if (message.tag === "answer") {
-        document.getElementById("lastanswer").innerText = message.data;
-      }
-      else if (message.tag === "wrong") {
-        currentIncorrect = true;
-        if (document.getElementById("hardcore").checked) {
-          doStop();
-        }
-      }
       else if (message.tag === "questionCategory") {
         currentCategory = message.data;
+      }
+      else if (message.tag === "answertime") {
+        if (notTestMode()) {
+          document.getElementById("answertime").innerText = `${message.data}ms`;
+          document.getElementById("answertime").style.color = getTimeColor(message.data);
+        }
+        questionCount++;
+        updateData();
+        if (checkForTestEnd()) {
+          break;
+        }
+      }
+      else if (notTestMode()) {
+        if (message.tag === "answer") {
+          document.getElementById("lastanswer").innerText = message.data;
+        }
+        else if (message.tag === "wrong") {
+          currentIncorrect = true;
+          if (document.getElementById("hardcore").checked) {
+            doStop();
+          }
+        }
+      }
+      else if (message.tag === "wrong") {
+        // Only called in test mode
+        // only time .time is used in "wrong" message
+        answeredQuestions.push({category: currentCategory, incorrect: true, time: message.extra.time});
+        handleMessages(advanceQuestion());
+        questionCount++;
+        updateData();
+        checkForTestEnd();
       }
     }
   }
@@ -87,7 +119,6 @@ function handleMessages(arr) {
 
 function doStart() {
   handleMessages(startMode(document.getElementById("inputbox").value.toLowerCase()));
-  document.getElementById("inputbox").value = "";
   answeredQuestions.splice(0, answeredQuestions.length);
 }
 
@@ -95,6 +126,7 @@ function doStop() {
   document.getElementById("inputbox").value = "";
   handleMessages(stopMode());
   // Display answered questions
+  console.log("-----Results-----");
   const byCategory = {};
   for (const question of answeredQuestions) {
     if (!byCategory[question.category])
@@ -104,21 +136,27 @@ function doStop() {
     byCategory[question.category].total++;
     byCategory[question.category].totalTime += question.time;
   }
+  let correct = 0, total = 0, totalTime = 0;
   for (const category in byCategory) {
     const data = byCategory[category];
+    correct += data.correct;
+    total += data.total;
+    totalTime += data.totalTime;
     const avgTime = data.totalTime / data.total;
-    console.log(`${category}: ${data.correct}/${data.total} correct, average time: ${avgTime}ms`);
+    console.log(`${category}: ${data.correct}/${data.total} correct, average time: ${Math.round(avgTime)}ms`);
     if (data.averageTime > 7500)
       console.log("Average time is too high!");
     if (data.correct / data.total < 0.85)
       console.log("Accuracy is too low!");
   }
+  console.log(`Total: ${correct}/${total} correct, Accuracy: ${Math.round(correct / total * 100)}%`);
+  console.log(`Total time: ${Math.round(totalTime)}ms, Average time: ${Math.round(totalTime / total)}ms`);
+  console.log("-----End-----");
 }
 
 function onInputChange(input) {
-  if (document.getElementById("requireenter").checked || document.getElementById("hardcore").checked)
-    return;
-  handleMessages(onMessage(input.value));
+  if (!shouldRequireEnter())
+    handleMessages(onMessage(input.value));
 }
 
 function onEnterPressed(e, input) {

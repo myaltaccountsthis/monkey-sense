@@ -49,9 +49,24 @@
     </div>
     <br/>
     <div style="margin-bottom: 8px;">
-      <input type="checkbox" id="requireenter" checked>Require Enter</input>
+      <input type="checkbox" name="requireenter" id="requireenter" checked>
+      <label for="requireenter">Require Enter</label>
       <br/>
-      <input type="checkbox" id="hardcore">Hardcore</div>
+      <input type="checkbox" name="hardcore" id="hardcore">
+      <label for="hardcore">Hardcore</label>
+      <br/>
+      <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; column-gap: 4px;">
+        <input type="checkbox" name="testmode" id="testmode">
+        <label for="testmode">Test Mode</label>
+        <span></span>
+        <select name="testlength" id="testlength">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="40">40</option>
+          <option value="80" selected>80</option>
+          <option value="160">160</option>
+        </select>
+      </div>
     </div>
     <div class="flex-center">
       <button id="start" onclick="doStart();">Start</button>

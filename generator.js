@@ -636,9 +636,9 @@ const questionGens = {
         }
         ans *= count;
       }
-      if (Math.random() < .4) {
-        return { ans: arr.length, str: `Find the number of positive prime divisors of \`${a}\`` };
-      }
+      //if (Math.random() < .4) {
+      //  return { ans: arr.length, str: `Find the number of positive prime divisors of \`${a}\`` };
+      //}
       return { ans: ans, str: `Find the number of positive integral divisors of \`${a}\`` };
     }
   },
@@ -788,7 +788,7 @@ let modeHandler = function (str) {
         });
         arr.push({ type: "status", tag: "answer", data: "" });
       }
-      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`}];
+      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`, extra: {time: t}}];
     }
     else if (!isNaN(n)) {
       if (
@@ -823,19 +823,25 @@ let modeHandler = function (str) {
         });
         arr.push({ type: "status", tag: "answer", data: "" });
       }
-      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`}];
+      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`, extra: {time: t}}];
     }
     else return arr;
 
-    modeData.total++;
-    modeData.lastT = Date.now();
-    const category = generateQuestion();
     arr.push({ type: "status", tag: "answertime", data: t});
-    arr.push({ type: "question", data: getQuestionText() });
-    arr.push({ type: "status", tag: "questionCategory", data: category})
+    arr.push(...advanceQuestion());
   }
   return arr;
 };
+
+function advanceQuestion() {
+  const arr = [];
+  modeData.total++;
+  modeData.lastT = Date.now();
+  const category = generateQuestion();
+  arr.push({ type: "question", data: getQuestionText() });
+  arr.push({ type: "status", tag: "questionCategory", data: category});
+  return arr;
+}
 
 function generateQuestion() {
   let totalWeight = 0;
