@@ -17,6 +17,8 @@ function notTestMode() {
   return !document.getElementById("testmode").checked;
 }
 
+const timePerQuestion = 7500;
+
 let questionCount = 0;
 let startT = 0;
 let interval = null;
@@ -41,8 +43,12 @@ function updateData() {
     document.getElementById("averagetime").innerText = "";
 }
 
+function getTestLength() {
+  return parseInt(document.getElementById("testlength").value);
+}
+
 function checkForTestEnd() {
-  if (!notTestMode() && questionCount >= parseInt(document.getElementById("testlength").value)) {
+  if (!notTestMode() && questionCount >= getTestLength()) {
     doStop();
     return true;
   }
@@ -70,9 +76,14 @@ function handleMessages(arr) {
         startT = Date.now();
         document.getElementById("answertime").innerText = "";
         document.getElementById("lastanswer").innerText = "";
+        document.getElementById("score").innerText = "";
         updateData();
         interval = setInterval(() => {
-          document.getElementById("totaltime").innerText = `${((Date.now() - startT) / 1000).toFixed(1)}s`;
+          const t = Date.now() - startT;
+          document.getElementById("totaltime").innerText = `${(t / 1000).toFixed(1)}s`;
+          if (!notTestMode() && t > timePerQuestion * getTestLength()) {
+            doStop();
+          }
         }, 100);
       }
       else if (message.tag === "stop") {
@@ -149,8 +160,15 @@ function doStop() {
     if (data.correct / data.total < 0.85)
       console.log("Accuracy is too low!");
   }
+  const score = total * 5 - (total - correct) * 9;
+  if (total > 0 && !notTestMode()) {
+    document.getElementById("averagetime").innerText = `${Math.round(totalTime / total)}ms`;
+    document.getElementById("averagetime").style.color = getTimeColor(totalTime / total);
+    document.getElementById("score").innerText = `${score} (${score * 80 / total} adj.)`;
+  }
   console.log(`Total: ${correct}/${total} correct, Accuracy: ${Math.round(correct / total * 100)}%`);
   console.log(`Total time: ${Math.round(totalTime)}ms, Average time: ${Math.round(totalTime / total)}ms`);
+  console.log(`Score: ${score} (${score * 80 / total} adj.)`);
   console.log("-----End-----");
 }
 
