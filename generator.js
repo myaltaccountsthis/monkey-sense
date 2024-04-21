@@ -767,7 +767,104 @@ const questionGens = {
       } while (b == a);
       return { ans: gcd(a, b), str: `Find the GCD of \`${a}\` and \`${b}\`` };
     }
-  }
+  },
+  quadfact: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(1, 5);
+      const b = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
+      const c = randomInt(2, 9);
+      return {
+        ans: (a * c + b) * (a * c + b),
+        str: `If \`f(x)=${a > 1 ? a * a : ""}x^2 ${b > 0 ? "+" : "-"} ${2 * a * Math.abs(b)}x + ${b * b}\`, find the value of \`f(${c})\``,
+      };
+    }
+  },
+  roundsqrt: {
+    weight: 1,
+    func: () => {
+      const nums = [2, 3, 5, 6, 7, 8, 10];
+      const a = nums[randomInt(0, nums.length - 1)];
+      const b = nums[randomInt(0, nums.length - 1)];
+      return {
+        ans: (Math.sqrt(a) + Math.sqrt(b)).toFixed(1),
+        str: `Find the value of \`sqrt(${a}) + sqrt(${b})\` rounded to the nearest tenth`,
+        ansStr: true,
+      };
+    }
+  },
+  sumsqrt: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(2, 7);
+      const b = randomInt(2, 7);
+      let c = 0;
+      do {
+        c = randomInt(2, 8);
+      } while (c == 4);
+      return {
+        ans: (a + b) * (a + b) * c,
+        str: `If \`sqrt(${a * a * c}) + sqrt(${b * b * c}) = sqrt(x)\`, then \`x = \``,
+      };
+    }
+  },
+  rootdata: {
+    weight: 3,
+    func: () => {
+      if (Math.random() < .3) {
+        const a = randomInt(2, 6);
+        const b = randomInt(2, 12);
+        const c = randomInt(2, 10);
+        if (Math.random() < .5) {
+          return {
+            ans: new Fraction(c, a).formatted({useImproper: true}),
+            str: `The product of the roots of \`${a}x^2 + ${b}x + ${c}\` is `,
+            ansStr: true,
+          };
+        }
+        return {
+          ans: new Fraction(-b, a).formatted({useImproper: true}),
+          str: `The sum of the roots of \`${a}x^2 + ${b}x + ${c}\` is `,
+          ansStr: true,
+        };
+      }
+      const a = randomInt(2, 6);
+      const b = randomInt(2, 12);
+      const c = randomInt(2, 20);
+      const d = randomInt(2, 15);
+      const mode = randomInt(1, 4);
+      if (mode == 1) {
+        return {
+          ans: new Fraction(-b, a).formatted({useImproper: true}),
+          str: `The sum of the roots of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is `,
+          ansStr: true,
+        };
+      }
+      else if (mode == 2) {
+        return {
+          ans: new Fraction(-d, a).formatted({useImproper: true}),
+          str: `The product of the roots of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is `,
+          ansStr: true,
+        };
+      }
+      else if (mode == 3) {
+        return {
+          ans: new Fraction(c, a).formatted({useImproper: true}),
+          str: `The sum of the roots taken two at a time of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is `,
+          ansStr: true,
+        };
+      }
+      return {
+        ans: new Fraction(-3 * d, c).formatted({useImproper: true}),
+        str: `The harmonic mean of the roots of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is `,
+        ansStr: true,
+      };
+    }
+  },
+  // sum/diff cubes
+  // rootfrac
+  // modequal
+  // fraction 1/x
 };
 
 let keys;
