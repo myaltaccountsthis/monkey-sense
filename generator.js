@@ -285,7 +285,7 @@ const questionGens = {
         const denom = a * (a + n * diff);
         const ansFrac = new Fraction(n, denom);
         return {
-          ans: `${ansFrac.numerator}/${ansFrac.denominator}`,
+          ans: `${ansFrac.formatted()}`,
           str: `\`${arr.map((x) => `1/${x}`).join(" + ")} = \``,
           ansStr: true,
         };
@@ -536,16 +536,22 @@ const questionGens = {
       const n = randomInt(3, 10);
       let num = n - 1;
       let den = n + 1;
-      const ansFrac = new Fraction(num, den);
-      let str = Array(n - 1)
+      const ansFrac = new Fraction(num, den); 
+      const arr = Array(n - 1)
         .fill(0)
-        .map((_, i) => new Fraction(1, ((i + 2) * (i + 3)) / 2).formatted())
-        .join(" + ");
+        .map((_, i) => new Fraction(1, ((i + 2) * (i + 3)) / 2).formatted());
+      let str = arr.slice(0, Math.min(arr.length - 1, 4)).join(" + ");
+      if (arr.length > 5)
+        str += " + ...";
+      str += " + " + arr[arr.length - 1];
       str += " = ";
-      if (Math.random() < 0.5) {
-        return { ans: `${ansFrac.numerator}/${ansFrac.denominator}`, str: `\`${str}\``, ansStr: true };
+      if (Math.random() < 0.3) {
+        return { ans: `${ansFrac.formatted()}`, str: `\`${str}\``, ansStr: true };
       }
-      return { ans: `1 ${ansFrac.numerator}/${ansFrac.denominator}`, str: `\`1 + ${str}\``, ansStr: true };
+      if (Math.random() < .5) {
+        return { ans: `1 ${ansFrac.formatted()}`, str: `\`1 + ${str}\``, ansStr: true };
+      }
+      return { ans: `1 ${ansFrac.formatted()}`, str: `The sum of the reciprocals of the first \`${n}\` triangular numbers is `, ansStr: true };
     },
   },
   binomexp: {
@@ -861,10 +867,126 @@ const questionGens = {
       };
     }
   },
-  // sum/diff cubes
-  // rootfrac
-  // modequal
-  // fraction 1/x
+  cuberules: {
+    weight: 2,
+    func: () => {
+      const mode = randomInt(1, 3);
+      if (mode == 1) {
+        const a = randomInt(1, 8) * Math.sign(Math.random() - .5);
+        const b = randomInt(1, 12) * Math.sign(Math.random() - .5);
+        if (Math.random() < .5) {
+          return {
+            ans: (a * a - 3 * b) * a,
+            str: `If \`x + y = ${a}\` and \`xy = ${b}\`, then \`x^3 + y^3 = \``,
+          };
+        }
+        return {
+          ans: (a * a + 3 * b) * a,
+          str: `If \`x - y = ${a}\` and \`xy = ${b}\`, then \`x^3 - y^3 = \``,
+        }
+      }
+      if (mode == 2) {
+        const a = randomInt(1, 11);
+        let b = 0;
+        do {
+          b = randomInt(1, 11) * Math.sign(Math.random() - .5);
+        } while (b == -a);
+        return {
+          ans: a * a + a * b + b * b,
+          str: `\`(${a}^3 ${b > 0 ? "+" : "-"} ${Math.abs(b)}^3) ${signs.div} (${a} ${b > 0 ? "+" : "-"} ${Math.abs(b)}) = \``,
+        }
+      }
+      const a = randomInt(1, 11) * Math.sign(Math.random() - .5);
+      const b = randomInt(1, 11) * Math.sign(Math.random() - .5);
+      if (Math.random() < .5) {
+        return {
+          ans: a * a * a + b * b * b,
+          str: `If \`x = ${a}\` and \`y = ${b}\`, \`(x + y)(x^2 - xy + y^2) = \``,
+        }
+      }
+      return {
+        ans: a * a * a - b * b * b,
+        str: `If \`x = ${a}\` and \`y = ${b}\`, \`(x - y)(x^2 + xy + y^2) = \``,
+      }
+    }
+  },
+  rootfrac: {
+    weight: 1,
+    func: () => {
+      const b = randomInt(2, 4);
+      let a = 0;
+      do {
+        a = randomInt(1, 4 * b - 1);
+      } while (a % b == 0);
+      const d = randomInt(2, 4);
+      let c = 0;
+      do {
+        c = randomInt(1, 4 * d - 1);
+      } while (c % d == 0);
+      const frac1 = new Fraction(a, b);
+      const frac2 = new Fraction(c, d);
+      const denom = frac1.denominator * frac2.denominator;
+      const improper = frac1.numerator * frac2.denominator + frac2.numerator * frac1.denominator;
+      const ansFrac = new Fraction(improper, denom);
+      const str = `If \`(root(${b})(a^${a}))(root(${d})(a^${c})) = root(n)(a^k)\`, then `;
+      const mode = randomInt(1, 3);
+      if (mode == 1) {
+        return {
+          ans: ansFrac.numerator,
+          str: str + `\`k = \``,
+        }
+      }
+      if (mode == 2) {
+        return {
+          ans: ansFrac.denominator,
+          str: str + `\`n = \``,
+        }
+      }
+      return {
+        ans: ansFrac.numerator + ansFrac.denominator,
+        str: str + `\`k + n = \``,
+      };
+    }
+  },
+  fracrecip: {
+    weight: 1,
+    func: () => {
+      const b = randomInt(2, 10);
+      const a = randomInt(1, b - 1);
+      const d = randomInt(2, 10);
+      let c = 0;
+      do {
+        c = randomInt(1, d - 1);
+      } while (c == a && b == d);
+      const frac1 = new Fraction(a, b);
+      const frac2 = new Fraction(c, d);
+      const denom = frac1.denominator * frac2.denominator;
+      const improper = frac2.numerator * frac1.denominator - frac1.numerator * frac2.denominator;
+      const ansFrac = new Fraction(denom, improper);
+      return {
+        ans: ansFrac.formatted({useImproper: true}),
+        str: `If \`${frac1.formatted()} + 1/x = ${frac2.formatted()}\`, then \`x = \``,
+        ansStr: true,
+      };
+    }
+  },
+  modequal: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(2, 10);
+      const b = randomInt(2, 10);
+      const ans = randomInt(1, 20);
+      let mod = 0;
+      do {
+        mod = randomInt(6, 20);
+      } while (ans * a % mod == 0 || gcd(a, mod) != 1);
+      return {
+        ans: ans,
+        str: `Find \`x, ${Math.floor(ans / mod) * mod} <= x <= ${Math.floor((ans + mod) / mod) * mod - 1},\` if \`${a}x + ${b} ~= ${(a * ans + b) % mod} (mod ${mod})\``,
+      }
+      
+    }
+  }
 };
 
 let keys;
