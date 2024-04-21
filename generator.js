@@ -892,7 +892,7 @@ const questionGens = {
           b = randomInt(1, 11) * Math.sign(Math.random() - .5);
         } while (b == -a);
         return {
-          ans: a * a + a * b + b * b,
+          ans: a * a - a * b + b * b,
           str: `\`(${a}^3 ${b > 0 ? "+" : "-"} ${Math.abs(b)}^3) ${signs.div} (${a} ${b > 0 ? "+" : "-"} ${Math.abs(b)}) = \``,
         }
       }
