@@ -38,6 +38,7 @@
         display: flex;
         justify-content: center;
         column-gap: 6px;
+        white-space: nowrap;
       }
     </style>
   </head>
@@ -49,17 +50,17 @@
     </div>
     <br/>
     <div style="margin-bottom: 8px;">
-      <input type="checkbox" name="requireenter" id="requireenter" checked>
+      <input type="checkbox" name="requireenter" id="requireenter" checked tabindex="-1">
       <label for="requireenter">Require Enter</label>
       <br/>
-      <input type="checkbox" name="hardcore" id="hardcore">
+      <input type="checkbox" name="hardcore" id="hardcore" tabindex="-1">
       <label for="hardcore">Hardcore</label>
       <br/>
       <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; column-gap: 4px;">
-        <input type="checkbox" name="testmode" id="testmode">
+        <input type="checkbox" name="testmode" id="testmode" tabindex="-1">
         <label for="testmode">Test Mode</label>
         <span></span>
-        <select name="testlength" id="testlength">
+        <select name="testlength" id="testlength" tabindex="-1">
           <option value="10">10</option>
           <option value="20">20</option>
           <option value="40">40</option>
