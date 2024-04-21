@@ -182,3 +182,9 @@ function onEnterPressed(e, input) {
     handleMessages(onMessage(input.value));
   }
 }
+
+// Show all categories at the start
+console.log("Categories:")
+for (const category in questionGens) {
+  console.log(category);
+}
