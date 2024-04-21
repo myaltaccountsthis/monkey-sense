@@ -164,7 +164,7 @@ function doStop() {
   if (total > 0 && !notTestMode()) {
     document.getElementById("averagetime").innerText = `${Math.round(totalTime / total)}ms`;
     document.getElementById("averagetime").style.color = getTimeColor(totalTime / total);
-    document.getElementById("score").innerText = `${score} (${score * 80 / total} adj.)`;
+    document.getElementById("score").innerText = `${score} (${score * 80 / getTestLength()} adj.)`;
   }
   console.log(`Total: ${correct}/${total} correct, Accuracy: ${Math.round(correct / total * 100)}%`);
   console.log(`Total time: ${Math.round(totalTime)}ms, Average time: ${Math.round(totalTime / total)}ms`);
