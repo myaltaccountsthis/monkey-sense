@@ -176,7 +176,7 @@ const questionGens = {
     },
   },
   sqrt: {
-    weight: 1,
+    weight: 2,
     func: () => {
       const d = randomInt(4, 8);
       const a = Math.round(Math.random() * Math.pow(10, d));
@@ -184,7 +184,7 @@ const questionGens = {
     },
   },
   cbrt: {
-    weight: 1,
+    weight: 2,
     func: () => {
       const d = randomInt(4, 9);
       const a = Math.round(Math.random() * Math.pow(10, d));
@@ -192,7 +192,7 @@ const questionGens = {
     },
   },
   rdec: {
-    weight: 1,
+    weight: 2,
     func: () => {
       const d = randomInt(0, 1);
       const bLen = randomInt(1, 2);
@@ -354,7 +354,7 @@ const questionGens = {
     },
   },
   mod: {
-    weight: 2,
+    weight: 3,
     func: () => {
       if (Math.random() < 0.5) {
         const a = randomInt(5, 80);
@@ -465,7 +465,7 @@ const questionGens = {
     },
   },
   complex: {
-    weight: 1,
+    weight: 2,
     func: () => {
       const a = randomInt(1, 9);
       const b = randomInt(1, 9);
@@ -500,7 +500,7 @@ const questionGens = {
     },
   },
   estmult: {
-    weight: 1,
+    weight: 2,
     func: () => {
       const a = randomInt(1000, 9999);
       const b = randomInt(1000, 4000);
@@ -517,7 +517,7 @@ const questionGens = {
     },
   },
   fibsum: {
-    weight: 1,
+    weight: 2,
     func: () => {
       let vals = [randomInt(1, 10), randomInt(1, 6)];
       const n = randomInt(7, 12);
@@ -815,7 +815,7 @@ const questionGens = {
     }
   },
   rootdata: {
-    weight: 3,
+    weight: 4,
     func: () => {
       if (Math.random() < .3) {
         const a = randomInt(2, 6);
@@ -868,7 +868,7 @@ const questionGens = {
     }
   },
   cuberules: {
-    weight: 2,
+    weight: 3,
     func: () => {
       const mode = randomInt(1, 3);
       if (mode == 1) {
@@ -911,7 +911,7 @@ const questionGens = {
     }
   },
   rootfrac: {
-    weight: 1,
+    weight: 2,
     func: () => {
       const b = randomInt(2, 4);
       let a = 0;
