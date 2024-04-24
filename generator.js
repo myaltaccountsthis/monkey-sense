@@ -986,6 +986,17 @@ const questionGens = {
       }
       
     }
+  },
+  diffsquares: {
+    weight: 2,
+    func: () => {
+      const a = randomInt(20, 60);
+      const b = a + randomInt(1, 10) * Math.sign(Math.random() - 0.5);
+      return {
+        ans: a * a - b * b,
+        str: `\`${a}^2 - ${b}^2 = \``,
+      }
+    }
   }
 };
 
