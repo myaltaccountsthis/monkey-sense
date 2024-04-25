@@ -162,8 +162,8 @@ const questionGens = {
   mult: {
     weight: 3,
     func: () => {
-      const a = randomInt(10, 999);
-      const b = randomInt(10, 99);
+      const a = randomInt(10, 599);
+      const b = randomInt(10, 79);
       return { ans: a * b, str: `\`${a} ${signs.mult} ${b}\`` };
     },
   },
@@ -248,7 +248,7 @@ const questionGens = {
         b = nums[2] * 10 + nums[3];
         return { ans: a * a + b * b, str: `\`${a}² + ${b}²\`` };
       }
-      let a = randomInt(4, 19) * 5;
+      let a = randomInt(4, 13) * 5;
       let b = Math.sign(Math.random() - 0.5) + a;
       if (Math.random() < 0.5) {
         d = a;
@@ -310,9 +310,15 @@ const questionGens = {
         };
       }
       const b = randomInt(2, 9);
-      const a = randomInt(1, b - 1);
-      const d = randomInt(2, 9);
-      const c = randomInt(1, d - 1);
+      let a = 0;
+      do {
+        a = randomInt(1, 4 * b - 1);
+      } while (a % b === 0);
+      const d = randomInt(2, 7);
+      let c = 0;
+      do {
+        c = randomInt(1, 4 * d - 1);
+      } while (c % d === 0);
       const frac1 = new Fraction(a, b);
       const frac2 = new Fraction(c, d);
       const denom = frac1.denominator * frac2.denominator;
@@ -330,7 +336,7 @@ const questionGens = {
     func: () => {
       let gon = randomInt(3, 9);
       if (gon >= 4) gon++;
-      const n = randomInt(2, 8);
+      const n = randomInt(2, 15 - gon);
       return {
         ans: (n * ((gon - 2) * n - (gon - 4))) / 2,
         str: `Find the ${getNumberRankStr(n)} ${polygonStrs[gon]} number`,
@@ -473,28 +479,29 @@ const questionGens = {
       const d = randomInt(1, 9);
       const neg = Math.random() < 0.5;
       let str = `\`(${a} ${neg ? "-" : "+"} ${b}i)(${c} + ${d}i) = a + bi\`. `;
-      switch (randomInt(0, 3)) {
+      if (a + b + c + d < 20 && Math.random() < 0.5) {
+        return {
+          ans:
+            (a * c - b * d * (neg ? -1 : 1)) *
+            (a * d + b * c * (neg ? -1 : 1)),
+          str: str + "\`ab = \`",
+        };
+      }
+      switch (randomInt(0, 2)) {
         case 0:
-          return {
-            ans: a * c + a * d + (b * c - b * d) * (neg ? -1 : 1),
-            str: str + "\`a + b = \`",
-          };
-        case 1:
           return {
             ans: a * c - a * d - (b * c + b * d) * (neg ? -1 : 1),
             str: str + "\`a - b = \`",
           };
-        case 2:
+        case 1:
           return {
             ans: a * d - a * c + (b * c + b * d) * (neg ? -1 : 1),
             str: str + "\`b - a = \`",
           };
         default:
           return {
-            ans:
-              (a * c - b * d * (neg ? -1 : 1)) *
-              (a * d + b * c * (neg ? -1 : 1)),
-            str: str + "\`ab = \`",
+            ans: a * c + a * d + (b * c - b * d) * (neg ? -1 : 1),
+            str: str + "\`a + b = \`",
           };
       }
     },
@@ -677,13 +684,13 @@ const questionGens = {
         return { ans: parseInt((a - b).toString(base)), str: `\`${a.toString(base)}_${base} - ${b.toString(base)}_${base}\`` };
       }
       else if (mode == 3) {
-        const a = randomInt(10, 250);
-        const b = randomInt(10, 25);
+        const a = randomInt(10, 80);
+        const b = randomInt(4, 25);
         const base = randomInt(4, 9);
         return { ans: parseInt((a * b).toString(base)), str: `\`${a.toString(base)}_${base} ${signs.mult} ${b.toString(base)}_${base}\`` };
       }
       const b = randomInt(2, 9);
-      const a = b * randomInt(5, 50);
+      const a = b * randomInt(5, 25);
       const base = randomInt(4, 9);
       return { ans: parseInt((a / b).toString(base)), str: `\`${a.toString(base)}_${base} ${signs.div} ${b.toString(base)}_${base}\`` };
     },
@@ -693,8 +700,16 @@ const questionGens = {
     func: () => {
       const a = randomInt(2, 9);
       const b = randomInt(2, 9) * Math.sign(Math.random() - 0.3);
-      const c = randomInt(2, 9);
-      const d = randomInt(2, 9) * Math.sign(Math.random() - 0.3);
+      const c = randomInt(2, 6);
+      const d = randomInt(2, 6) * Math.sign(Math.random() - 0.3);
+      if (Math.random() < 0.5) {
+        const e = randomInt(2, 6) * Math.sign(Math.random() - 0.3);
+        return {
+          ans: new Fraction((c * (e - d) - b), a).formatted({useImproper: true}),
+          str: `If \`f(x) = (${a}x ${b > 0 ? `+` : `-`} ${Math.abs(b)}) / ${c} ${d > 0 ? `+` : `-`} ${Math.abs(d)}\`, what is the value of \`f^-1(${e})\`?`,
+          ansStr: true,
+        }
+      }
       let e = 1;
       do {
         e = randomInt(1, 4) * Math.sign(Math.random() - 0.5);
@@ -710,7 +725,7 @@ const questionGens = {
     weight: 1,
     func: () => {
       const a = new Date(2024, randomInt(0, 6), randomInt(1, 28));
-      const b = new Date(2024, a.getMonth() + randomInt(1, 5), randomInt(1, 28));
+      const b = new Date(2024, a.getMonth() + randomInt(1, 4), randomInt(1, 28));
       let diff = Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
       const aBegin = Math.random() < .5;
       const bBegin = Math.random() < .5;
@@ -896,8 +911,8 @@ const questionGens = {
           str: `\`(${a}^3 ${b > 0 ? "+" : "-"} ${Math.abs(b)}^3) ${signs.div} (${a} ${b > 0 ? "+" : "-"} ${Math.abs(b)}) = \``,
         }
       }
-      const a = randomInt(1, 11) * Math.sign(Math.random() - .5);
-      const b = randomInt(1, 11) * Math.sign(Math.random() - .5);
+      const a = randomInt(1, 8) * Math.sign(Math.random() - .5);
+      const b = randomInt(1, 8) * Math.sign(Math.random() - .5);
       if (Math.random() < .5) {
         return {
           ans: a * a * a + b * b * b,
@@ -982,7 +997,7 @@ const questionGens = {
       } while (ans * a % mod == 0 || gcd(a, mod) != 1);
       return {
         ans: ans,
-        str: `Find \`x, ${Math.floor(ans / mod) * mod} <= x <= ${Math.floor((ans + mod) / mod) * mod - 1},\` if \`${a}x + ${b} ~= ${(a * ans + b) % mod} (mod ${mod})\``,
+        str: `Find \`x, ${Math.floor(ans / mod) * mod} <= x <= ${Math.floor((ans + mod) / mod) * mod - 1},\` if \`${a}x + ${b} ~= ${a * ans % mod + b} (mod ${mod})\``,
       }
       
     }
