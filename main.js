@@ -1,8 +1,13 @@
-const blueEnd = 3000, green = 5000, yellow = 7500, redEnd = 15000;
+function getTimeColorBounds() {
+  if (mode === "zetamac")
+    return  {blueEnd: 800, green: 1200, yellow: 2000, redEnd: 3000};
+  return {blueEnd: 3000, green: 5000, yellow: 7500, redEnd: 15000};
+}
 /**
  * Returns a CSS color string based on how good the answer time is
  */
 function getTimeColor(ms) {
+  const {blueEnd, green, yellow, redEnd} = getTimeColorBounds();
   const r = Math.max(0, Math.min(1, (ms - green) / (yellow - green))) * 0xff;
   const g = Math.max(0, Math.min(1, 1 - (ms - yellow) / (redEnd - yellow))) * 0xff;
   const b = Math.max(0, Math.min(1, 1 - (ms - blueEnd) / (green - blueEnd))) * 0xff;
@@ -10,7 +15,7 @@ function getTimeColor(ms) {
 }
 
 function shouldRequireEnter() {
-  return document.getElementById("requireenter").checked || document.getElementById("hardcore").checked || document.getElementById("testmode").checked;
+  return (document.getElementById("requireenter").checked || document.getElementById("hardcore").checked || document.getElementById("testmode").checked);
 }
 
 function notTestMode() {
@@ -48,7 +53,7 @@ function getTestLength() {
 }
 
 function checkForTestEnd() {
-  if (!notTestMode() && questionCount >= getTestLength()) {
+  if (!notTestMode() && mode != "zetamac" && questionCount >= getTestLength()) {
     doStop();
     return true;
   }
@@ -65,7 +70,7 @@ function handleMessages(arr) {
     }
     else if (message.type === "reply") {
       // On correct answer
-      answeredQuestions.push({category: currentCategory, incorrect: currentIncorrect, time: message.extra.time});
+      answeredQuestions.push({category: currentCategory, incorrect: currentIncorrect, time: message.extra.time, question: message.extra.question, response: message.extra.response});
       currentIncorrect = false;
     }
     else if (message.type === "status") {
@@ -81,7 +86,7 @@ function handleMessages(arr) {
         interval = setInterval(() => {
           const t = Date.now() - startT;
           document.getElementById("totaltime").innerText = `${(t / 1000).toFixed(1)}s`;
-          if (!notTestMode() && t > timePerQuestion * getTestLength()) {
+          if (!notTestMode() && t > (mode === "zetamac" ? getTestLength() * 1000 : timePerQuestion * getTestLength())) {
             doStop();
           }
         }, 100);
@@ -109,8 +114,10 @@ function handleMessages(arr) {
           document.getElementById("lastanswer").innerText = message.data;
         }
         else if (message.tag === "wrong") {
-          currentIncorrect = true;
+          if (shouldRequireEnter())
+            currentIncorrect = true;
           if (document.getElementById("hardcore").checked) {
+            answeredQuestions.push({category: currentCategory, incorrect: true, time: message.extra.time, question: message.extra.question, response: message.extra.response});
             doStop();
           }
         }
@@ -118,7 +125,7 @@ function handleMessages(arr) {
       else if (message.tag === "wrong") {
         // Only called in test mode
         // only time .time is used in "wrong" message
-        answeredQuestions.push({category: currentCategory, incorrect: true, time: message.extra.time});
+        answeredQuestions.push({category: currentCategory, incorrect: true, time: message.extra.time, question: message.extra.question, response: message.extra.response});
         handleMessages(advanceQuestion());
         questionCount++;
         updateData();
@@ -129,7 +136,7 @@ function handleMessages(arr) {
 }
 
 function doStart() {
-  handleMessages(startMode(document.getElementById("inputbox").value.toLowerCase()));
+  handleMessages(startMode(document.getElementById("mode").value, document.getElementById("inputbox").value.toLowerCase()));
   answeredQuestions.splice(0, answeredQuestions.length);
 }
 
@@ -144,6 +151,8 @@ function doStop() {
       byCategory[question.category] = {correct: 0, total: 0, totalTime: 0};
     if (!question.incorrect)
       byCategory[question.category].correct++;
+    else if (shouldRequireEnter())
+      console.log("[%s] %s (you put %s, ans = %s)", question.category, question.question.str, question.response, question.question.ans);
     byCategory[question.category].total++;
     byCategory[question.category].totalTime += question.time;
   }
@@ -157,14 +166,17 @@ function doStop() {
     console.log(`${category}: ${data.correct}/${data.total} correct, average time: ${Math.round(avgTime)}ms`);
     if (data.averageTime > 7500)
       console.log("Average time is too high!");
-    if (data.correct / data.total < 0.85)
+    if (data.correct / data.total < 0.8)
       console.log("Accuracy is too low!");
   }
   const score = total * 5 - (total - correct) * 9;
   if (total > 0 && !notTestMode()) {
     document.getElementById("averagetime").innerText = `${Math.round(totalTime / total)}ms`;
     document.getElementById("averagetime").style.color = getTimeColor(totalTime / total);
-    document.getElementById("score").innerText = `${score} (${score * 80 / getTestLength()} adj.)`;
+    if (mode === "zetamac")
+      document.getElementById("score").innerText = `${correct} (${correct * 120 / getTestLength()} adj.)`;
+    else
+      document.getElementById("score").innerText = `${score} (${score * 80 / getTestLength()} adj.)`;
   }
   console.log(`Total: ${correct}/${total} correct, Accuracy: ${Math.round(correct / total * 100)}%`);
   console.log(`Total time: ${Math.round(totalTime)}ms, Average time: ${Math.round(totalTime / total)}ms`);

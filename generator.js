@@ -145,33 +145,35 @@ const months = [
 const questionGens = {
   add: {
     weight: 2,
-    func: () => {
-      const a = randomInt(10, 9999);
-      const b = randomInt(10, 9999);
+    func: (min = 10, max = 9999) => {
+      const a = randomInt(min, max);
+      const b = randomInt(min, max);
       return { ans: a + b, str: `\`${a}+${b}\`` };
     },
   },
   sub: {
     weight: 2,
-    func: () => {
-      const a = randomInt(10, 9999);
-      const b = randomInt(10, 9999);
+    func: (min = 10, max = 9999) => {
+      const a = randomInt(min, max);
+      const b = randomInt(min, max);
       return { ans: a - b, str: `\`${a} - ${b}\`` };
     },
   },
   mult: {
     weight: 3,
-    func: () => {
-      const a = randomInt(10, 599);
-      const b = randomInt(10, 79);
+    func: (min = 10, maxA = 599, maxB = 79) => {
+      const a = randomInt(min, maxA);
+      const b = randomInt(min, maxB);
       return { ans: a * b, str: `\`${a} ${signs.mult} ${b}\`` };
     },
   },
   div: {
     weight: 1,
-    func: () => {
-      const b = randomInt(5, 40);
-      const a = b * randomInt(5, 100);
+    func: (min = 5, maxAns = 100, maxDiv = 40) => {
+      // a is dividend, b is divisor
+      // a's randomInt() is the answer
+      const b = randomInt(min, maxDiv);
+      const a = b * randomInt(min, maxAns);
       return { ans: a / b, str: `\`${a} ${signs.div} ${b}\`` };
     },
   },
@@ -1024,16 +1026,17 @@ let modeHandler = function (str) {
   const n = parseFloat(str);
   if (mode !== "") {
     const t = Date.now() - modeData.lastT;
+    const extra = {time: t, question: modeData.question, response: str};
     if (modeData.question.ansStr) {
       if (str == modeData.question.ans) {
         arr.push({
           type: "reply",
           data: `Correct! The answer is ${modeData.question.ans}. You took ${t}ms.`,
-          extra: {time: t}
+          extra: extra
         });
         arr.push({ type: "status", tag: "answer", data: "" });
       }
-      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`, extra: {time: t}}];
+      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`, extra: extra}];
     }
     else if (!isNaN(n)) {
       if (
@@ -1054,7 +1057,7 @@ let modeHandler = function (str) {
           data: `${prefix} ${(diff * 100).toFixed(1)}% off. The answer is ${Math.round(
             modeData.question.ans * 0.95,
           )}-${Math.round(modeData.question.ans * 1.05)}. You took ${t}ms.`,
-          extra: {time: t}
+          extra: extra
         });
         arr.push({ type: "status", tag: "answer", data: `${prefix} ${Math.round(diff * 100)}% off. ${Math.round(
           modeData.question.ans * 0.95,
@@ -1064,11 +1067,11 @@ let modeHandler = function (str) {
         arr.push({
           type: "reply",
           data: `Correct! The answer is ${modeData.question.ans}. You took ${t}ms.`,
-          extra: {time: t}
+          extra: extra
         });
         arr.push({ type: "status", tag: "answer", data: "" });
       }
-      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`, extra: {time: t}}];
+      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`, extra: extra}];
     }
     else return arr;
 
@@ -1089,16 +1092,34 @@ function advanceQuestion() {
 }
 
 function generateQuestion() {
-  let totalWeight = 0;
-  let key;
-  for (key of keys) totalWeight += questionGens[key].weight;
-  let rand = Math.random() * totalWeight;
-  for (key of keys) {
-    rand -= questionGens[key].weight;
-    if (rand < 0) break;
+  let question, key;
+  if (mode === "zetamac") {
+    const available = ["add", "sub", "mult", "div"].filter(key => keys.includes(key));
+    if (available.length === 0)
+      available.push(...["add", "sub", "mult", "div"]);
+    let rand = randomInt(1, available.length);
+    key = available[rand - 1];
+    if (key === "add")
+      question = questionGens.add.func(2, 100);
+    else if (key === "sub")
+      question = questionGens.sub.func(2, 100);
+    else if (key === "mult")
+      question = questionGens.mult.func(2, 12, 100);
+    else
+      question = questionGens.div.func(2, 100, 12);
   }
-  const questionGen = questionGens[key];
-  modeData.question = questionGen.func();
+  else {
+    let totalWeight = 0;
+    for (key of keys) totalWeight += questionGens[key].weight;
+    let rand = Math.random() * totalWeight;
+    for (key of keys) {
+      rand -= questionGens[key].weight;
+      if (rand < 0) break;
+    }
+    const questionGen = questionGens[key];
+    question = questionGen.func();
+  }
+  modeData.question = question;
   if (!useAsciiMath) {
     modeData.question.str = modeData.question.str.replace(/`/g, "");
     // also replace sqrt, cbrt
@@ -1111,9 +1132,11 @@ function getQuestionText() {
   return `Q${modeData.total + 1}: ${modeData.question.str}`;
 }
 
-function startMode(text) {
-  if (mode === "") {
-    mode = "math";
+let active = false;
+function startMode(newMode, text) {
+  if (!active) {
+    mode = newMode;
+    active = true;
     // const keyStr = text.includes(" ")
     //   ? text.substring(text.indexOf(" ") + 1).trim()
     //   : "";
@@ -1127,13 +1150,13 @@ function startMode(text) {
       keys = Object.keys(questionGens);
     modeData = { total: 0, lastT: Date.now() };
     const category = generateQuestion();
-    return [{ type: "status", tag: "start", data: "Starting math..." }, { type: "question", data: getQuestionText() }, { type: "status", tag: "questionCategory", data: category }];
+    return [{ type: "status", tag: "start", data: "Starting monkey sense..." }, { type: "question", data: getQuestionText() }, { type: "status", tag: "questionCategory", data: category }];
   }
-  return [{ type: "status", tag: "alreadyrunning", data: "Math is already running!" }];
+  return [{ type: "status", tag: "alreadyrunning", data: "Monkey Sense is already running!" }];
 }
 
 function stopMode() {
-  mode = "";
+  active = false;
   return [{ type: "status", tag: "stop", data: "Stopping math..." }];
 }
 
@@ -1148,7 +1171,7 @@ function onMessage(text) {
   if (useChatCommands && text.startsWith("!stop")) {
     return stopMode();
   }
-  if (useChatCommands && text.startsWith("!math")) {
+  if (useChatCommands && text.startsWith("!ns")) {
     return startMode(text);
   }
   if (useChatCommands && text.startsWith("!question")) {
