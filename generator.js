@@ -416,7 +416,7 @@ const questionGens = {
     },
   },
   fracmult: {
-    weight: 3,
+    weight: 4,
     func: () => {
       if (Math.random() < 0.2) {
         const c = randomInt(10, 32);
@@ -449,7 +449,7 @@ const questionGens = {
             return { ans: m * n, str: str + "\`mn = \`" };
         }
       }
-      if (Math.random() < 0.5) {
+      if (Math.random() < 0.4) {
         let c = randomInt(13, 25);
         let b = c;
         do {
@@ -468,22 +468,32 @@ const questionGens = {
           ansStr: true,
         };
       }
-      let d1 = randomInt(2, 12);
-      let d2 = randomInt(2, 12);
-      let n1 = Math.max(randomInt(-2, Math.min(5, d1 - 1)), 1);
-      let n2 = Math.max(randomInt(-2, Math.min(5, d2 - 1)), 1);
-      const frac1 = new Fraction(n1, d1);
-      const frac2 = new Fraction(n2, d2);
-      const a = Math.max(randomInt(-2, 3), 1) * frac2.denominator;
-      const b = Math.max(randomInt(-2, 3), 1) * frac1.denominator;
-      const ansFrac = new Fraction(frac1.numerator * frac2.numerator, frac1.denominator * frac2.denominator);
-      // TODO check this
-      const mixed1 = new Fraction(a * frac1.denominator + frac1.numerator, frac1.denominator);
-      const mixed2 = new Fraction(b * frac2.denominator + frac2.numerator, frac2.denominator);
-      const whole = a * b + (a / frac2.denominator) * frac2.numerator + (b / frac1.denominator) * frac1.numerator;
+      if (Math.random() < .66) {
+        let d1 = randomInt(2, 12);
+        let d2 = randomInt(2, 12);
+        let n1 = Math.max(randomInt(-2, Math.min(5, d1 - 1)), 1);
+        let n2 = Math.max(randomInt(-2, Math.min(5, d2 - 1)), 1);
+        const frac1 = new Fraction(n1, d1);
+        const frac2 = new Fraction(n2, d2);
+        const a = Math.max(randomInt(-2, 3), 1) * frac2.denominator;
+        const b = Math.max(randomInt(-2, 3), 1) * frac1.denominator;
+        const ansFrac = new Fraction(frac1.numerator * frac2.numerator, frac1.denominator * frac2.denominator);
+        const mixed1 = new Fraction(a * frac1.denominator + frac1.numerator, frac1.denominator);
+        const mixed2 = new Fraction(b * frac2.denominator + frac2.numerator, frac2.denominator);
+        const whole = a * b + (a / frac2.denominator) * frac2.numerator + (b / frac1.denominator) * frac1.numerator;
+        return {
+          ans: `${new Fraction(whole * ansFrac.denominator + ansFrac.numerator, ansFrac.denominator).formatted()}`,
+          str: `\`${mixed1.formatted()} * ${mixed2.formatted()}\``,
+          ansStr: true,
+        };
+      }
+      const d1 = randomInt(2, 12);
+      const d2 = randomInt(2, 12);
+      const n1 = randomInt(1, d1 - 1);
+      const n2 = randomInt(1, d2 - 1);
       return {
-        ans: `${new Fraction(whole * ansFrac.denominator + ansFrac.numerator, ansFrac.denominator).formatted()}`,
-        str: `\`${mixed1.formatted()} * ${mixed2.formatted()}\``,
+        ans: `${new Fraction(n1 * n2, d1 * d2).formatted({useImproper: true})}`,
+        str: `\`${new Fraction(n1, d1).formatted()} ${signs.mult} ${new Fraction(n2, d2).formatted()}\``,
         ansStr: true,
       };
     },
@@ -1045,16 +1055,108 @@ const questionGens = {
       }
     }
   },
+  fracsub: {
+    weight: 1,
+    func: () => {
+      const b = randomInt(2, 9);
+      let a = 0;
+      do {
+        a = randomInt(1, 4 * b - 1);
+      } while (a % b === 0);
+      const d = randomInt(2, 7);
+      let c = 0;
+      do {
+        c = randomInt(1, 3 * d - 1);
+      } while (c % d === 0);
+      const frac1 = new Fraction(a, b);
+      const frac2 = new Fraction(c, d);
+      const denom = frac1.denominator * frac2.denominator;
+      const improper = frac1.numerator * frac2.denominator - frac2.numerator * frac1.denominator;
+      const ansFrac = new Fraction(improper, denom);
+      return {
+        ans: ansFrac.formatted(),
+        str: `\`${frac1.formatted()} - ${frac2.formatted()}\` (${ansFrac.isMixed() > 0 ? "mixed" : "proper"})`,
+        ansStr: true,
+      };
+    }
+  },
+  fracdiv: {
+    weight: 1,
+    func: () => {
+      const d1 = randomInt(2, 12);
+      const d2 = randomInt(2, 12);
+      const n1 = randomInt(1, d1 - 1);
+      const n2 = randomInt(1, d2 - 1);
+      return {
+        ans: `${new Fraction(n1 * d2, n2 * d1).formatted({useImproper: true})}`,
+        str: `\`${new Fraction(n1, d1).formatted()} ${signs.div} ${new Fraction(n2, d2).formatted()}\``,
+        ansStr: true,
+      };
+    }
+  },
+  multadd: {
+    weight: 1,
+    func: () => {
+      const a = Math.pow(10, randomInt(1, 2)) * randomInt(3, 30);
+      const b = randomInt(4, 20);
+      return {
+        ans: a * b,
+        str: `\`${a - b} * ${b} + ${b * b}\``
+      }
+    }
+  },
+  binomnum: {
+    weight: 1,
+    func: () => {
+      const pow = randomInt(2, 3);
+      const a = randomInt(1, 9);
+      const b = randomInt(1, 9);
+      const num = a * 100 + b;
+      return {
+        ans: Math.pow(num, pow),
+        str: `\`(${num})^${pow}\``
+      }
+    }
+  },
+  varies: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(3, 20);
+      const b = randomInt(3, 20);
+      let c = 0;
+      do {
+        c = randomInt(3, 20);
+      } while (c == a);
+      if (Math.random() < .5) {
+        return {
+          ans: new Fraction(b * c, a).formatted({useImproper: true}),
+          str: `Given \`y\` varies directly with \`x\` and \`y=${b}\` when \`x=${a}\`. Find y when \`x = ${c}\``,
+          ansStr: true
+        }
+      }
+      return {
+        ans: new Fraction(b * a, c).formatted({useImproper: true}),
+        str: `Given \`y\` varies inversely with \`x\` and \`y=${b}\` when \`x=${a}\`. Find y when \`x=${c}\``,
+        ansStr: true
+      }
+    }
+  },
+  numdivis: {
+    weight: 1,
+    func: () => {
+      const mod = randomInt(3, 12);
+      const a = randomInt(3, 20);
+      const b = randomInt(a + mod * 7, a + mod * 12);
+      return {
+        ans: (Math.floor((b - 1) / mod) - Math.floor((a + 1) / mod)),
+        str: `How many integers between \`${a}\` and \`${b}\` are divisible by \`${mod}\`?`
+      }
+    }
+  }
   // roman numeral add/sub
-  // fracsub
-  // fracdiv
-  // mult + add trick
   // systems?
   // set intersection
-  // x0y squared or cubed
-  // varies direct/inverse
   // max/min point of quadratic
-  // how many integers between x and y are divisible by mod
   // base n decimal to base 10 frac, vice versa
 };
 
