@@ -8,6 +8,53 @@ const signs = {
 
 const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
 
+const polygonStrs = [
+  "",
+  "",
+  "",
+  "triangular",
+  "square",
+  "pentagonal",
+  "hexagonal",
+  "heptagonal",
+  "octagonal",
+  "nonagonal",
+  "decagonal",
+  "hendecagonal",
+  "dodecagonal",
+];
+
+const months = [
+  "Jan.",
+  "Feb.",
+  "Mar.",
+  "Apr.",
+  "May",
+  "Jun.",
+  "Jul.",
+  "Aug.",
+  "Sep.",
+  "Oct.",
+  "Nov.",
+  "Dec.",
+]
+
+const romans = {
+  1000: "M",
+  900: "CM",
+  500: "D",
+  400: "CD",
+  100: "C",
+  90: "XC",
+  50: "L",
+  40: "XL",
+  10: "X",
+  9: "IX",
+  5: "V",
+  4: "IV",
+  1: "I"
+}
+
 // Inclusive random
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -42,6 +89,18 @@ function getNumberRankStr(n) {
     default:
       return `${n}th`;
   }
+}
+
+function toRoman(n) {
+  let str = ``;
+  for (let i = Object.keys(romans).length - 1; i >= 0; i--) {
+    const key = Object.keys(romans)[i];
+    while (n >= key) {
+      str += romans[key];
+      n -= key;
+    }
+  }
+  return str;
 }
 
 class Fraction {
@@ -114,37 +173,6 @@ class Fraction {
     return this.numerator / this.denominator;
   }
 }
-
-const polygonStrs = [
-  "",
-  "",
-  "",
-  "triangular",
-  "square",
-  "pentagonal",
-  "hexagonal",
-  "heptagonal",
-  "octagonal",
-  "nonagonal",
-  "decagonal",
-  "hendecagonal",
-  "dodecagonal",
-];
-
-const months = [
-  "Jan.",
-  "Feb.",
-  "Mar.",
-  "Apr.",
-  "May",
-  "Jun.",
-  "Jul.",
-  "Aug.",
-  "Sep.",
-  "Oct.",
-  "Nov.",
-  "Dec.",
-]
 
 const questionGens = {
   add: {
@@ -803,7 +831,7 @@ const questionGens = {
       }
       return {
         ans: ans,
-        str: `The set \`[${arr.map(s => String.fromCharCode(65 + s)).join(", ")}]\` contains how many \`${r}\` element subsets?`
+        str: `The set \`[${arr.map(s => String.fromCharCode(97 + s)).join(", ")}]\` contains how many \`${r}\` element subsets?`
       };
     }
   },
@@ -1102,7 +1130,7 @@ const questionGens = {
       return {
         ans: a * b,
         str: `\`${a - b} * ${b} + ${b * b}\``
-      }
+      };
     }
   },
   binomnum: {
@@ -1115,7 +1143,7 @@ const questionGens = {
       return {
         ans: Math.pow(num, pow),
         str: `\`(${num})^${pow}\``
-      }
+      };
     }
   },
   varies: {
@@ -1138,7 +1166,7 @@ const questionGens = {
         ans: new Fraction(b * a, c).formatted({useImproper: true}),
         str: `Given \`y\` varies inversely with \`x\` and \`y=${b}\` when \`x=${a}\`. Find y when \`x=${c}\``,
         ansStr: true
-      }
+      };
     }
   },
   numdivis: {
@@ -1150,14 +1178,84 @@ const questionGens = {
       return {
         ans: (Math.floor((b - 1) / mod) - Math.floor((a + 1) / mod)),
         str: `How many integers between \`${a}\` and \`${b}\` are divisible by \`${mod}\`?`
+      };
+    }
+  },
+  roman: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(1, 2) * 1000 + randomInt(1, 90);
+      const b = randomInt(1, 9) * 100 + randomInt(1, 90);
+      const aStr = toRoman(a);
+      const bStr = toRoman(b);
+      if (Math.random() < .5) {
+        return {
+          ans: a + b,
+          str: `${aStr} \`+\` ${bStr} \`=\`(Arabic Numeral)`
+        }
+      }
+      return {
+        ans: a - b,
+        str: `${aStr} \`-\` ${bStr} \`=\` (Arabic Numeral)`
       }
     }
-  }
-  // roman numeral add/sub
+  },
+  setint: {
+    weight: 1,
+    func: () => {
+      const arr1 = Array(randomInt(2, 5)).fill(0).map((v, _) => String.fromCharCode(97 + randomInt(0, 25)));
+      const arr2 = Array(randomInt(2, 5)).fill(0).map((v, _) => String.fromCharCode(97 + randomInt(0, 25)));
+      const arr3 = Array(randomInt(2, 5)).fill(0).map((v, _) => String.fromCharCode(97 + randomInt(0, 25)));
+      const arr4 = Array(randomInt(2, 5)).fill(0).map((v, _) => String.fromCharCode(97 + randomInt(0, 25)));
+      const seta = new Set(arr1.concat(arr2));
+      const setb = new Set(arr3.concat(arr4));
+      let ans = 0;
+      seta.forEach((v) => {if (setb.has(v)) ans++});
+      return {
+        ans: ans,
+        str: `\`[{${arr1.join(", ")}}uu{${arr2.join(", ")}}]nn[{${arr3.join(", ")}}uu{${arr4.join(", ")}}]\` contains how many distinct elements?`
+      };
+    }
+  },
+  basefrac: {
+    weight: 1,
+    func: () => {
+      const base = randomInt(4, 9);
+      let num = 0;
+      do {
+        num = randomInt(base + 1, base * base - 1);
+      } while (gcd(num, base) != 1);
+      const frac = new Fraction(num, base * base);
+      const a = parseInt(num.toString(base));
+      if (Math.random() < .5) {
+        return {
+          ans: frac.formatted(),
+          str: `\`${a / 100}_${base} =\`base 10 (fraction)`,
+          ansStr: true
+        }
+      }
+      return {
+        ans: a / 100,
+        str: `Change \`${frac.formatted()}\` to a base \`${base}\` decimal`
+      }
+    }
+  },
+  quadvert: {
+    weight: 1,
+    func: () => {
+      const a = Math.max(randomInt(-2, 2), 1) * Math.sign(Math.random() - 0.5);
+      const b = randomInt(1, 8) * Math.sign(Math.random() - 0.5);
+      const c = randomInt(1, 8) * Math.sign(Math.random() - 0.5);
+      const vert = -b / (2 * a);
+      return {
+        ans: vert + vert * vert * a + b * vert + c,
+        str: `Given: \`f(x)=${(a < 0 ? "-" : "") + (Math.abs(a) > 1 ? Math.abs(a) : "")}x^2${(b < 0 ? "-" : "+") + (Math.abs(b) > 1 ? Math.abs(b) : "")}x${(c < 0 ? "-" : "+") + Math.abs(c)}\` has a ${a > 0 ? "minimum" : "maximum"} point at \`(a, b)\`. Find \`a + b\`.`,
+      }
+    }
+  },
   // systems?
-  // set intersection
   // max/min point of quadratic
-  // base n decimal to base 10 frac, vice versa
+  // quadratic focus
 };
 
 let keys;
