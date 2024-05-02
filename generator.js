@@ -109,6 +109,10 @@ class Fraction {
     }
     return `${sign}${this.numerator}/${this.denominator}`;
   }
+
+  getValue() {
+    return this.numerator / this.denominator;
+  }
 }
 
 const polygonStrs = [
@@ -226,9 +230,9 @@ const questionGens = {
     },
   },
   sqadd: {
-    weight: 2,
+    weight: 1,
     func: () => {
-      if (Math.random() < 0.5) {
+      // if (Math.random() < 0.5) {
         let a = randomInt(2, 9);
         let b = randomInt(1, 9);
         let d;
@@ -249,15 +253,15 @@ const questionGens = {
         a = nums[0] * 10 + nums[1];
         b = nums[2] * 10 + nums[3];
         return { ans: a * a + b * b, str: `\`${a}² + ${b}²\`` };
-      }
-      let a = randomInt(4, 13) * 5;
-      let b = Math.sign(Math.random() - 0.5) + a;
-      if (Math.random() < 0.5) {
-        d = a;
-        a = b;
-        b = d;
-      }
-      return { ans: a * a + b * b, str: `\`${a}² + ${b}²\`` };
+      // }
+      // let a = randomInt(4, 13) * 5;
+      // let b = Math.sign(Math.random() - 0.5) + a;
+      // if (Math.random() < 0.5) {
+      //   d = a;
+      //   a = b;
+      //   b = d;
+      // }
+      // return { ans: a * a + b * b, str: `\`${a}² + ${b}²\`` };
     },
   },
   fracadd: {
@@ -381,14 +385,23 @@ const questionGens = {
     },
   },
   pow: {
-    weight: 1,
+    weight: 2,
     func: () => {
       const base = randomInt(2, 8);
-      const a = randomInt(-4, 8);
-      const b = randomInt(-4, 8);
-      const c = randomInt(-4, 8);
       const aPow = randomInt(1, 3);
       const cPow = randomInt(1, 2);
+      let a = 0;
+      do {
+        a = randomInt(-3, Math.floor(8 / aPow));
+      } while (a == 0);
+      let b = 0;
+      do {
+        b = randomInt(-4, 8);
+      } while (b == 0);
+      let c = 0;
+      do {
+        c = randomInt(-3, Math.floor(8 / cPow));
+      } while (c == 0);
       const ans = aPow * a - b + cPow * c;
       if (ans >= -3 && ans <= 3 && Math.random() < 0.9)
         return {
@@ -408,7 +421,10 @@ const questionGens = {
       if (Math.random() < 0.2) {
         const c = randomInt(10, 32);
         let bDen = randomInt(3, 12);
-        let bNum = randomInt(bDen * 2, Math.round(Math.sqrt(c) * bDen));
+        let bNum = 0;
+        do {
+          bNum = randomInt(bDen * 2, Math.round(Math.sqrt(c) * bDen));
+        } while (c * bDen % bNum == 0);
         const frac2 = new Fraction(bNum, bDen);
         const frac1 = new Fraction(c * frac2.denominator, frac2.numerator);
         const m = frac1.denominator, n = frac2.getWhole();
@@ -481,7 +497,7 @@ const questionGens = {
       const d = randomInt(1, 9);
       const neg = Math.random() < 0.5;
       let str = `\`(${a} ${neg ? "-" : "+"} ${b}i)(${c} + ${d}i) = a + bi\`. `;
-      if (a + b + c + d < 20 && Math.random() < 0.5) {
+      if (a + b + c + d < 16 && Math.random() < 0.5) {
         return {
           ans:
             (a * c - b * d * (neg ? -1 : 1)) *
@@ -532,6 +548,20 @@ const questionGens = {
       const n = randomInt(7, 12);
       for (let i = 2; i < n; i++) {
         vals.push(vals[i - 1] + vals[i - 2]);
+      }
+      if (Math.random() < .4) {
+        const frac = Math.pow(2, randomInt(1, 3));
+        vals = vals.map((v, _) => new Fraction(v, frac));
+        let str = `\``;
+        for (let i = 0; i < 5; i++) {
+          str += Math.random() < .33 ? Math.random() < .5 ? `${vals[i].formatted({useImproper: true})} + ` : `${vals[i].getValue()} + ` : `${vals[i].formatted()} + `;
+        }
+        str += `... + ${vals[vals.length - 2].formatted()} + ${vals[vals.length - 1].formatted()} = \``;
+        return {
+          ans: new Fraction((vals[vals.length - 1].getValue() * 2 + vals[vals.length - 2].getValue() - vals[1].getValue()) * frac, frac).formatted(),
+          str: str,
+          ansStr: true,
+        }
       }
       return {
         ans: vals[vals.length - 1] * 2 + vals[vals.length - 2] - vals[1],
@@ -1014,7 +1044,18 @@ const questionGens = {
         str: `\`${a}^2 - ${b}^2 = \``,
       }
     }
-  }
+  },
+  // roman numeral add/sub
+  // fracsub
+  // fracdiv
+  // mult + add trick
+  // systems?
+  // set intersection
+  // x0y squared or cubed
+  // varies direct/inverse
+  // max/min point of quadratic
+  // how many integers between x and y are divisible by mod
+  // base n decimal to base 10 frac, vice versa
 };
 
 let keys;
