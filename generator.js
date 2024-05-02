@@ -1042,7 +1042,7 @@ const questionGens = {
       let c = 0;
       do {
         c = randomInt(1, d - 1);
-      } while (c == a && b == d);
+      } while (a / b == c / d);
       const frac1 = new Fraction(a, b);
       const frac2 = new Fraction(c, d);
       const denom = frac1.denominator * frac2.denominator;
@@ -1213,7 +1213,7 @@ const questionGens = {
       seta.forEach((v) => {if (setb.has(v)) ans++});
       return {
         ans: ans,
-        str: `\`[{${arr1.join(", ")}}uu{${arr2.join(", ")}}]nn[{${arr3.join(", ")}}uu{${arr4.join(", ")}}]\` contains how many distinct elements?`
+        str: `\`[{\`${arr1.join(", ")}\`}uu{\`${arr2.join(", ")}\`}]nn[{\`${arr3.join(", ")}\`}uu{\`${arr4.join(", ")}\`}]\` contains how many distinct elements?`
       };
     }
   },
