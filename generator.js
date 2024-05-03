@@ -1176,7 +1176,7 @@ const questionGens = {
       const a = randomInt(3, 20);
       const b = randomInt(a + mod * 7, a + mod * 12);
       return {
-        ans: (Math.floor((b - 1) / mod) - Math.floor((a + 1) / mod)),
+        ans: (Math.floor((b - 1) / mod) - Math.ceil((a + 1) / mod) + 1),
         str: `How many integers between \`${a}\` and \`${b}\` are divisible by \`${mod}\`?`
       };
     }
