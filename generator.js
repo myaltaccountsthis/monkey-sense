@@ -433,7 +433,7 @@ const questionGens = {
       const ans = aPow * a - b + cPow * c;
       if (ans >= -3 && ans <= 3 && Math.random() < 0.9)
         return {
-          ans: ans > 0 ? Math.pow(base, ans) : `1/${Math.pow(base, -ans)}`,
+          ans: ans >= 0 ? Math.pow(base, ans) : `1/${Math.pow(base, -ans)}`,
           str: `\`${Math.pow(base, aPow)}^${a} ${signs.div} ${base}^${b} ${signs.mult} ${Math.pow(base, cPow)}^${c} = \``,
           ansStr: true,
         };
