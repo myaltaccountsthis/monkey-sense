@@ -831,7 +831,7 @@ const questionGens = {
       }
       return {
         ans: ans,
-        str: `The set \`[${arr.map(s => String.fromCharCode(97 + s)).join(", ")}]\` contains how many \`${r}\` element subsets?`
+        str: `The set \`[\`${arr.map(s => String.fromCharCode(97 + s)).join(", ")}\`]\` contains how many \`${r}\` element subsets?`
       };
     }
   },
@@ -1253,8 +1253,80 @@ const questionGens = {
       }
     }
   },
-  // systems?
-  // max/min point of quadratic
+  quadroot: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(1, 5);
+      const b = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
+      const numer = randomInt(1, 5);
+      const denom = Math.random() > .5 ? 1 : randomInt(2, 5);
+      const frac = new Fraction(Math.pow(numer, 2), Math.pow(denom, 2));
+      if (Math.random() < .5) {
+        return {
+          ans: new Fraction(numer - b * denom, denom * a).formatted({useImproper: true}),
+          str: `The larger root of \`(${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b)})^2 = ${frac.formatted()}\` is `,
+          ansStr: true
+        }
+      }
+      return {
+        ans: new Fraction (-numer - b * denom, denom * a).formatted({useImproper: true}),
+        str: `The smaller root of \`(${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b)})^2 = ${frac.formatted()}\` is `,
+        ansStr: true
+      }
+    }
+  },
+  fracest: {
+    weight: 2,
+    func: () => {
+      const a = randomInt(100, 900);
+      const b = randomInt(2, 15);
+      let c = 0;
+      do {
+        c = randomInt(2, 15);
+      } while (gcd(b, c) != 1);
+      const d = randomInt(2, 15);
+      let e = 0;
+      do {
+        e = randomInt(2, 15);
+      } while (gcd(d, e) != 1);
+      return {
+        ans: a * c / b * d / e,
+        str: `*\`${a} ${signs.div} ${(b / c).toFixed(3)} ${signs.mult} ${new Fraction(d, e).formatted()}\``,
+        guess: true
+      };
+    
+    }
+  },
+  systems: {
+    weight: 2,
+    func: () => {
+      const x = randomInt(1, 5) * Math.sign(Math.random() - 0.4);
+      const y = randomInt(1, 5) * Math.sign(Math.random() - 0.4);
+      if (Math.random() < .25) {
+        return {
+          ans: x * x + y * y,
+          str: `If \`x + y = ${x + y}\` and \`x - y = ${x - y}\`, then \`x^2 + y^2 = \``,
+        }
+      }
+      const a = randomInt(1, 4);
+      const b = Math.max(randomInt(-3, 2), 1);
+      const c = randomInt(1, 4);
+      const d = Math.max(randomInt(-3, 2), 1);
+      const str = `If \`${a > 1 ? a : ""}x + ${b > 1 ? b : ""}y = ${a * x + b * y}\` and \`${c > 1 ? c : ""}x - ${d > 1 ? d : ""}y = ${c * x - d * y}\`, then `;
+      switch (randomInt(0, 1)) {
+        case 0:
+          return {
+            ans: x,
+            str: str + "\`x = \`",
+          };
+        default:
+          return {
+            ans: y,
+            str: str + "\`y = \`",
+          };
+      }
+    }
+  }
   // quadratic focus
 };
 
