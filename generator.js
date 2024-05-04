@@ -1456,6 +1456,14 @@ function generateQuestion() {
     else
       question = questionGens.div.func(2, 100, 12);
   }
+  else if (mode === "estimate") {
+    const available = ["sqrt", "cbrt", "estmult", "estdiv", "fracest"].filter(key => keys.includes(key));
+    if (available.length === 0)
+      available.push(...["sqrt", "cbrt", "estmult", "estdiv", "fracest"]);
+    let rand = randomInt(1, available.length);
+    key = available[rand - 1];
+    question = questionGens[key].func();
+  }
   else {
     let totalWeight = 0;
     for (key of keys) totalWeight += questionGens[key].weight;
