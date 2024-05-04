@@ -1326,8 +1326,43 @@ const questionGens = {
           };
       }
     }
+  },
+  focus: {
+    weight: 1,
+    func: () => {
+      const numer = Math.max(randomInt(-1, 4), 1) * Math.sign(Math.random() - 0.5);
+      const denom = numer == 1 ? randomInt(1, 4) : 1;
+      const a = new Fraction(numer, denom);
+      const h = randomInt(-5, 5);
+      const k = randomInt(-5, 5);
+      const ans = new Fraction(a.denominator + 4 * k * a.numerator, 4 * a.numerator).formatted();
+      let str = "";
+      switch (randomInt(0, 1)) {
+        case 0:
+          str = `Let \`(x, y)\` be the focus of \`y = ${Math.abs(numer) == denom ? "" : a.formatted()}(x ${h > 0 ? "-" : "+"} ${Math.abs(h)})^2 ${k == 0 ? "" : `${k > 0 ? "+" : "-"} ${Math.abs(k)}`}\`. \`x = \``;
+        case 1:
+          str = `Let \`(x, y)\` be the focus of \`x = ${Math.abs(numer) == denom ? "" : a.formatted()}(y ${h > 0 ? "-" : "+"} ${Math.abs(h)})^2 ${k == 0 ? "" : `${k > 0 ? "+" : "-"} ${Math.abs(k)}`}\`. \`y = \``;
+      }
+      return {
+        ans: ans,
+        str: str,
+        ansStr: true
+      }
+    }
+  },
+  deriv: {
+    weight: 1,
+    func: () => {
+      const a = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
+      const b = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
+      const c = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
+      const x = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
+      return {
+        ans: 2 * a * x + b,
+        str: `Let \`f(x) = ${(a < 0 ? "-" : "") + (Math.abs(a) > 1 ? Math.abs(a) : "")}x^2${(b < 0 ? "-" : "+") + (Math.abs(b) > 1 ? Math.abs(b) : "")}x${(c < 0 ? "-" : "+") + Math.abs(c)}\`. \`f^'(${x}) = \``
+      }
+    }
   }
-  // quadratic focus
 };
 
 let keys;
