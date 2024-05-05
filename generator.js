@@ -1339,9 +1339,9 @@ const questionGens = {
       let str = "";
       switch (randomInt(0, 1)) {
         case 0:
-          str = `Let \`(x, y)\` be the focus of \`y = ${Math.abs(numer) == denom ? "" : a.formatted()}(x ${h > 0 ? "-" : "+"} ${Math.abs(h)})^2 ${k == 0 ? "" : `${k > 0 ? "+" : "-"} ${Math.abs(k)}`}\`. \`y = \``;
+          str = `Let \`(x, y)\` be the focus of \`y = ${numer == denom ? "" : numer == -denom ? "-" : a.formatted()}${h == 0 ? `x^2` : `(x ${h > 0 ? "-" : "+"} ${Math.abs(h)})^2`} ${k == 0 ? "" : `${k > 0 ? "+" : "-"} ${Math.abs(k)}`}\`. \`y = \``;
         case 1:
-          str = `Let \`(x, y)\` be the focus of \`x = ${Math.abs(numer) == denom ? "" : a.formatted()}(y ${h > 0 ? "-" : "+"} ${Math.abs(h)})^2 ${k == 0 ? "" : `${k > 0 ? "+" : "-"} ${Math.abs(k)}`}\`. \`x = \``;
+          str = `Let \`(x, y)\` be the focus of \`x = ${numer == denom ? "" : numer == -denom ? "-" : a.formatted()}${h == 0 ? `y^2` : `(y ${h > 0 ? "-" : "+"} ${Math.abs(h)})^2`} ${k == 0 ? "" : `${k > 0 ? "+" : "-"} ${Math.abs(k)}`}\`. \`x = \``;
       }
       return {
         ans: ans,
