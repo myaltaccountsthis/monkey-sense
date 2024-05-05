@@ -1,11 +1,6 @@
 // UTIL
 window.useAsciiMath = window.useAsciiMath ?? false;
 
-const signs = {
-  mult: "xx",
-  div: "÷"
-}
-
 const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
 
 const polygonStrs = [
@@ -196,7 +191,7 @@ const questionGens = {
     func: (min = 10, maxA = 599, maxB = 79) => {
       const a = randomInt(min, maxA);
       const b = randomInt(min, maxB);
-      return { ans: a * b, str: `\`${a} ${signs.mult} ${b}\`` };
+      return { ans: a * b, str: `\`${a} xx ${b}\`` };
     },
   },
   div: {
@@ -206,7 +201,7 @@ const questionGens = {
       // a's randomInt() is the answer
       const b = randomInt(min, maxDiv);
       const a = b * randomInt(min, maxAns);
-      return { ans: a / b, str: `\`${a} ${signs.div} ${b}\`` };
+      return { ans: a / b, str: `\`${a} -: ${b}\`` };
     },
   },
   sqrt: {
@@ -389,7 +384,7 @@ const questionGens = {
 
       return {
         ans: binaryExp(base, exp, mod),
-        str: `Find the remainder of \`${base}^${exp} ${signs.div} ${mod}\``,
+        str: `Find the remainder of \`${base}^${exp} -: ${mod}\``,
       };
     },
   },
@@ -404,12 +399,12 @@ const questionGens = {
         const mod = randomInt(3, 8);
         return {
           ans: (a + b * c - d) % mod,
-          str: `Find the remainder of \`(${a} + ${b} ${signs.mult} ${c} - ${d}) ${signs.div} ${mod}\``,
+          str: `Find the remainder of \`(${a} + ${b} xx ${c} - ${d}) -: ${mod}\``,
         };
       }
       const a = randomInt(1000, 99999);
       const mod = randomInt(3, 12);
-      return { ans: a % mod, str: `Find the remainder of \`${a} ${signs.div} ${mod}\`` };
+      return { ans: a % mod, str: `Find the remainder of \`${a} -: ${mod}\`` };
     },
   },
   pow: {
@@ -434,12 +429,12 @@ const questionGens = {
       if (ans >= -3 && ans <= 3 && Math.random() < 0.9)
         return {
           ans: ans >= 0 ? Math.pow(base, ans) : `1/${Math.pow(base, -ans)}`,
-          str: `\`${Math.pow(base, aPow)}^${a} ${signs.div} ${base}^${b} ${signs.mult} ${Math.pow(base, cPow)}^${c} = \``,
+          str: `\`${Math.pow(base, aPow)}^${a} -: ${base}^${b} xx ${Math.pow(base, cPow)}^${c} = \``,
           ansStr: true,
         };
       return {
         ans: ans,
-        str: `Let \`${Math.pow(base, aPow)}^${a} ${signs.div} ${base}^${b} ${signs.mult} ${Math.pow(base, cPow)}^${c} = ${base}^k\`. Find k`,
+        str: `Let \`${Math.pow(base, aPow)}^${a} -: ${base}^${b} xx ${Math.pow(base, cPow)}^${c} = ${base}^k\`. Find k`,
       };
     },
   },
@@ -456,7 +451,7 @@ const questionGens = {
         const frac2 = new Fraction(bNum, bDen);
         const frac1 = new Fraction(c * frac2.denominator, frac2.numerator);
         const m = frac1.denominator, n = frac2.getWhole();
-        const str = `\`${frac1.formatted({overrideDenom: "m"})} ${signs.mult} ${frac2.formatted({overrideMixed: "n"})} = ${c}\`. `;
+        const str = `\`${frac1.formatted({overrideDenom: "m"})} xx ${frac2.formatted({overrideMixed: "n"})} = ${c}\`. `;
         switch (randomInt(0, 3)) {
           case 0:
             return {
@@ -492,7 +487,7 @@ const questionGens = {
         numer = ((numer % c) + c) % c;
         return {
           ans: `${val} ${numer}/${c}`,
-          str: `\`${a} ${signs.mult} ${new Fraction(b, c).formatted({useImproper: true})} = \``,
+          str: `\`${a} xx ${new Fraction(b, c).formatted({useImproper: true})} = \``,
           ansStr: true,
         };
       }
@@ -521,7 +516,7 @@ const questionGens = {
       const n2 = randomInt(1, d2 - 1);
       return {
         ans: `${new Fraction(n1 * n2, d1 * d2).formatted({useImproper: true})}`,
-        str: `\`${new Fraction(n1, d1).formatted()} ${signs.mult} ${new Fraction(n2, d2).formatted()}\``,
+        str: `\`${new Fraction(n1, d1).formatted()} xx ${new Fraction(n2, d2).formatted()}\``,
         ansStr: true,
       };
     },
@@ -568,7 +563,7 @@ const questionGens = {
       const a = randomInt(1000, 9999);
       const b = randomInt(1000, 4000);
       const c = randomInt(10, 40);
-      return { ans: a + b * c, str: `*\`${a} + ${b} ${signs.mult} ${c}\``, guess: true };
+      return { ans: a + b * c, str: `*\`${a} + ${b} xx ${c}\``, guess: true };
     },
   },
   estdiv: {
@@ -576,7 +571,7 @@ const questionGens = {
     func: () => {
       const a = randomInt(3000, 80000);
       const b = randomInt(10, 80);
-      return { ans: a / b, str: `*\`${a} ${signs.div} ${b}\``, guess: true };
+      return { ans: a / b, str: `*\`${a} -: ${b}\``, guess: true };
     },
   },
   fibsum: {
@@ -757,12 +752,12 @@ const questionGens = {
         const a = randomInt(10, 80);
         const b = randomInt(4, 25);
         const base = randomInt(4, 9);
-        return { ans: parseInt((a * b).toString(base)), str: `\`${a.toString(base)}_${base} ${signs.mult} ${b.toString(base)}_${base}\`` };
+        return { ans: parseInt((a * b).toString(base)), str: `\`${a.toString(base)}_${base} xx ${b.toString(base)}_${base}\`` };
       }
       const b = randomInt(2, 9);
       const a = b * randomInt(5, 25);
       const base = randomInt(4, 9);
-      return { ans: parseInt((a / b).toString(base)), str: `\`${a.toString(base)}_${base} ${signs.div} ${b.toString(base)}_${base}\`` };
+      return { ans: parseInt((a / b).toString(base)), str: `\`${a.toString(base)}_${base} -: ${b.toString(base)}_${base}\`` };
     },
   },
   inverse: {
@@ -978,7 +973,7 @@ const questionGens = {
         } while (b == -a);
         return {
           ans: a * a - a * b + b * b,
-          str: `\`(${a}^3 ${b > 0 ? "+" : "-"} ${Math.abs(b)}^3) ${signs.div} (${a} ${b > 0 ? "+" : "-"} ${Math.abs(b)}) = \``,
+          str: `\`(${a}^3 ${b > 0 ? "+" : "-"} ${Math.abs(b)}^3) -: (${a} ${b > 0 ? "+" : "-"} ${Math.abs(b)}) = \``,
         }
       }
       const a = randomInt(1, 8) * Math.sign(Math.random() - .5);
@@ -1117,7 +1112,7 @@ const questionGens = {
       const n2 = randomInt(1, d2 - 1);
       return {
         ans: `${new Fraction(n1 * d2, n2 * d1).formatted({useImproper: true})}`,
-        str: `\`${new Fraction(n1, d1).formatted()} ${signs.div} ${new Fraction(n2, d2).formatted()}\``,
+        str: `\`${new Fraction(n1, d1).formatted()} -: ${new Fraction(n2, d2).formatted()}\``,
         ansStr: true,
       };
     }
@@ -1129,7 +1124,7 @@ const questionGens = {
       const b = randomInt(4, 20);
       return {
         ans: a * b,
-        str: `\`${a - b} * ${b} + ${b * b}\``
+        str: `\`${a - b} xx ${b} + ${b * b}\``
       };
     }
   },
@@ -1291,7 +1286,7 @@ const questionGens = {
       } while (gcd(d, e) != 1);
       return {
         ans: a * c / b * d / e,
-        str: `*\`${a} ${signs.div} ${(b / c).toFixed(3)} ${signs.mult} ${new Fraction(d, e).formatted()}\``,
+        str: `*\`${a} -: ${(b / c).toFixed(3)} xx ${new Fraction(d, e).formatted()}\``,
         guess: true
       };
     
@@ -1407,7 +1402,7 @@ let modeHandler = function (str) {
           )}-${Math.round(modeData.question.ans * 1.05)}. You took ${t}ms.`,
           extra: extra
         });
-        arr.push({ type: "status", tag: "answer", data: `${prefix} ${Math.round(diff * 100)}% off. ${Math.round(
+        arr.push({ type: "status", tag: "answer", data: `${prefix} ${(diff * 100).toFixed(1)}% off. ${Math.round(
           modeData.question.ans * 0.95,
         )}-${Math.round(modeData.question.ans * 1.05)}` });
       }
