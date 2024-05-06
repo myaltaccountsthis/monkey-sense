@@ -50,6 +50,32 @@ const romans = {
   1: "I"
 }
 
+const names = [
+  "",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+]
+
+const tens = [
+  "",
+  "",
+  "twenty",
+  "thirty",
+  "forty",
+  "fifty",
+  "sixty",
+  "seventy",
+  "eighty",
+  "ninety",
+]
+
 // Inclusive random
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -786,24 +812,24 @@ const questionGens = {
       };
     }
   },
-  date: {
-    weight: 1,
-    func: () => {
-      const a = new Date(2024, randomInt(0, 6), randomInt(1, 28));
-      const b = new Date(2024, a.getMonth() + randomInt(1, 4), randomInt(1, 28));
-      let diff = Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
-      const aBegin = Math.random() < .5;
-      const bBegin = Math.random() < .5;
-      if (aBegin)
-        diff++;
-      if (bBegin)
-        diff--;
-      return {
-        ans: diff,
-        str: `How many days are between ${aBegin ? "the beginning of " : "the end of "}${months[a.getMonth()]} \`${a.getDate()}, ${a.getFullYear()}\` and ${bBegin ? "the beginning of " : "the end of "}${months[b.getMonth()]} \`${b.getDate()}, ${b.getFullYear()}\`?`
-      };
-    }
-  },
+  // date: {
+  //   weight: 1,
+  //   func: () => {
+  //     const a = new Date(2024, randomInt(0, 6), randomInt(1, 28));
+  //     const b = new Date(2024, a.getMonth() + randomInt(1, 4), randomInt(1, 28));
+  //     let diff = Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
+  //     const aBegin = Math.random() < .5;
+  //     const bBegin = Math.random() < .5;
+  //     if (aBegin)
+  //       diff++;
+  //     if (bBegin)
+  //       diff--;
+  //     return {
+  //       ans: diff,
+  //       str: `How many days are between ${aBegin ? "the beginning of " : "the end of "}${months[a.getMonth()]} \`${a.getDate()}, ${a.getFullYear()}\` and ${bBegin ? "the beginning of " : "the end of "}${months[b.getMonth()]} \`${b.getDate()}, ${b.getFullYear()}\`?`
+  //     };
+  //   }
+  // },
   set: {
     weight: 1,
     func: () => {
@@ -1355,6 +1381,20 @@ const questionGens = {
       return {
         ans: 2 * a * x + b,
         str: `Let \`f(x) = ${(a < 0 ? "-" : "") + (Math.abs(a) > 1 ? Math.abs(a) : "")}x^2${(b < 0 ? "-" : "+") + (Math.abs(b) > 1 ? Math.abs(b) : "")}x${(c < 0 ? "-" : "+") + Math.abs(c)}\`. \`f^'(${x}) = \``
+      }
+    }
+  },
+  words: {
+    weight: 1,
+    func: () => {
+      // hundred or ten millions, fifths of millions, thousands, tens and ones
+      const a = randomInt(2, 9) * Math.pow(10, randomInt(1, 2));
+      const fifths = randomInt(1, 4);
+      const b = randomInt(1, 9);
+      const ones = randomInt(20, 90);
+      return {
+        ans: a * 1000000 + fifths * 200000 + b * 1000 + ones,
+        str: `Write ${a > 100 ? names[a / 100] + " hundred" : tens[a / 10]} million ${names[fifths]}-fifths million ${names[b]} thousand ${tens[Math.floor(ones / 10)]}${ones % 10 > 0 ? "-" + names[ones % 10] : ""} in digits`
       }
     }
   }
