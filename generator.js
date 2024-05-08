@@ -179,19 +179,23 @@ class Fraction {
     return `${sign}${Math.abs(num)}/${overrideDenom ?? this.denominator}`;
   }
 
-  toString() {
-    const sign = this.numerator < 0 ? "-" : "";
-    if (this.isMixed()) {
-      const mixed = this.getMixed();
-      if (mixed.frac.numerator === 0)
-        return `${sign}${mixed.whole}`;
-      return `${sign}${mixed.whole} ${mixed.frac.numerator}/${mixed.frac.denominator}`;
-    }
-    return `${sign}${this.numerator}/${this.denominator}`;
-  }
+  // toString() {
+  //   const sign = this.numerator < 0 ? "-" : "";
+  //   if (this.isMixed()) {
+  //     const mixed = this.getMixed();
+  //     if (mixed.frac.numerator === 0)
+  //       return `${sign}${mixed.whole}`;
+  //     return `${sign}${mixed.whole} ${mixed.frac.numerator}/${mixed.frac.denominator}`;
+  //   }
+  //   return `${sign}${this.numerator}/${this.denominator}`;
+  // }
 
   getValue() {
     return this.numerator / this.denominator;
+  }
+
+  getAnswerArr() {
+    return [this.formatted(), this.formatted({useImproper: true}), this.getValue().toString()];
   }
 }
 
@@ -201,7 +205,7 @@ const questionGens = {
     func: (min = 10, max = 9999) => {
       const a = randomInt(min, max);
       const b = randomInt(min, max);
-      return { ans: a + b, str: `\`${a}+${b}\`` };
+      return { ans: a + b, str: `\`${a} + ${b} = \`` };
     },
   },
   sub: {
@@ -209,7 +213,7 @@ const questionGens = {
     func: (min = 10, max = 9999) => {
       const a = randomInt(min, max);
       const b = randomInt(min, max);
-      return { ans: a - b, str: `\`${a} - ${b}\`` };
+      return { ans: a - b, str: `\`${a} - ${b} = \`` };
     },
   },
   mult: {
@@ -217,17 +221,17 @@ const questionGens = {
     func: (min = 10, maxA = 599, maxB = 79) => {
       const a = randomInt(min, maxA);
       const b = randomInt(min, maxB);
-      return { ans: a * b, str: `\`${a} xx ${b}\`` };
+      return { ans: a * b, str: `\`${a} xx ${b} = \`` };
     },
   },
   div: {
     weight: 1,
     func: (min = 5, maxAns = 100, maxDiv = 40) => {
-      // a is dividend, b is divisor
-      // a's randomInt() is the answer
+      // a isdividend, b isdivisor
+      // a's randomInt() isthe answer
       const b = randomInt(min, maxDiv);
       const a = b * randomInt(min, maxAns);
-      return { ans: a / b, str: `\`${a} -: ${b}\`` };
+      return { ans: a / b, str: `\`${a} -: ${b} = \`` };
     },
   },
   sqrt: {
@@ -235,7 +239,7 @@ const questionGens = {
     func: () => {
       const d = randomInt(4, 8);
       const a = Math.round(Math.random() * Math.pow(10, d));
-      return { ans: Math.sqrt(a), str: `*\`sqrt(${a})\``, guess: true };
+      return { ans: Math.sqrt(a), str: `*\`sqrt(${a}) = \``, guess: true };
     },
   },
   cbrt: {
@@ -243,7 +247,7 @@ const questionGens = {
     func: () => {
       const d = randomInt(4, 9);
       const a = Math.round(Math.random() * Math.pow(10, d));
-      return { ans: Math.cbrt(a), str: `*\`root(3)(${a})\``, guess: true };
+      return { ans: Math.cbrt(a), str: `*\`root(3)(${a}) = \``, guess: true };
     },
   },
   rdec: {
@@ -256,9 +260,9 @@ const questionGens = {
       let a = randomInt(1, b - 1);
       const rep = `${a % (b / dMult)}`.padStart(bLen, "0");
       const pre = Math.floor((a / b) * dMult);
-      const str = `\`.${d > 0 ? pre : ""}${rep}${rep}${rep}...\``;
+      const str = `\`.${d > 0 ? pre : ""}${rep}${rep}${rep}... = \``;
       return {
-        ans: new Fraction(a, b).toString(),
+        ans: new Fraction(a, b).formatted(),
         str: str,
         ansStr: true,
       };
@@ -268,14 +272,14 @@ const questionGens = {
     weight: 1,
     func: () => {
       const a = randomInt(2, 60);
-      return { ans: a * a, str: `\`${a}²\`` };
+      return { ans: a * a, str: `\`${a}^2 = \`` };
     },
   },
   cb: {
     weight: 1,
     func: () => {
       const a = randomInt(2, 20);
-      return { ans: a * a * a, str: `\`${a}³\`` };
+      return { ans: a * a * a, str: `\`${a}^3 = \`` };
     },
   },
   sqadd: {
@@ -301,7 +305,7 @@ const questionGens = {
         }
         a = nums[0] * 10 + nums[1];
         b = nums[2] * 10 + nums[3];
-        return { ans: a * a + b * b, str: `\`${a}² + ${b}²\`` };
+        return { ans: a * a + b * b, str: `\`${a}^2 + ${b}^2 = \`` };
       // }
       // let a = randomInt(4, 13) * 5;
       // let b = Math.sign(Math.random() - 0.5) + a;
@@ -310,13 +314,14 @@ const questionGens = {
       //   a = b;
       //   b = d;
       // }
-      // return { ans: a * a + b * b, str: `\`${a}² + ${b}²\`` };
+      // return { ans: a * a + b * b, str: `\`${a}^2 + ${b}^2\`` };
     },
   },
   fracadd: {
     weight: 4,
     func: () => {
       if (Math.random() < 0.2) {
+        // a/b + b/a
         let a = randomInt(5, 15);
         let b = Math.sign(Math.random() - 0.5) * randomInt(1, 3) + a;
         const frac1 = new Fraction(a, b);
@@ -325,12 +330,13 @@ const questionGens = {
         const denom = frac1.denominator * frac2.denominator;
         const ansFrac = new Fraction(2 * denom + num, denom);
         return {
-          ans: ansFrac.toString(),
+          ans: ansFrac.formatted(),
           str: `\`${frac1.formatted({useImproper: true})} + ${frac2.formatted({useImproper: true})}\` (mixed)`,
           ansStr: true,
         };
       }
       if (Math.random() < 0.25) {
+        // reciprocal of arithmetic series
         const a = randomInt(2, 5);
         const diff = randomInt(1, 3);
         const n = randomInt(3, 5);
@@ -346,6 +352,7 @@ const questionGens = {
         };
       }
       if (Math.random() < 0.33) {
+        // geometric series
         const a = randomInt(2, 5);
         const rDen = randomInt(2, 6);
         const rNum = randomInt(1, rDen - 1) * Math.sign(Math.random() - 0.3);
@@ -380,7 +387,7 @@ const questionGens = {
       const improper = frac1.numerator * frac2.denominator + frac2.numerator * frac1.denominator;
       const ansFrac = new Fraction(improper, denom);
       return {
-        ans: ansFrac.toString(),
+        ans: ansFrac.formatted(),
         str: `\`${frac1.formatted()} + ${frac2.formatted()}\` (${ansFrac.isMixed() > 0 ? "mixed" : "proper"})`,
         ansStr: true,
       };
@@ -468,6 +475,7 @@ const questionGens = {
     weight: 4,
     func: () => {
       if (Math.random() < 0.2) {
+        // x y/m + n z/a = b, find m and n
         const c = randomInt(10, 32);
         let bDen = randomInt(3, 12);
         let bNum = 0;
@@ -499,6 +507,7 @@ const questionGens = {
         }
       }
       if (Math.random() < 0.4) {
+        // a * b/c where a and b are close to c
         let c = randomInt(13, 25);
         let b = c;
         do {
@@ -513,11 +522,12 @@ const questionGens = {
         numer = ((numer % c) + c) % c;
         return {
           ans: `${val} ${numer}/${c}`,
-          str: `\`${a} xx ${new Fraction(b, c).formatted({useImproper: true})} = \``,
+          str: `\`${a} xx ${new Fraction(b, c).formatted({useImproper: true})}\` (mixed)`,
           ansStr: true,
         };
       }
       if (Math.random() < .66) {
+        // foil where a b/c * d e/f and a % f == 0 and d % c == 0
         let d1 = randomInt(2, 12);
         let d2 = randomInt(2, 12);
         let n1 = Math.max(randomInt(-2, Math.min(5, d1 - 1)), 1);
@@ -532,17 +542,19 @@ const questionGens = {
         const whole = a * b + (a / frac2.denominator) * frac2.numerator + (b / frac1.denominator) * frac1.numerator;
         return {
           ans: `${new Fraction(whole * ansFrac.denominator + ansFrac.numerator, ansFrac.denominator).formatted()}`,
-          str: `\`${mixed1.formatted()} * ${mixed2.formatted()}\``,
+          str: `\`${mixed1.formatted()} xx ${mixed2.formatted()}\` (mixed)`,
           ansStr: true,
         };
       }
+      // generic frac mult
       const d1 = randomInt(2, 12);
       const d2 = randomInt(2, 12);
       const n1 = randomInt(1, d1 - 1);
       const n2 = randomInt(1, d2 - 1);
+      const ansFrac = new Fraction(n1 * n2, d1 * d2);
       return {
-        ans: `${new Fraction(n1 * n2, d1 * d2).formatted({useImproper: true})}`,
-        str: `\`${new Fraction(n1, d1).formatted()} xx ${new Fraction(n2, d2).formatted()}\``,
+        ans: ansFrac.getAnswerArr(),
+        str: `\`${new Fraction(n1, d1).formatted()} xx ${new Fraction(n2, d2).formatted()} = \``,
         ansStr: true,
       };
     },
@@ -589,7 +601,7 @@ const questionGens = {
       const a = randomInt(1000, 9999);
       const b = randomInt(1000, 4000);
       const c = randomInt(10, 40);
-      return { ans: a + b * c, str: `*\`${a} + ${b} xx ${c}\``, guess: true };
+      return { ans: a + b * c, str: `*\`${a} + ${b} xx ${c} = \``, guess: true };
     },
   },
   estdiv: {
@@ -597,7 +609,7 @@ const questionGens = {
     func: () => {
       const a = randomInt(3000, 80000);
       const b = randomInt(10, 80);
-      return { ans: a / b, str: `*\`${a} -: ${b}\``, guess: true };
+      return { ans: a / b, str: `*\`${a} -: ${b} = \``, guess: true };
     },
   },
   fibsum: {
@@ -609,6 +621,7 @@ const questionGens = {
         vals.push(vals[i - 1] + vals[i - 2]);
       }
       if (Math.random() < .4) {
+        // frac fib
         const frac = Math.pow(2, randomInt(1, 3));
         vals = vals.map((v, _) => new Fraction(v, frac));
         let str = `\``;
@@ -616,8 +629,9 @@ const questionGens = {
           str += Math.random() < .33 ? Math.random() < .5 ? `${vals[i].formatted({useImproper: true})} + ` : `${vals[i].getValue()} + ` : `${vals[i].formatted()} + `;
         }
         str += `... + ${vals[vals.length - 2].formatted()} + ${vals[vals.length - 1].formatted()} = \``;
+        const ansFrac = new Fraction((vals[vals.length - 1].getValue() * 2 + vals[vals.length - 2].getValue() - vals[1].getValue()) * frac, frac);
         return {
-          ans: new Fraction((vals[vals.length - 1].getValue() * 2 + vals[vals.length - 2].getValue() - vals[1].getValue()) * frac, frac).formatted(),
+          ans: ansFrac.getAnswerArr(),
           str: str,
           ansStr: true,
         }
@@ -644,12 +658,12 @@ const questionGens = {
       str += " + " + arr[arr.length - 1];
       str += " = ";
       if (Math.random() < 0.3) {
-        return { ans: `${ansFrac.formatted()}`, str: `\`${str}\``, ansStr: true };
+        return { ans: ansFrac.getAnswerArr(), str: `\`${str}\``, ansStr: true };
       }
       if (Math.random() < .5) {
-        return { ans: `1 ${ansFrac.formatted()}`, str: `\`1 + ${str}\``, ansStr: true };
+        return { ans: ansFrac.getAnswerArr(), str: `\`1 + ${str}\``, ansStr: true };
       }
-      return { ans: `1 ${ansFrac.formatted()}`, str: `The sum of the reciprocals of the first \`${n}\` triangular numbers is `, ansStr: true };
+      return { ans: ansFrac.getAnswerArr(), str: `The sum of the reciprocals of the first \`${n}\` triangular numbers is`, ansStr: true };
     },
   },
   binomexp: {
@@ -662,7 +676,7 @@ const questionGens = {
       if (Math.random() < 0.2) {
         return {
           ans: Math.pow(a + b, exp),
-          str: "The sum of the coefficients of " + str + " is ",
+          str: "The sum of the coefficients of " + str + " is",
         };
       }
       const term = randomInt(2, exp);
@@ -680,12 +694,12 @@ const questionGens = {
         case 0:
           return {
             ans: coef,
-            str: `The coefficient of the ${getNumberRankStr(term)} term of ${str} is `,
+            str: `The coefficient of the ${getNumberRankStr(term)} term of ${str} is`,
           };
         case 1:
           return {
             ans: coef,
-            str: `The coefficient of the \`x^${exp - term + 1} y^${term - 1}\` term of ${str} is `,
+            str: `The coefficient of the \`x^${exp - term + 1} y^${term - 1}\` term of ${str} is`,
           };
         default:
           return {
@@ -766,24 +780,24 @@ const questionGens = {
         const a = randomInt(10, 250);
         const b = randomInt(10, 250);
         const base = randomInt(4, 9);
-        return { ans: parseInt((a + b).toString(base)), str: `\`${a.toString(base)}_${base}+${b.toString(base)}_${base}\`` };
+        return { ans: parseInt((a + b).toString(base)), str: `\`${a.toString(base)}_${base}+${b.toString(base)}_${base} = \`` };
       }
       else if (mode == 2) {
         const a = randomInt(10, 250);
         const b = randomInt(10, 250);
         const base = randomInt(4, 9);
-        return { ans: parseInt((a - b).toString(base)), str: `\`${a.toString(base)}_${base} - ${b.toString(base)}_${base}\`` };
+        return { ans: parseInt((a - b).toString(base)), str: `\`${a.toString(base)}_${base} - ${b.toString(base)}_${base} = \`` };
       }
       else if (mode == 3) {
         const a = randomInt(10, 80);
         const b = randomInt(4, 25);
         const base = randomInt(4, 9);
-        return { ans: parseInt((a * b).toString(base)), str: `\`${a.toString(base)}_${base} xx ${b.toString(base)}_${base}\`` };
+        return { ans: parseInt((a * b).toString(base)), str: `\`${a.toString(base)}_${base} xx ${b.toString(base)}_${base} = \`` };
       }
       const b = randomInt(2, 9);
       const a = b * randomInt(5, 25);
       const base = randomInt(4, 9);
-      return { ans: parseInt((a / b).toString(base)), str: `\`${a.toString(base)}_${base} -: ${b.toString(base)}_${base}\`` };
+      return { ans: parseInt((a / b).toString(base)), str: `\`${a.toString(base)}_${base} -: ${b.toString(base)}_${base} = \`` };
     },
   },
   inverse: {
@@ -796,7 +810,7 @@ const questionGens = {
       if (Math.random() < 0.5) {
         const e = randomInt(2, 6) * Math.sign(Math.random() - 0.3);
         return {
-          ans: new Fraction((c * (e - d) - b), a).formatted({useImproper: true}),
+          ans: new Fraction((c * (e - d) - b), a).getAnswerArr(),
           str: `If \`f(x) = (${a}x ${b > 0 ? `+` : `-`} ${Math.abs(b)}) / ${c} ${d > 0 ? `+` : `-`} ${Math.abs(d)}\`, what is the value of \`f^-1(${e})\`?`,
           ansStr: true,
         }
@@ -806,7 +820,7 @@ const questionGens = {
         e = randomInt(1, 4) * Math.sign(Math.random() - 0.5);
       } while (e * c == a);
       return {
-        ans: new Fraction(b - e * d, e * c - a).formatted({useImproper: true}),
+        ans: new Fraction(b - e * d, e * c - a).getAnswerArr(),
         str: `If \`f(x) = (${a}x ${b > 0 ? `+` : `-`} ${Math.abs(b)}) / (${c}x ${d > 0 ? `+` : `-`} ${Math.abs(d)})\`, what is the value of \`f^-1(${e})\`?`,
         ansStr: true,
       };
@@ -929,14 +943,14 @@ const questionGens = {
         const c = randomInt(2, 10);
         if (Math.random() < .5) {
           return {
-            ans: new Fraction(c, a).formatted({useImproper: true}),
-            str: `The product of the roots of \`${a}x^2 + ${b}x + ${c}\` is `,
+            ans: new Fraction(c, a).getAnswerArr(),
+            str: `The product of the roots of \`${a}x^2 + ${b}x + ${c}\` is`,
             ansStr: true,
           };
         }
         return {
-          ans: new Fraction(-b, a).formatted({useImproper: true}),
-          str: `The sum of the roots of \`${a}x^2 + ${b}x + ${c}\` is `,
+          ans: new Fraction(-b, a).getAnswerArr(),
+          str: `The sum of the roots of \`${a}x^2 + ${b}x + ${c}\` is`,
           ansStr: true,
         };
       }
@@ -947,28 +961,28 @@ const questionGens = {
       const mode = randomInt(1, 4);
       if (mode == 1) {
         return {
-          ans: new Fraction(-b, a).formatted({useImproper: true}),
-          str: `The sum of the roots of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is `,
+          ans: new Fraction(-b, a).getAnswerArr(),
+          str: `The sum of the roots of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is`,
           ansStr: true,
         };
       }
       else if (mode == 2) {
         return {
-          ans: new Fraction(-d, a).formatted({useImproper: true}),
-          str: `The product of the roots of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is `,
+          ans: new Fraction(-d, a).getAnswerArr(),
+          str: `The product of the roots of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is`,
           ansStr: true,
         };
       }
       else if (mode == 3) {
         return {
-          ans: new Fraction(c, a).formatted({useImproper: true}),
-          str: `The sum of the roots taken two at a time of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is `,
+          ans: new Fraction(c, a).getAnswerArr(),
+          str: `The sum of the roots taken two at a time of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is`,
           ansStr: true,
         };
       }
       return {
-        ans: new Fraction(-3 * d, c).formatted({useImproper: true}),
-        str: `The harmonic mean of the roots of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is `,
+        ans: new Fraction(-3 * d, c).getAnswerArr(),
+        str: `The harmonic mean of the roots of \`${a}x^3 + ${b}x^2 + ${c}x + ${d} = 0\` is`,
         ansStr: true,
       };
     }
@@ -1070,7 +1084,7 @@ const questionGens = {
       const improper = frac2.numerator * frac1.denominator - frac1.numerator * frac2.denominator;
       const ansFrac = new Fraction(denom, improper);
       return {
-        ans: ansFrac.formatted({useImproper: true}),
+        ans: ansFrac.getAnswerArr(),
         str: `If \`${frac1.formatted()} + 1/x = ${frac2.formatted()}\`, then \`x = \``,
         ansStr: true,
       };
@@ -1137,8 +1151,8 @@ const questionGens = {
       const n1 = randomInt(1, d1 - 1);
       const n2 = randomInt(1, d2 - 1);
       return {
-        ans: `${new Fraction(n1 * d2, n2 * d1).formatted({useImproper: true})}`,
-        str: `\`${new Fraction(n1, d1).formatted()} -: ${new Fraction(n2, d2).formatted()}\``,
+        ans: new Fraction(n1 * d2, n2 * d1).getAnswerArr(),
+        str: `\`${new Fraction(n1, d1).formatted()} -: ${new Fraction(n2, d2).formatted()} = \``,
         ansStr: true,
       };
     }
@@ -1150,7 +1164,7 @@ const questionGens = {
       const b = randomInt(4, 20);
       return {
         ans: a * b,
-        str: `\`${a - b} xx ${b} + ${b * b}\``
+        str: `\`${a - b} xx ${b} + ${b * b} = \``
       };
     }
   },
@@ -1163,7 +1177,7 @@ const questionGens = {
       const num = a * 100 + b;
       return {
         ans: Math.pow(num, pow),
-        str: `\`(${num})^${pow}\``
+        str: `\`(${num})^${pow} = \``
       };
     }
   },
@@ -1178,14 +1192,14 @@ const questionGens = {
       } while (c == a);
       if (Math.random() < .5) {
         return {
-          ans: new Fraction(b * c, a).formatted({useImproper: true}),
+          ans: new Fraction(b * c, a).getAnswerArr(),
           str: `Given \`y\` varies directly with \`x\` and \`y=${b}\` when \`x=${a}\`. Find y when \`x = ${c}\``,
           ansStr: true
         }
       }
       return {
-        ans: new Fraction(b * a, c).formatted({useImproper: true}),
-        str: `Given \`y\` varies inversely with \`x\` and \`y=${b}\` when \`x=${a}\`. Find y when \`x=${c}\``,
+        ans: new Fraction(b * a, c).getAnswerArr(),
+        str: `Given \`y\` varies inversely with \`x\` and \`y=${b}\` when \`x=${a}\`. Find y when \`x = ${c}\``,
         ansStr: true
       };
     }
@@ -1212,7 +1226,7 @@ const questionGens = {
       if (Math.random() < .5) {
         return {
           ans: a + b,
-          str: `${aStr} \`+\` ${bStr} \`=\`(Arabic Numeral)`
+          str: `${aStr} \`+\` ${bStr} \`=\` (Arabic Numeral)`
         }
       }
       return {
@@ -1250,7 +1264,7 @@ const questionGens = {
       const a = parseInt(num.toString(base));
       if (Math.random() < .5) {
         return {
-          ans: frac.formatted(),
+          ans: [frac.formatted(), frac.formatted({useImproper: true})],
           str: `\`${a / 100}_${base} =\`base 10 (fraction)`,
           ansStr: true
         }
@@ -1268,6 +1282,12 @@ const questionGens = {
       const b = randomInt(1, 8) * Math.sign(Math.random() - 0.5);
       const c = randomInt(1, 8) * Math.sign(Math.random() - 0.5);
       const vert = -b / (2 * a);
+      if (Math.random() < .4) {
+        return {
+          ans: vert * vert * a + b * vert + c,
+          str: `The ${a > 0 ? "minimum" : "maximum"} value of \`${(a < 0 ? "-" : "") + (Math.abs(a) > 1 ? Math.abs(a) : "")}x^2${(b < 0 ? "-" : "+") + (Math.abs(b) > 1 ? Math.abs(b) : "")}x${(c < 0 ? "-" : "+") + Math.abs(c)}\` is`,
+        }
+      }
       return {
         ans: vert + vert * vert * a + b * vert + c,
         str: `Given: \`f(x)=${(a < 0 ? "-" : "") + (Math.abs(a) > 1 ? Math.abs(a) : "")}x^2${(b < 0 ? "-" : "+") + (Math.abs(b) > 1 ? Math.abs(b) : "")}x${(c < 0 ? "-" : "+") + Math.abs(c)}\` has a ${a > 0 ? "minimum" : "maximum"} point at \`(a, b)\`. Find \`a + b\`.`,
@@ -1284,14 +1304,14 @@ const questionGens = {
       const frac = new Fraction(Math.pow(numer, 2), Math.pow(denom, 2));
       if (Math.random() < .5) {
         return {
-          ans: new Fraction(numer - b * denom, denom * a).formatted({useImproper: true}),
-          str: `The larger root of \`(${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b)})^2 = ${frac.formatted()}\` is `,
+          ans: new Fraction(numer - b * denom, denom * a).getAnswerArr(),
+          str: `The larger root of \`(${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b)})^2 = ${frac.formatted()}\` is`,
           ansStr: true
         }
       }
       return {
-        ans: new Fraction (-numer - b * denom, denom * a).formatted({useImproper: true}),
-        str: `The smaller root of \`(${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b)})^2 = ${frac.formatted()}\` is `,
+        ans: new Fraction (-numer - b * denom, denom * a).getAnswerArr(),
+        str: `The smaller root of \`(${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b)})^2 = ${frac.formatted()}\` is`,
         ansStr: true
       }
     }
@@ -1312,7 +1332,7 @@ const questionGens = {
       } while (gcd(d, e) != 1);
       return {
         ans: a * c / b * d / e,
-        str: `*\`${a} -: ${(b / c).toFixed(3)} xx ${new Fraction(d, e).formatted()}\``,
+        str: `*\`${a} -: ${(b / c).toFixed(3)} xx ${new Fraction(d, e).formatted()} = \``,
         guess: true
       };
     
@@ -1356,7 +1376,7 @@ const questionGens = {
       const a = new Fraction(numer, denom);
       const h = randomInt(-5, 5);
       const k = randomInt(-5, 5);
-      const ans = new Fraction(a.denominator + 4 * k * a.numerator, 4 * a.numerator).formatted();
+      const ans = new Fraction(a.denominator + 4 * k * a.numerator, 4 * a.numerator).getAnswerArr();
       let str = "";
       switch (randomInt(0, 1)) {
         case 0:
@@ -1400,7 +1420,7 @@ const questionGens = {
   }
 };
 
-let keys;
+let keys = Object.keys(questionGens);
 let customWeight = {};
 let mode = "";
 let modeData = {};
@@ -1411,15 +1431,15 @@ let modeHandler = function (str) {
     const t = Date.now() - modeData.lastT;
     const extra = {time: t, question: modeData.question, response: str};
     if (modeData.question.ansStr) {
-      if (str == modeData.question.ans) {
+      if (typeof(modeData.question.ans) == "object" && modeData.question.ans.includes(str) || str == modeData.question.ans) {
         arr.push({
           type: "reply",
-          data: `Correct! The answer is ${modeData.question.ans}. You took ${t}ms.`,
+          data: `Correct! The answer is${modeData.question.ans}. You took ${t}ms.`,
           extra: extra
         });
         arr.push({ type: "status", tag: "answer", data: "" });
       }
-      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`, extra: extra}];
+      else return [{type: "status", tag: "wrong", data: `The answer is${modeData.question.ans}`, extra: extra}];
     }
     else if (!isNaN(n)) {
       if (
@@ -1437,7 +1457,7 @@ let modeHandler = function (str) {
               "🟨 Good guess!";
         arr.push({
           type: "reply",
-          data: `${prefix} ${(diff * 100).toFixed(1)}% off. The answer is ${Math.round(
+          data: `${prefix} ${(diff * 100).toFixed(1)}% off. The answer is${Math.round(
             modeData.question.ans * 0.95,
           )}-${Math.round(modeData.question.ans * 1.05)}. You took ${t}ms.`,
           extra: extra
@@ -1449,12 +1469,12 @@ let modeHandler = function (str) {
       else if (n === modeData.question.ans) {
         arr.push({
           type: "reply",
-          data: `Correct! The answer is ${modeData.question.ans}. You took ${t}ms.`,
+          data: `Correct! The answer is${modeData.question.ans}. You took ${t}ms.`,
           extra: extra
         });
         arr.push({ type: "status", tag: "answer", data: "" });
       }
-      else return [{type: "status", tag: "wrong", data: `The answer is ${modeData.question.ans}`, extra: extra}];
+      else return [{type: "status", tag: "wrong", data: `The answer is${modeData.question.ans}`, extra: extra}];
     }
     else return arr;
 
@@ -1543,7 +1563,7 @@ function startMode(newMode, text) {
     const category = generateQuestion();
     return [{ type: "status", tag: "start", data: "Starting monkey sense..." }, { type: "question", data: getQuestionText() }, { type: "status", tag: "questionCategory", data: category }];
   }
-  return [{ type: "status", tag: "alreadyrunning", data: "Monkey Sense is already running!" }];
+  return [{ type: "status", tag: "alreadyrunning", data: "Monkey Sense isalready running!" }];
 }
 
 function stopMode() {
@@ -1554,9 +1574,9 @@ function stopMode() {
 let useChatCommands = false;
 
 /**
- * Handle text to determine if the answer is correct
+ * Handle text to determine if the answer iscorrect
  * @returns array of objects with type ("status" | "question" | "reply"), data: string, and (tag?: string) if type="status"
- * type="reply" means that the answer is correct
+ * type="reply" means that the answer iscorrect
  */
 function onMessage(text) {
   if (useChatCommands && text.startsWith("!stop")) {
