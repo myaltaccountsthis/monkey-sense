@@ -18,14 +18,23 @@
 
       .page-group {
         column-count: 2;
-        column-width: 40vw;
-        column-gap: 10vw;
+        column-width: 40%;
+        column-gap: 5%;
         page-break-after: always;
-        margin: 0px 2vw;
+        margin: 0px 2%;
+      }
+
+      #answers {
+        column-count: 4;
+        column-gap: 3%;
+        margin: 0px 2%;
+      }
+      #answers > div {
+        margin-bottom: 1.5em;
       }
 
       .question {
-        margin-bottom: 18px;
+        margin-bottom: 1.25em;
         line-height: 130%;
         width: 100%;
         /* display: flex;
@@ -49,7 +58,7 @@
       .question::after {
         content: "______";
         font-weight: bold;
-        margin-left: 6px;
+        margin-left: .5em;
       }
 
       @page {
@@ -58,7 +67,20 @@
     </style>
     <script>
       const queryParams = new URLSearchParams(window.location.search);
+      const questions = [];
       let useAsciiMath = true;
+      function getFormattedAnswer(q) {
+        if (typeof(q.ans) == "object")
+          return q.ans.join(", &nbsp;");
+        if (typeof(q.ans) == "number") {
+          if (q.guess)
+            return `${Math.round(q.ans * 0.95)} — ${Math.round(q.ans * 1.05)}`;
+          const str = q.ans.toString();
+          if (str.includes(".") && str.substring(str.indexOf(".").length) > 3)
+            return q.ans.toFixed(3) + "...";
+        }
+        return q.ans;
+      }
       MathJax = {
         loader: {load: ['input/asciimath', 'output/chtml', 'ui/menu']},
         startup: {
@@ -67,26 +89,38 @@
             let offset = 0;
             for (let element of document.getElementsByClassName("page-group")) {
               element.innerHTML = new Array(40).fill(0).map((_, i) => {
-                generateQuestion();
-                return `<div class="question">(${i + 1 + offset}) &nbsp;${modeData.question.str}</div>`;
+                const shouldBeEstimate = mode === "estimate" || (i + 1) % 10 == 0;
+                do {
+                  generateQuestion();
+                }
+                while ((modeData.question.guess === true) != shouldBeEstimate);
+                questions.push(modeData.question);
+                const isGuess = modeData.question.guess;
+                if (isGuess)
+                  modeData.question.str = modeData.question.str.replace("*", "");
+                return `<div class="question">${isGuess ? "*" : ""}(${i + 1 + offset}) &nbsp;${modeData.question.str}</div>`;
                 // return `<div class="question"><div>${modeData.question.str}</div><div class="answer-blank"></div></div>`;
               }).join("");
               offset += 40;
             }
+            document.getElementById("answers").innerHTML = questions.map((q, i) => `<div>(${i + 1}) &nbsp;${getFormattedAnswer(q)}</div>`).join("");
             MathJax.startup.defaultReady();
             MathJax.startup.promise.then(() => {
               MathJax.typeset();
               setTimeout(() => {
                 print();
-              }, 400);
-            })
+              }, 600);
+            });
           }
         }
-      }
+      };
     </script>
   </head>
   <body style="background-color: white;">
     <div class="page-group"></div>
     <div class="page-group"></div>
+    <h1 style="font-size: xx-large; text-align: center;">Answer Key</h1>
+    <br/>
+    <div id="answers"></div>
   </body>
 </html>

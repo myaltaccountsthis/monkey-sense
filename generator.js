@@ -195,7 +195,14 @@ class Fraction {
   }
 
   getAnswerArr() {
-    return [this.formatted(), this.formatted({useImproper: true}), this.getValue().toString()];
+    const arr = [this.formatted({useImproper: true})];
+    if (this.isMixed()) {
+      const mixed = this.getMixed();
+      arr.push(`${mixed.whole} ${mixed.frac.numerator}/${mixed.frac.denominator}`);
+    }
+    if (this.getValue().toString().length < 8)
+      arr.push(this.getValue());
+    return arr;
   }
 }
 
