@@ -619,9 +619,9 @@ const questionGens = {
       }
     },
   },
-  estmult: {
+  estmix: {
     weight: 2,
-    tier: 0,
+    tier: 1,
     func: () => {
       const a = randomInt(1000, 9999);
       const b = randomInt(1000, 4000);
@@ -1308,7 +1308,7 @@ const questionGens = {
   },
   basefrac: {
     weight: 1,
-    tier: 1,
+    tier: 3,
     func: () => {
       const base = randomInt(4, 9);
       let num = 0;
@@ -1481,10 +1481,10 @@ const questionGens = {
     }
   },
   estadd: {
-    weight: 1,
+    weight: 2,
     tier: 0,
     func: () => {
-      const nums = randomInt(3, 5);
+      const nums = Math.max(randomInt(1, 5), 3);
       const arr = [];
       for (let i = 0; i < nums; i++) {
         const n = Math.floor(randomInt(10000, 99999) / Math.pow(10, randomInt(0, 3))) * Math.sign(Math.random() - 0.5);
@@ -1503,7 +1503,21 @@ const questionGens = {
         guess: true
       }
     }
-  }
+  },
+  estmult: {
+    weight: 1,
+    tier: 0,
+    func: () => {
+      const aDigits = randomInt(2, 4);
+      const a = Math.floor(randomInt(1000, 9999) / Math.pow(10, 4 - aDigits));
+      const b = Math.floor(randomInt(1000, 9999) / Math.pow(10, aDigits - 2));
+      return {
+        ans: a * b,
+        str: `*\`${a} xx ${b} =\``,
+        guess: true
+      }
+    },
+  },
 };
 
 let keys = Object.keys(questionGens);
@@ -1583,7 +1597,12 @@ function advanceQuestion() {
   return arr;
 }
 
-function generateQuestion(tier = notTestMode() ? -1 : Math.floor((modeData.total + 1) / getTestLength() * 4)) {
+function generateQuestion(tier = -1) {
+  let print = tier != -1;
+  if (tier == -1 && !notTestMode()) {
+    tier = Math.min(Math.floor(modeData.total / getTestLength() * 4), tiers.length - 1);
+    print = false;
+  }
   let question, key;
   if (mode === "zetamac") {
     const available = ["add", "sub", "mult", "div"].filter(key => keys.includes(key));
@@ -1611,13 +1630,16 @@ function generateQuestion(tier = notTestMode() ? -1 : Math.floor((modeData.total
   else if (tier != -1) {
     let totalWeight = 0;
     for (key of tiers[tier]) totalWeight += questionGens[key].weight;
-    let rand = Math.random() * totalWeight;
-    for (key of tiers[tier]) {
-      rand -= questionGens[key].weight;
-      if (rand < 0) break;
-    }
-    const questionGen = questionGens[key];
-    question = questionGen.func();
+    let rand = 0;
+    do {
+      rand = Math.random() * totalWeight;
+      for (key of tiers[tier]) {
+        rand -= questionGens[key].weight;
+        if (rand < 0) break;
+      }
+      const questionGen = questionGens[key];
+      question = questionGen.func();
+    } while (!print && (question.guess === true) != (Math.floor((modeData.total + 1) % (getTestLength() >= 40 ? 10 : 5)) == 0));
   }
   else {
     let totalWeight = 0;
