@@ -1424,6 +1424,29 @@ const questionGens = {
         str: `Write ${a > 100 ? names[a / 100] + " hundred" : tens[a / 10]} million ${names[fifths]}-fifths million ${names[b]} thousand ${tens[Math.floor(ones / 10)]}${ones % 10 > 0 ? "-" + names[ones % 10] : ""} in digits`
       }
     }
+  },
+  estadd: {
+    weight: 1,
+    func: () => {
+      const nums = randomInt(3, 5);
+      const arr = [];
+      for (let i = 0; i < nums; i++) {
+        const n = Math.floor(randomInt(10000, 99999) / Math.pow(10, randomInt(0, 3))) * Math.sign(Math.random() - 0.5);
+        arr.push(n);
+      }
+      arr[0] = Math.abs(arr[0]);
+      const ans = arr.reduce((a, b) => a + b, 0);
+      let str = `*\`${arr[0]}`;
+      for (const n of arr.slice(1)) {
+        str += `${n > 0 ? " + " : " - "}${Math.abs(n)}`;
+      }
+      str += ` =\``;
+      return {
+        ans: ans,
+        str: str,
+        guess: true
+      }
+    }
   }
 };
 
@@ -1451,11 +1474,10 @@ let modeHandler = function (str) {
     else if (!isNaN(n)) {
       if (
         modeData.question.guess &&
-        n >= Math.round(0.95 * modeData.question.ans) &&
-        n <= Math.round(1.05 * modeData.question.ans)
+        Math.abs((n - modeData.question.ans) / modeData.question.ans) < 0.05
       ) {
         const diff =
-          Math.abs(n - modeData.question.ans) / modeData.question.ans;
+          Math.abs((n - modeData.question.ans) / modeData.question.ans);
         const prefix =
           diff < 0.01 ?
             "🟦 Excellent guess!" :
@@ -1470,8 +1492,8 @@ let modeHandler = function (str) {
           extra: extra
         });
         arr.push({ type: "status", tag: "answer", data: `${prefix} ${(diff * 100).toFixed(1)}% off. ${Math.round(
-          modeData.question.ans * 0.95,
-        )}-${Math.round(modeData.question.ans * 1.05)}` });
+          modeData.question.ans - .05 * modeData.question.ans,
+        )}-${Math.round(modeData.question.ans + .05 * modeData.question.ans)}` });
       }
       else if (n === modeData.question.ans) {
         arr.push({
@@ -1519,9 +1541,9 @@ function generateQuestion() {
       question = questionGens.div.func(2, 100, 12);
   }
   else if (mode === "estimate") {
-    const available = ["sqrt", "cbrt", "estmult", "estdiv", "fracest"].filter(key => keys.includes(key));
+    const available = ["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"].filter(key => keys.includes(key));
     if (available.length === 0)
-      available.push(...["sqrt", "cbrt", "estmult", "estdiv", "fracest"]);
+      available.push(...["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"]);
     let rand = randomInt(1, available.length);
     key = available[rand - 1];
     question = questionGens[key].func();
