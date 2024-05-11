@@ -98,7 +98,7 @@
               element.innerHTML = new Array(40).fill(0).map((_, i) => {
                 const shouldBeEstimate = mode === "estimate" || (i + 1) % 10 == 0;
                 do {
-                  generateQuestion();
+                  generateQuestion(Math.floor((i + offset) / 20));
                 }
                 while ((modeData.question.guess === true) != shouldBeEstimate);
                 questions.push(modeData.question);

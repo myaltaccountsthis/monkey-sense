@@ -216,6 +216,7 @@ class Fraction {
 const questionGens = {
   add: {
     weight: 2,
+    tier: 0,
     func: (min = 10, max = 9999) => {
       const a = randomInt(min, max);
       const b = randomInt(min, max);
@@ -224,6 +225,7 @@ const questionGens = {
   },
   sub: {
     weight: 2,
+    tier: 0,
     func: (min = 10, max = 9999) => {
       const a = randomInt(min, max);
       const b = randomInt(min, max);
@@ -232,6 +234,7 @@ const questionGens = {
   },
   mult: {
     weight: 3,
+    tier: 1,
     func: (min = 10, maxA = 599, maxB = 79) => {
       const a = randomInt(min, maxA);
       const b = randomInt(min, maxB);
@@ -240,6 +243,7 @@ const questionGens = {
   },
   div: {
     weight: 1,
+    tier: 1,
     func: (min = 5, maxAns = 100, maxDiv = 40) => {
       // a isdividend, b isdivisor
       // a's randomInt() isthe answer
@@ -250,6 +254,7 @@ const questionGens = {
   },
   sqrt: {
     weight: 2,
+    tier: 1,
     func: () => {
       const d = randomInt(4, 8);
       const a = Math.round(Math.random() * Math.pow(10, d));
@@ -258,6 +263,7 @@ const questionGens = {
   },
   cbrt: {
     weight: 2,
+    tier: 2,
     func: () => {
       const d = randomInt(4, 9);
       const a = Math.round(Math.random() * Math.pow(10, d));
@@ -266,6 +272,7 @@ const questionGens = {
   },
   rdec: {
     weight: 2,
+    tier: 1,
     func: () => {
       const d = randomInt(0, 1);
       const bLen = randomInt(1, 2);
@@ -284,6 +291,7 @@ const questionGens = {
   },
   sq: {
     weight: 1,
+    tier: 0,
     func: () => {
       const a = randomInt(2, 60);
       return { ans: a * a, str: `\`${a}^2 = \`` };
@@ -291,6 +299,7 @@ const questionGens = {
   },
   cb: {
     weight: 1,
+    tier: 1,
     func: () => {
       const a = randomInt(2, 20);
       return { ans: a * a * a, str: `\`${a}^3 = \`` };
@@ -298,6 +307,7 @@ const questionGens = {
   },
   sqadd: {
     weight: 1,
+    tier: 1,
     func: () => {
       // if (Math.random() < 0.5) {
         let a = randomInt(2, 9);
@@ -333,6 +343,7 @@ const questionGens = {
   },
   fracadd: {
     weight: 4,
+    tier: 2,
     func: () => {
       if (Math.random() < 0.2) {
         // a/b + b/a
@@ -408,6 +419,7 @@ const questionGens = {
   },
   ngonal: {
     weight: 2,
+    tier: 1,
     func: () => {
       let gon = randomInt(3, 9);
       if (gon >= 4) gon++;
@@ -420,6 +432,7 @@ const questionGens = {
   },
   modexp: {
     weight: 1,
+    tier: 3,
     func: () => {
       const base = randomInt(10, 150);
       const mod = randomInt(3, 25);
@@ -436,6 +449,7 @@ const questionGens = {
   },
   mod: {
     weight: 3,
+    tier: 1,
     func: () => {
       if (Math.random() < 0.5) {
         const a = randomInt(5, 80);
@@ -455,6 +469,7 @@ const questionGens = {
   },
   pow: {
     weight: 2,
+    tier: 2,
     func: () => {
       const base = randomInt(2, 8);
       const aPow = randomInt(1, 3);
@@ -486,6 +501,7 @@ const questionGens = {
   },
   fracmult: {
     weight: 4,
+    tier: 2,
     func: () => {
       if (Math.random() < 0.2) {
         // x y/m + n z/a = b, find m and n
@@ -574,6 +590,7 @@ const questionGens = {
   },
   complex: {
     weight: 2,
+    tier: 2,
     func: () => {
       const a = randomInt(1, 9);
       const b = randomInt(1, 9);
@@ -608,8 +625,9 @@ const questionGens = {
       }
     },
   },
-  estmult: {
+  estmix: {
     weight: 2,
+    tier: 1,
     func: () => {
       const a = randomInt(1000, 9999);
       const b = randomInt(1000, 4000);
@@ -619,6 +637,7 @@ const questionGens = {
   },
   estdiv: {
     weight: 1,
+    tier: 1,
     func: () => {
       const a = randomInt(3000, 80000);
       const b = randomInt(10, 80);
@@ -627,6 +646,7 @@ const questionGens = {
   },
   fibsum: {
     weight: 2,
+    tier: 2,
     func: () => {
       let vals = [randomInt(1, 10), randomInt(1, 6)];
       const n = randomInt(7, 12);
@@ -657,6 +677,7 @@ const questionGens = {
   },
   trirecip: {
     weight: 1,
+    tier: 1,
     func: () => {
       const n = randomInt(3, 10);
       let num = n - 1;
@@ -681,6 +702,7 @@ const questionGens = {
   },
   binomexp: {
     weight: 2,
+    tier: 3,
     func: () => {
       const exp = randomInt(3, 6);
       const a = randomInt(1, 8 - exp);
@@ -724,6 +746,7 @@ const questionGens = {
   },
   relprime: {
     weight: 1,
+    tier: 1,
     func: () => {
       let a = 0;
       do {
@@ -750,6 +773,7 @@ const questionGens = {
   },
   posfact: {
     weight: 1,
+    tier: 1,
     func: () => {
       let a = 0;
       do {
@@ -775,6 +799,7 @@ const questionGens = {
   },
   base: {
     weight: 1,
+    tier: 3,
     func: () => {
       const base = randomInt(2, 9);
       const a = randomInt(20, 250);
@@ -787,6 +812,7 @@ const questionGens = {
   },
   basearith: {
     weight: 3,
+    tier: 3,
     func: () => {
       const mode = randomInt(1, 4);
       if (mode == 1) {
@@ -815,6 +841,7 @@ const questionGens = {
   },
   inverse: {
     weight: 1,
+    tier: 3,
     func: () => {
       const a = randomInt(2, 9);
       const b = randomInt(2, 9) * Math.sign(Math.random() - 0.3);
@@ -859,6 +886,7 @@ const questionGens = {
   // },
   set: {
     weight: 1,
+    tier: 1,
     func: () => {
       const n = randomInt(5, 9);
       const r = randomInt(2, n - 2);
@@ -885,6 +913,7 @@ const questionGens = {
   },
   lcm: {
     weight: 1,
+    tier: 0,
     func: () => {
       const c = randomInt(5, 20);
       const a = randomInt(2, 9) * c;
@@ -897,6 +926,7 @@ const questionGens = {
   },
   gcd: {
     weight: 1,
+    tier: 0,
     func: () => {
       const c = randomInt(5, 20);
       const a = randomInt(2, 9) * c;
@@ -909,6 +939,7 @@ const questionGens = {
   },
   quadfact: {
     weight: 1,
+    tier: 1,
     func: () => {
       const a = randomInt(1, 5);
       const b = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
@@ -921,6 +952,7 @@ const questionGens = {
   },
   roundsqrt: {
     weight: 1,
+    tier: 1,
     func: () => {
       const nums = [2, 3, 5, 6, 7, 8, 10];
       const a = nums[randomInt(0, nums.length - 1)];
@@ -934,6 +966,7 @@ const questionGens = {
   },
   sumsqrt: {
     weight: 1,
+    tier: 3,
     func: () => {
       const a = randomInt(2, 7);
       const b = randomInt(2, 7);
@@ -949,6 +982,7 @@ const questionGens = {
   },
   rootdata: {
     weight: 4,
+    tier: 2,
     func: () => {
       if (Math.random() < .3) {
         const a = randomInt(2, 6);
@@ -1002,6 +1036,7 @@ const questionGens = {
   },
   cuberules: {
     weight: 3,
+    tier: 2,
     func: () => {
       const mode = randomInt(1, 3);
       if (mode == 1) {
@@ -1045,6 +1080,7 @@ const questionGens = {
   },
   rootfrac: {
     weight: 2,
+    tier: 3,
     func: () => {
       const b = randomInt(2, 4);
       let a = 0;
@@ -1083,6 +1119,7 @@ const questionGens = {
   },
   fracrecip: {
     weight: 1,
+    tier: 1,
     func: () => {
       const b = randomInt(2, 10);
       const a = randomInt(1, b - 1);
@@ -1105,6 +1142,7 @@ const questionGens = {
   },
   modequal: {
     weight: 1,
+    tier: 3,
     func: () => {
       const a = randomInt(2, 10);
       const b = randomInt(2, 10);
@@ -1122,6 +1160,7 @@ const questionGens = {
   },
   diffsquares: {
     weight: 2,
+    tier: 0,
     func: () => {
       const a = randomInt(20, 60);
       const b = a + randomInt(1, 10) * Math.sign(Math.random() - 0.5);
@@ -1133,6 +1172,7 @@ const questionGens = {
   },
   fracsub: {
     weight: 1,
+    tier: 0,
     func: () => {
       const b = randomInt(2, 9);
       let a = 0;
@@ -1158,6 +1198,7 @@ const questionGens = {
   },
   fracdiv: {
     weight: 1,
+    tier: 0,
     func: () => {
       const d1 = randomInt(2, 12);
       const d2 = randomInt(2, 12);
@@ -1172,6 +1213,7 @@ const questionGens = {
   },
   multadd: {
     weight: 1,
+    tier: 0,
     func: () => {
       const a = Math.pow(10, randomInt(1, 2)) * randomInt(3, 30);
       const b = randomInt(4, 20);
@@ -1183,6 +1225,7 @@ const questionGens = {
   },
   binomnum: {
     weight: 1,
+    tier: 3,
     func: () => {
       const pow = randomInt(2, 3);
       const a = randomInt(1, 9);
@@ -1196,6 +1239,7 @@ const questionGens = {
   },
   varies: {
     weight: 1,
+    tier: 2,
     func: () => {
       const a = randomInt(3, 20);
       const b = randomInt(3, 20);
@@ -1219,6 +1263,7 @@ const questionGens = {
   },
   numdivis: {
     weight: 1,
+    tier: 1,
     func: () => {
       const mod = randomInt(3, 12);
       const a = randomInt(3, 20);
@@ -1231,6 +1276,7 @@ const questionGens = {
   },
   roman: {
     weight: 1,
+    tier: 0,
     func: () => {
       const a = randomInt(1, 2) * 1000 + randomInt(1, 90);
       const b = randomInt(1, 9) * 100 + randomInt(1, 90);
@@ -1250,6 +1296,7 @@ const questionGens = {
   },
   setint: {
     weight: 1,
+    tier: 1,
     func: () => {
       const arr1 = Array(randomInt(2, 5)).fill(0).map((v, _) => String.fromCharCode(97 + randomInt(0, 25)));
       const arr2 = Array(randomInt(2, 5)).fill(0).map((v, _) => String.fromCharCode(97 + randomInt(0, 25)));
@@ -1267,6 +1314,7 @@ const questionGens = {
   },
   basefrac: {
     weight: 1,
+    tier: 3,
     func: () => {
       const base = randomInt(4, 9);
       let num = 0;
@@ -1290,6 +1338,7 @@ const questionGens = {
   },
   quadvert: {
     weight: 1,
+    tier: 3,
     func: () => {
       const a = Math.max(randomInt(-2, 2), 1) * Math.sign(Math.random() - 0.5);
       const b = randomInt(1, 8) * Math.sign(Math.random() - 0.5);
@@ -1313,6 +1362,7 @@ const questionGens = {
   },
   quadroot: {
     weight: 1,
+    tier: 2,
     func: () => {
       const a = randomInt(1, 5);
       const b = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
@@ -1335,6 +1385,7 @@ const questionGens = {
   },
   fracest: {
     weight: 2,
+    tier: 3,
     func: () => {
       const a = randomInt(100, 900);
       const b = randomInt(2, 15);
@@ -1357,6 +1408,7 @@ const questionGens = {
   },
   systems: {
     weight: 2,
+    tier: 1,
     func: () => {
       const x = randomInt(1, 5) * Math.sign(Math.random() - 0.4);
       const y = randomInt(1, 5) * Math.sign(Math.random() - 0.4);
@@ -1387,6 +1439,7 @@ const questionGens = {
   },
   focus: {
     weight: 1,
+    tier: 3,
     func: () => {
       const numer = Math.max(randomInt(-1, 4), 1) * Math.sign(Math.random() - 0.5);
       const denom = numer == 1 ? randomInt(1, 4) : 1;
@@ -1410,6 +1463,7 @@ const questionGens = {
   },
   deriv: {
     weight: 1,
+    tier: 3,
     func: () => {
       const a = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
       const b = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
@@ -1423,6 +1477,7 @@ const questionGens = {
   },
   words: {
     weight: 1,
+    tier: 0,
     func: () => {
       // hundred or ten millions, fifths of millions, thousands, tens and ones
       const a = randomInt(2, 9) * Math.pow(10, randomInt(1, 2));
@@ -1434,10 +1489,52 @@ const questionGens = {
         str: `Write ${a > 100 ? names[a / 100] + " hundred" : tens[a / 10]} million ${names[fifths]}-fifths million ${names[b]} thousand ${tens[Math.floor(ones / 10)]}${ones % 10 > 0 ? "-" + names[ones % 10] : ""} in digits`
       }
     }
-  }
+  },
+  estadd: {
+    weight: 2,
+    tier: 0,
+    func: () => {
+      const nums = Math.max(randomInt(1, 5), 3);
+      const arr = [];
+      for (let i = 0; i < nums; i++) {
+        const n = Math.floor(randomInt(10000, 99999) / Math.pow(10, randomInt(0, 3))) * Math.sign(Math.random() - 0.5);
+        arr.push(n);
+      }
+      arr[0] = Math.abs(arr[0]);
+      const ans = arr.reduce((a, b) => a + b, 0);
+      let str = `*\`${arr[0]}`;
+      for (const n of arr.slice(1)) {
+        str += `${n > 0 ? " + " : " - "}${Math.abs(n)}`;
+      }
+      str += ` =\``;
+      return {
+        ans: ans,
+        str: str,
+        guess: true
+      }
+    }
+  },
+  estmult: {
+    weight: 1,
+    tier: 0,
+    func: () => {
+      const aDigits = randomInt(2, 4);
+      const a = Math.floor(randomInt(1000, 9999) / Math.pow(10, 4 - aDigits));
+      const b = Math.floor(randomInt(1000, 9999) / Math.pow(10, aDigits - 2));
+      return {
+        ans: a * b,
+        str: `*\`${a} xx ${b} =\``,
+        guess: true
+      }
+    },
+  },
 };
 
 let keys = Object.keys(questionGens);
+let tiers = [[], [], [], []];
+for (const key of keys) {
+  tiers[questionGens[key].tier].push(key);
+}
 let customWeight = {};
 let mode = "";
 let modeData = {};
@@ -1461,11 +1558,10 @@ let modeHandler = function (str) {
     else if (!isNaN(n)) {
       if (
         modeData.question.guess &&
-        n >= Math.round(0.95 * modeData.question.ans) &&
-        n <= Math.round(1.05 * modeData.question.ans)
+        Math.abs((n - modeData.question.ans) / modeData.question.ans) < 0.05
       ) {
         const diff =
-          Math.abs(n - modeData.question.ans) / modeData.question.ans;
+          Math.abs((n - modeData.question.ans) / modeData.question.ans);
         const prefix =
           diff < 0.01 ?
             "🟦 Excellent guess!" :
@@ -1480,8 +1576,8 @@ let modeHandler = function (str) {
           extra: extra
         });
         arr.push({ type: "status", tag: "answer", data: `${prefix} ${(diff * 100).toFixed(1)}% off. ${Math.round(
-          modeData.question.ans * 0.95,
-        )}-${Math.round(modeData.question.ans * 1.05)}` });
+          modeData.question.ans - .05 * modeData.question.ans,
+        )}-${Math.round(modeData.question.ans + .05 * modeData.question.ans)}` });
       }
       else if (n === modeData.question.ans) {
         arr.push({
@@ -1511,7 +1607,12 @@ function advanceQuestion() {
   return arr;
 }
 
-function generateQuestion() {
+function generateQuestion(tier = -1) {
+  let print = tier != -1;
+  if (tier == -1 && !notTestMode()) {
+    tier = Math.min(Math.floor(modeData.total / getTestLength() * 4), tiers.length - 1);
+    print = false;
+  }
   let question, key;
   if (mode === "zetamac") {
     const available = ["add", "sub", "mult", "div"].filter(key => keys.includes(key));
@@ -1529,12 +1630,26 @@ function generateQuestion() {
       question = questionGens.div.func(2, 100, 12);
   }
   else if (mode === "estimate") {
-    const available = ["sqrt", "cbrt", "estmult", "estdiv", "fracest"].filter(key => keys.includes(key));
+    const available = ["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"].filter(key => keys.includes(key));
     if (available.length === 0)
-      available.push(...["sqrt", "cbrt", "estmult", "estdiv", "fracest"]);
+      available.push(...["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"]);
     let rand = randomInt(1, available.length);
     key = available[rand - 1];
     question = questionGens[key].func();
+  }
+  else if (tier != -1) {
+    let totalWeight = 0;
+    for (key of tiers[tier]) totalWeight += questionGens[key].weight;
+    let rand = 0;
+    do {
+      rand = Math.random() * totalWeight;
+      for (key of tiers[tier]) {
+        rand -= questionGens[key].weight;
+        if (rand < 0) break;
+      }
+      const questionGen = questionGens[key];
+      question = questionGen.func();
+    } while (!print && (question.guess === true) != (Math.floor((modeData.total + 1) % (getTestLength() >= 40 ? 10 : 5)) == 0));
   }
   else {
     let totalWeight = 0;
