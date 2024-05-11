@@ -16,6 +16,10 @@
         word-wrap: normal;
       }
 
+      * {
+        font-weight: 600;
+      }
+
       .page-group {
         column-count: 2;
         column-width: 40%;
@@ -42,21 +46,24 @@
         column-gap: 8px; */
       }
 
-      .answer-blank {
+      /* .answer-blank {
+        margin-left: 8px;
+        border-bottom: 1px solid black;
         flex: 1 1 auto;
-        position: relative;
-      }
+        transform: scaleY(.5);
+        align-self: self-end;
+      } */
 
-      .answer-blank::before {
+      /* .answer-blank::before {
         content: "";
         position: absolute;
         bottom: -2px;
         width: 100%;
         height: .1px;
         background-color: black;
-      }
+      } */
       .question::after {
-        content: "______";
+        content: "________";
         font-weight: bold;
         margin-left: .5em;
       }
@@ -98,7 +105,7 @@
                 const isGuess = modeData.question.guess;
                 if (isGuess)
                   modeData.question.str = modeData.question.str.replace("*", "");
-                return `<div class="question">${isGuess ? "*" : ""}(${i + 1 + offset}) &nbsp;${modeData.question.str}</div>`;
+                return `<div class="question">${isGuess ? "*" : ""}(${i + 1 + offset}) &nbsp;${modeData.question.str}<span class="answer-blank"></span></div>`;
                 // return `<div class="question"><div>${modeData.question.str}</div><div class="answer-blank"></div></div>`;
               }).join("");
               offset += 40;

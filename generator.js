@@ -124,6 +124,14 @@ function toRoman(n) {
   return str;
 }
 
+function joinAdd(arr) {
+  if (arr.length === 1)
+    return arr[0];
+  console.log(arr);
+  // Make sure to only include + if this number is positive, otherwise - is already included
+  return arr.map((x, i) => `${i > 0 && (typeof(arr[i]) == "string" ? parseFloat(arr[i]) : arr[i]) > 0 ? "+" : ""}${x}`).join(" ");
+}
+
 class Fraction {
   constructor(numerator, denominator) {
     this.numerator = numerator;
@@ -197,12 +205,11 @@ class Fraction {
   getAnswerArr() {
     const arr = [this.formatted({useImproper: true})];
     if (this.isMixed()) {
-      const mixed = this.getMixed();
-      arr.push(`${mixed.whole} ${mixed.frac.numerator}/${mixed.frac.denominator}`);
+      arr.push(this.formatted());
     }
     if (this.getValue().toString().length < 8)
-      arr.push(this.getValue());
-    return arr;
+      arr.push(this.getValue().toString());
+    return arr.filter((x, i) => arr.indexOf(x) === i);
   }
 }
 
@@ -373,8 +380,7 @@ const questionGens = {
           );
         return {
           ans: ans.formatted({useImproper: true}),
-          str: `\`${arr
-            .join(" + ")} + ... = \``,
+          str: `\`${joinAdd(arr)} + ... = \``,
           ansStr: true
         };
       }
@@ -668,9 +674,9 @@ const questionGens = {
         return { ans: ansFrac.getAnswerArr(), str: `\`${str}\``, ansStr: true };
       }
       if (Math.random() < .5) {
-        return { ans: ansFrac.getAnswerArr(), str: `\`1 + ${str}\``, ansStr: true };
+        return { ans: new Fraction(num + den, den).getAnswerArr(), str: `\`1 + ${str}\``, ansStr: true };
       }
-      return { ans: ansFrac.getAnswerArr(), str: `The sum of the reciprocals of the first \`${n}\` triangular numbers is`, ansStr: true };
+      return { ans: new Fraction(num + den, den).getAnswerArr(), str: `The sum of the reciprocals of the first \`${n}\` triangular numbers is`, ansStr: true };
     },
   },
   binomexp: {
@@ -1288,16 +1294,20 @@ const questionGens = {
       const a = Math.max(randomInt(-2, 2), 1) * Math.sign(Math.random() - 0.5);
       const b = randomInt(1, 8) * Math.sign(Math.random() - 0.5);
       const c = randomInt(1, 8) * Math.sign(Math.random() - 0.5);
-      const vert = -b / (2 * a);
+      const num = -b;
+      const denom = 2 * a;
+      // const vert = -b / (2 * a);
       if (Math.random() < .4) {
         return {
-          ans: vert * vert * a + b * vert + c,
+          ans: new Fraction(num * num * a + num * denom * b + c * denom * denom, denom * denom).getAnswerArr(),
           str: `The ${a > 0 ? "minimum" : "maximum"} value of \`${(a < 0 ? "-" : "") + (Math.abs(a) > 1 ? Math.abs(a) : "")}x^2${(b < 0 ? "-" : "+") + (Math.abs(b) > 1 ? Math.abs(b) : "")}x${(c < 0 ? "-" : "+") + Math.abs(c)}\` is`,
+          ansStr: true
         }
       }
       return {
-        ans: vert + vert * vert * a + b * vert + c,
+        ans: new Fraction(num * num * a + num * denom * (b + 1) + c * denom * denom, denom * denom).getAnswerArr(),
         str: `Given: \`f(x)=${(a < 0 ? "-" : "") + (Math.abs(a) > 1 ? Math.abs(a) : "")}x^2${(b < 0 ? "-" : "+") + (Math.abs(b) > 1 ? Math.abs(b) : "")}x${(c < 0 ? "-" : "+") + Math.abs(c)}\` has a ${a > 0 ? "minimum" : "maximum"} point at \`(a, b)\`. Find \`a + b\`.`,
+        ansStr: true
       }
     }
   },
