@@ -99,21 +99,21 @@
         Base64 = {
           encode: function (value) {
             if (typeof(value) !== 'number') {
-                throw 'Value is not number!';
+              throw 'Value is not number!';
             }
             var result = '', mod;
-            do {
+            for (let i = 0; i < digits; i++) {
               mod = value % 64;
               result = ALPHA.charAt(mod) + result;
               value = Math.floor(value / 64);
-            } while(value > 0);
+            }
             return result;
           },
           decode: function (value) {
             var result = 0;
             for (var i = 0, len = value.length; i < len; i++) {
-                result *= 64;
-                result += ALPHA.indexOf(value[i]);
+              result *= 64;
+              result += ALPHA.indexOf(value[i]);
             }
             return result;
           }
@@ -124,6 +124,7 @@
       const queryParams = new URLSearchParams(window.location.search);
       const questions = [];
       let useAsciiMath = true;
+      digits = 8;
       function getFormattedAnswer(q) {
         if (typeof(q.ans) == "object")
           return q.ans.join(", &nbsp;");
@@ -138,7 +139,7 @@
       }
       {
         const querySeed = queryParams.get("seed");
-        seed = querySeed ? Base64.decode(queryParams.get("seed")) : Math.floor(Math.random() * 2 ** 48);
+        seed = querySeed ? Base64.decode(queryParams.get("seed")) : Math.floor(Math.random() * 2 ** (digits * 6));
       }
 
       MathJax = {
