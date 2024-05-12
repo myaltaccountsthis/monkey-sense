@@ -76,9 +76,16 @@ const tens = [
   "ninety",
 ]
 
+let rng = new Math.seedrandom(window.seed ?? Date.now());
+
+// Random [0, 1)
+function random() {
+  return rng();
+}
+
 // Inclusive random
 function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(random() * (max - min + 1)) + min;
 }
 
 function gcd(a, b) {
@@ -127,7 +134,6 @@ function toRoman(n) {
 function joinAdd(arr) {
   if (arr.length === 1)
     return arr[0];
-  console.log(arr);
   // Make sure to only include + if this number is positive, otherwise - is already included
   return arr.map((x, i) => `${i > 0 && (typeof(arr[i]) == "string" ? parseFloat(arr[i]) : arr[i]) > 0 ? "+" : ""}${x}`).join(" ");
 }
@@ -257,7 +263,7 @@ const questionGens = {
     tier: 1,
     func: () => {
       const d = randomInt(4, 8);
-      const a = Math.round(Math.random() * Math.pow(10, d));
+      const a = Math.round(random() * Math.pow(10, d));
       return { ans: Math.sqrt(a), str: `*\`sqrt(${a}) = \``, guess: true };
     },
   },
@@ -266,7 +272,7 @@ const questionGens = {
     tier: 2,
     func: () => {
       const d = randomInt(4, 9);
-      const a = Math.round(Math.random() * Math.pow(10, d));
+      const a = Math.round(random() * Math.pow(10, d));
       return { ans: Math.cbrt(a), str: `*\`root(3)(${a}) = \``, guess: true };
     },
   },
@@ -309,17 +315,17 @@ const questionGens = {
     weight: 1,
     tier: 1,
     func: () => {
-      // if (Math.random() < 0.5) {
+      // if (random() < 0.5) {
         let a = randomInt(2, 9);
         let b = randomInt(1, 9);
         let d;
         const nums = [b, a, a - 1, 10 - b];
-        if (Math.random() < 0.5) {
+        if (random() < 0.5) {
           d = nums[0];
           nums[0] = nums[3];
           nums[3] = d;
         }
-        if (Math.random() < 0.5) {
+        if (random() < 0.5) {
           d = nums[0];
           nums[0] = nums[2];
           nums[2] = d;
@@ -332,8 +338,8 @@ const questionGens = {
         return { ans: a * a + b * b, str: `\`${a}^2 + ${b}^2 = \`` };
       // }
       // let a = randomInt(4, 13) * 5;
-      // let b = Math.sign(Math.random() - 0.5) + a;
-      // if (Math.random() < 0.5) {
+      // let b = Math.sign(random() - 0.5) + a;
+      // if (random() < 0.5) {
       //   d = a;
       //   a = b;
       //   b = d;
@@ -345,10 +351,10 @@ const questionGens = {
     weight: 4,
     tier: 2,
     func: () => {
-      if (Math.random() < 0.2) {
+      if (random() < 0.2) {
         // a/b + b/a
         let a = randomInt(5, 15);
-        let b = Math.sign(Math.random() - 0.5) * randomInt(1, 3) + a;
+        let b = Math.sign(random() - 0.5) * randomInt(1, 3) + a;
         const frac1 = new Fraction(a, b);
         const frac2 = new Fraction(b, a);
         const num = Math.pow(frac1.denominator - frac1.numerator, 2);
@@ -360,7 +366,7 @@ const questionGens = {
           ansStr: true,
         };
       }
-      if (Math.random() < 0.25) {
+      if (random() < 0.25) {
         // reciprocal of arithmetic series
         const a = randomInt(2, 5);
         const diff = randomInt(1, 3);
@@ -376,11 +382,11 @@ const questionGens = {
           ansStr: true,
         };
       }
-      if (Math.random() < 0.33) {
+      if (random() < 0.33) {
         // geometric series
         const a = randomInt(2, 5);
         const rDen = randomInt(2, 6);
-        const rNum = randomInt(1, rDen - 1) * Math.sign(Math.random() - 0.3);
+        const rNum = randomInt(1, rDen - 1) * Math.sign(random() - 0.3);
         let ansNum = a * rDen;
         let ansDen = rDen - rNum;
         const ans = new Fraction(ansNum, ansDen);
@@ -437,7 +443,7 @@ const questionGens = {
       const base = randomInt(10, 150);
       const mod = randomInt(3, 25);
       let exp = randomInt(3, 20);
-      if (Math.random() < 0.4) {
+      if (random() < 0.4) {
         exp = mod + randomInt(-1, 2);
       }
 
@@ -451,7 +457,7 @@ const questionGens = {
     weight: 3,
     tier: 1,
     func: () => {
-      if (Math.random() < 0.5) {
+      if (random() < 0.5) {
         const a = randomInt(5, 80);
         const b = randomInt(3, 25);
         const c = randomInt(3, 25);
@@ -487,7 +493,7 @@ const questionGens = {
         c = randomInt(-3, Math.floor(8 / cPow));
       } while (c == 0);
       const ans = aPow * a - b + cPow * c;
-      if (ans >= -3 && ans <= 3 && Math.random() < 0.9)
+      if (ans >= -3 && ans <= 3 && random() < 0.9)
         return {
           ans: ans >= 0 ? Math.pow(base, ans) : `1/${Math.pow(base, -ans)}`,
           str: `\`${Math.pow(base, aPow)}^${a} -: ${base}^${b} xx ${Math.pow(base, cPow)}^${c} = \``,
@@ -503,7 +509,7 @@ const questionGens = {
     weight: 4,
     tier: 2,
     func: () => {
-      if (Math.random() < 0.2) {
+      if (random() < 0.2) {
         // x y/m + n z/a = b, find m and n
         const c = randomInt(10, 32);
         let bDen = randomInt(3, 12);
@@ -535,16 +541,16 @@ const questionGens = {
             return { ans: m * n, str: str + "\`mn = \`" };
         }
       }
-      if (Math.random() < 0.4) {
+      if (random() < 0.4) {
         // a * b/c where a and b are close to c
         let c = randomInt(13, 25);
         let b = c;
         do {
-          b = c + randomInt(1, 4) * Math.sign(Math.random() - 0.6666);
+          b = c + randomInt(1, 4) * Math.sign(random() - 0.6666);
         } while (gcd(b, c) > 1);
         let a = c;
         do {
-          a = c + randomInt(1, 7) * Math.sign(Math.random() - 0.6666);
+          a = c + randomInt(1, 7) * Math.sign(random() - 0.6666);
         } while (gcd(a, c) > 1);
         let numer = (c - a) * (c - b);
         let val = a + b - c + Math.floor(numer / c);
@@ -555,7 +561,7 @@ const questionGens = {
           ansStr: true,
         };
       }
-      if (Math.random() < .66) {
+      if (random() < .66) {
         // foil where a b/c * d e/f and a % f == 0 and d % c == 0
         let d1 = randomInt(2, 12);
         let d2 = randomInt(2, 12);
@@ -596,9 +602,9 @@ const questionGens = {
       const b = randomInt(1, 9);
       const c = randomInt(1, 9);
       const d = randomInt(1, 9);
-      const neg = Math.random() < 0.5;
+      const neg = random() < 0.5;
       let str = `\`(${a} ${neg ? "-" : "+"} ${b}i)(${c} + ${d}i) = a + bi\`. `;
-      if (a + b + c + d < 16 && Math.random() < 0.5) {
+      if (a + b + c + d < 16 && random() < 0.5) {
         return {
           ans:
             (a * c - b * d * (neg ? -1 : 1)) *
@@ -653,13 +659,13 @@ const questionGens = {
       for (let i = 2; i < n; i++) {
         vals.push(vals[i - 1] + vals[i - 2]);
       }
-      if (Math.random() < .4) {
+      if (random() < .4) {
         // frac fib
         const frac = Math.pow(2, randomInt(1, 3));
         vals = vals.map((v, _) => new Fraction(v, frac));
         let str = `\``;
         for (let i = 0; i < 5; i++) {
-          str += Math.random() < .33 ? Math.random() < .5 ? `${vals[i].formatted({useImproper: true})} + ` : `${vals[i].getValue()} + ` : `${vals[i].formatted()} + `;
+          str += random() < .33 ? random() < .5 ? `${vals[i].formatted({useImproper: true})} + ` : `${vals[i].getValue()} + ` : `${vals[i].formatted()} + `;
         }
         str += `... + ${vals[vals.length - 2].formatted()} + ${vals[vals.length - 1].formatted()} = \``;
         const ansFrac = new Fraction((vals[vals.length - 1].getValue() * 2 + vals[vals.length - 2].getValue() - vals[1].getValue()) * frac, frac);
@@ -691,10 +697,10 @@ const questionGens = {
         str += " + ...";
       str += " + " + arr[arr.length - 1];
       str += " = ";
-      if (Math.random() < 0.3) {
+      if (random() < 0.3) {
         return { ans: ansFrac.getAnswerArr(), str: `\`${str}\``, ansStr: true };
       }
-      if (Math.random() < .5) {
+      if (random() < .5) {
         return { ans: new Fraction(num + den, den).getAnswerArr(), str: `\`1 + ${str}\``, ansStr: true };
       }
       return { ans: new Fraction(num + den, den).getAnswerArr(), str: `The sum of the reciprocals of the first \`${n}\` triangular numbers is`, ansStr: true };
@@ -706,9 +712,9 @@ const questionGens = {
     func: () => {
       const exp = randomInt(3, 6);
       const a = randomInt(1, 8 - exp);
-      const b = randomInt(1, 8 - exp) * Math.sign(Math.random() - 0.5);
+      const b = randomInt(1, 8 - exp) * Math.sign(random() - 0.5);
       const str = `\`(${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b) > 1 ? Math.abs(b) : ""}y)^${exp}\``;
-      if (Math.random() < 0.2) {
+      if (random() < 0.2) {
         return {
           ans: Math.pow(a + b, exp),
           str: "The sum of the coefficients of " + str + " is",
@@ -791,7 +797,7 @@ const questionGens = {
         }
         ans *= count;
       }
-      //if (Math.random() < .4) {
+      //if (random() < .4) {
       //  return { ans: arr.length, str: `Find the number of positive prime divisors of \`${a}\`` };
       //}
       return { ans: ans, str: `Find the number of positive integral divisors of \`${a}\`` };
@@ -804,7 +810,7 @@ const questionGens = {
       const base = randomInt(2, 9);
       const a = randomInt(20, 250);
       const conv = parseInt(a.toString(base));
-      if (Math.random() < .5) {
+      if (random() < .5) {
         return { ans: conv, str: `Convert \`${a}\` base \`10\` to base \`${base}\`` };
       }
       return { ans: a, str: `Convert \`${conv}_${base}\` to base \`10\`` };
@@ -844,11 +850,11 @@ const questionGens = {
     tier: 3,
     func: () => {
       const a = randomInt(2, 9);
-      const b = randomInt(2, 9) * Math.sign(Math.random() - 0.3);
+      const b = randomInt(2, 9) * Math.sign(random() - 0.3);
       const c = randomInt(2, 6);
-      const d = randomInt(2, 6) * Math.sign(Math.random() - 0.3);
-      if (Math.random() < 0.5) {
-        const e = randomInt(2, 6) * Math.sign(Math.random() - 0.3);
+      const d = randomInt(2, 6) * Math.sign(random() - 0.3);
+      if (random() < 0.5) {
+        const e = randomInt(2, 6) * Math.sign(random() - 0.3);
         return {
           ans: new Fraction((c * (e - d) - b), a).getAnswerArr(),
           str: `If \`f(x) = (${a}x ${b > 0 ? `+` : `-`} ${Math.abs(b)}) / ${c} ${d > 0 ? `+` : `-`} ${Math.abs(d)}\`, what is the value of \`f^-1(${e})\`?`,
@@ -857,7 +863,7 @@ const questionGens = {
       }
       let e = 1;
       do {
-        e = randomInt(1, 4) * Math.sign(Math.random() - 0.5);
+        e = randomInt(1, 4) * Math.sign(random() - 0.5);
       } while (e * c == a);
       return {
         ans: new Fraction(b - e * d, e * c - a).getAnswerArr(),
@@ -872,8 +878,8 @@ const questionGens = {
   //     const a = new Date(2024, randomInt(0, 6), randomInt(1, 28));
   //     const b = new Date(2024, a.getMonth() + randomInt(1, 4), randomInt(1, 28));
   //     let diff = Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
-  //     const aBegin = Math.random() < .5;
-  //     const bBegin = Math.random() < .5;
+  //     const aBegin = random() < .5;
+  //     const bBegin = random() < .5;
   //     if (aBegin)
   //       diff++;
   //     if (bBegin)
@@ -942,7 +948,7 @@ const questionGens = {
     tier: 1,
     func: () => {
       const a = randomInt(1, 5);
-      const b = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
+      const b = randomInt(1, 5) * Math.sign(random() - 0.5);
       const c = randomInt(2, 9);
       return {
         ans: (a * c + b) * (a * c + b),
@@ -984,11 +990,11 @@ const questionGens = {
     weight: 4,
     tier: 2,
     func: () => {
-      if (Math.random() < .3) {
+      if (random() < .3) {
         const a = randomInt(2, 6);
         const b = randomInt(2, 12);
         const c = randomInt(2, 10);
-        if (Math.random() < .5) {
+        if (random() < .5) {
           return {
             ans: new Fraction(c, a).getAnswerArr(),
             str: `The product of the roots of \`${a}x^2 + ${b}x + ${c}\` is`,
@@ -1040,9 +1046,9 @@ const questionGens = {
     func: () => {
       const mode = randomInt(1, 3);
       if (mode == 1) {
-        const a = randomInt(1, 8) * Math.sign(Math.random() - .5);
-        const b = randomInt(1, 12) * Math.sign(Math.random() - .5);
-        if (Math.random() < .5) {
+        const a = randomInt(1, 8) * Math.sign(random() - .5);
+        const b = randomInt(1, 12) * Math.sign(random() - .5);
+        if (random() < .5) {
           return {
             ans: (a * a - 3 * b) * a,
             str: `If \`x + y = ${a}\` and \`xy = ${b}\`, then \`x^3 + y^3 = \``,
@@ -1057,16 +1063,16 @@ const questionGens = {
         const a = randomInt(1, 11);
         let b = 0;
         do {
-          b = randomInt(1, 11) * Math.sign(Math.random() - .5);
+          b = randomInt(1, 11) * Math.sign(random() - .5);
         } while (b == -a);
         return {
           ans: a * a - a * b + b * b,
           str: `\`(${a}^3 ${b > 0 ? "+" : "-"} ${Math.abs(b)}^3) -: (${a} ${b > 0 ? "+" : "-"} ${Math.abs(b)}) = \``,
         }
       }
-      const a = randomInt(1, 8) * Math.sign(Math.random() - .5);
-      const b = randomInt(1, 8) * Math.sign(Math.random() - .5);
-      if (Math.random() < .5) {
+      const a = randomInt(1, 8) * Math.sign(random() - .5);
+      const b = randomInt(1, 8) * Math.sign(random() - .5);
+      if (random() < .5) {
         return {
           ans: a * a * a + b * b * b,
           str: `If \`x = ${a}\` and \`y = ${b}\`, \`(x + y)(x^2 - xy + y^2) = \``,
@@ -1163,7 +1169,7 @@ const questionGens = {
     tier: 0,
     func: () => {
       const a = randomInt(20, 60);
-      const b = a + randomInt(1, 10) * Math.sign(Math.random() - 0.5);
+      const b = a + randomInt(1, 10) * Math.sign(random() - 0.5);
       return {
         ans: a * a - b * b,
         str: `\`${a}^2 - ${b}^2 = \``,
@@ -1247,7 +1253,7 @@ const questionGens = {
       do {
         c = randomInt(3, 20);
       } while (c == a);
-      if (Math.random() < .5) {
+      if (random() < .5) {
         return {
           ans: new Fraction(b * c, a).getAnswerArr(),
           str: `Given \`y\` varies directly with \`x\` and \`y=${b}\` when \`x=${a}\`. Find y when \`x = ${c}\``,
@@ -1282,7 +1288,7 @@ const questionGens = {
       const b = randomInt(1, 9) * 100 + randomInt(1, 90);
       const aStr = toRoman(a);
       const bStr = toRoman(b);
-      if (Math.random() < .5) {
+      if (random() < .5) {
         return {
           ans: a + b,
           str: `${aStr} \`+\` ${bStr} \`=\` (Arabic Numeral)`
@@ -1323,7 +1329,7 @@ const questionGens = {
       } while (gcd(num, base) != 1);
       const frac = new Fraction(num, base * base);
       const a = parseInt(num.toString(base));
-      if (Math.random() < .5) {
+      if (random() < .5) {
         return {
           ans: [frac.formatted(), frac.formatted({useImproper: true})],
           str: `\`${a / 100}_${base} =\`base 10 (fraction)`,
@@ -1340,13 +1346,13 @@ const questionGens = {
     weight: 1,
     tier: 3,
     func: () => {
-      const a = Math.max(randomInt(-2, 2), 1) * Math.sign(Math.random() - 0.5);
-      const b = randomInt(1, 8) * Math.sign(Math.random() - 0.5);
-      const c = randomInt(1, 8) * Math.sign(Math.random() - 0.5);
+      const a = Math.max(randomInt(-2, 2), 1) * Math.sign(random() - 0.5);
+      const b = randomInt(1, 8) * Math.sign(random() - 0.5);
+      const c = randomInt(1, 8) * Math.sign(random() - 0.5);
       const num = -b;
       const denom = 2 * a;
       // const vert = -b / (2 * a);
-      if (Math.random() < .4) {
+      if (random() < .4) {
         return {
           ans: new Fraction(num * num * a + num * denom * b + c * denom * denom, denom * denom).getAnswerArr(),
           str: `The ${a > 0 ? "minimum" : "maximum"} value of \`${(a < 0 ? "-" : "") + (Math.abs(a) > 1 ? Math.abs(a) : "")}x^2${(b < 0 ? "-" : "+") + (Math.abs(b) > 1 ? Math.abs(b) : "")}x${(c < 0 ? "-" : "+") + Math.abs(c)}\` is`,
@@ -1365,11 +1371,11 @@ const questionGens = {
     tier: 2,
     func: () => {
       const a = randomInt(1, 5);
-      const b = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
+      const b = randomInt(1, 5) * Math.sign(random() - 0.5);
       const numer = randomInt(1, 5);
-      const denom = Math.random() > .5 ? 1 : randomInt(2, 5);
+      const denom = random() > .5 ? 1 : randomInt(2, 5);
       const frac = new Fraction(Math.pow(numer, 2), Math.pow(denom, 2));
-      if (Math.random() < .5) {
+      if (random() < .5) {
         return {
           ans: new Fraction(numer - b * denom, denom * a).getAnswerArr(),
           str: `The larger root of \`(${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b)})^2 = ${frac.formatted()}\` is`,
@@ -1410,9 +1416,9 @@ const questionGens = {
     weight: 2,
     tier: 1,
     func: () => {
-      const x = randomInt(1, 5) * Math.sign(Math.random() - 0.4);
-      const y = randomInt(1, 5) * Math.sign(Math.random() - 0.4);
-      if (Math.random() < .25) {
+      const x = randomInt(1, 5) * Math.sign(random() - 0.4);
+      const y = randomInt(1, 5) * Math.sign(random() - 0.4);
+      if (random() < .25) {
         return {
           ans: x * x + y * y,
           str: `If \`x + y = ${x + y}\` and \`x - y = ${x - y}\`, then \`x^2 + y^2 = \``,
@@ -1441,7 +1447,7 @@ const questionGens = {
     weight: 1,
     tier: 3,
     func: () => {
-      const numer = Math.max(randomInt(-1, 4), 1) * Math.sign(Math.random() - 0.5);
+      const numer = Math.max(randomInt(-1, 4), 1) * Math.sign(random() - 0.5);
       const denom = numer == 1 ? randomInt(1, 4) : 1;
       const a = new Fraction(numer, denom);
       const h = randomInt(-5, 5);
@@ -1465,10 +1471,10 @@ const questionGens = {
     weight: 1,
     tier: 3,
     func: () => {
-      const a = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
-      const b = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
-      const c = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
-      const x = randomInt(1, 5) * Math.sign(Math.random() - 0.5);
+      const a = randomInt(1, 5) * Math.sign(random() - 0.5);
+      const b = randomInt(1, 5) * Math.sign(random() - 0.5);
+      const c = randomInt(1, 5) * Math.sign(random() - 0.5);
+      const x = randomInt(1, 5) * Math.sign(random() - 0.5);
       return {
         ans: 2 * a * x + b,
         str: `Let \`f(x) = ${(a < 0 ? "-" : "") + (Math.abs(a) > 1 ? Math.abs(a) : "")}x^2${(b < 0 ? "-" : "+") + (Math.abs(b) > 1 ? Math.abs(b) : "")}x${(c < 0 ? "-" : "+") + Math.abs(c)}\`. \`f^'(${x}) = \``
@@ -1497,7 +1503,7 @@ const questionGens = {
       const nums = Math.max(randomInt(1, 5), 3);
       const arr = [];
       for (let i = 0; i < nums; i++) {
-        const n = Math.floor(randomInt(10000, 99999) / Math.pow(10, randomInt(0, 3))) * Math.sign(Math.random() - 0.5);
+        const n = Math.floor(randomInt(10000, 99999) / Math.pow(10, randomInt(0, 3))) * Math.sign(random() - 0.5);
         arr.push(n);
       }
       arr[0] = Math.abs(arr[0]);
@@ -1642,7 +1648,7 @@ function generateQuestion(tier = -1) {
     for (key of tiers[tier]) totalWeight += questionGens[key].weight;
     let rand = 0;
     do {
-      rand = Math.random() * totalWeight;
+      rand = random() * totalWeight;
       for (key of tiers[tier]) {
         rand -= questionGens[key].weight;
         if (rand < 0) break;
@@ -1654,7 +1660,7 @@ function generateQuestion(tier = -1) {
   else {
     let totalWeight = 0;
     for (key of keys) totalWeight += questionGens[key].weight;
-    let rand = Math.random() * totalWeight;
+    let rand = random() * totalWeight;
     for (key of keys) {
       rand -= questionGens[key].weight;
       if (rand < 0) break;

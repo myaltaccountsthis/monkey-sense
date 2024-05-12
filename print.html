@@ -4,26 +4,29 @@
     <title>Print Monkey Sense</title>
     <meta charset="utf-8">
     <link rel="stylesheet" href="styles.css">
-    <script src="generator.js"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
       div, h1, button, input {
         color: black;
         text-align: left;
         font-family: 'Times New Roman', Times, serif;
         font-weight: bold;
-        font-size: 15px;
+        font-size: 13.8px;
         word-wrap: normal;
       }
 
+      h1 {
+        font-size: xx-large;
+        margin-bottom: 1.5em;
+      }
+
       * {
-        font-weight: 600;
+        font-weight: bold;
       }
 
       .page-group {
         column-count: 2;
-        column-width: 40%;
-        column-gap: 5%;
+        column-width: 35%;
+        column-gap: 10%;
         page-break-after: always;
         margin: 0px 2%;
       }
@@ -38,9 +41,11 @@
       }
 
       .question {
-        margin-bottom: 1.25em;
+        margin-bottom: 1.2em;
+        padding-left: 2.2em;
         line-height: 130%;
         width: 100%;
+        text-indent: -2.2em;
         /* display: flex;
         justify-content: left;
         column-gap: 8px; */
@@ -48,9 +53,9 @@
 
       /* .answer-blank {
         margin-left: 8px;
-        border-bottom: 1px solid black;
-        flex: 1 1 auto;
+        border-bottom: .1px solid black;
         transform: scaleY(.5);
+        /* flex: 1 1 auto;
         align-self: self-end;
       } */
 
@@ -62,16 +67,59 @@
         height: .1px;
         background-color: black;
       } */
-      .question::after {
-        content: "________";
+
+      .answer-blank {
+        font-weight: bold;
+        margin-left: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      /* .answer-blank::after {
+        background-color: gray;
+        content: "_____________________________";
+        font-weight: bold;
+        z-index: -1;
+      } */
+
+      /* .question::after {
+        content: "________________";
         font-weight: bold;
         margin-left: .5em;
-      }
+      } */
 
       @page {
-        size: A4;
+        size: letter;
+        margin: .5in;
       }
     </style>
+    <script>
+      // Base64 conversion, modified from https://gist.github.com/alkaruno/b84162bae5115f4ca99b
+      {
+        const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+        Base64 = {
+          encode: function (value) {
+            if (typeof(value) !== 'number') {
+                throw 'Value is not number!';
+            }
+            var result = '', mod;
+            do {
+              mod = value % 64;
+              result = ALPHA.charAt(mod) + result;
+              value = Math.floor(value / 64);
+            } while(value > 0);
+            return result;
+          },
+          decode: function (value) {
+            var result = 0;
+            for (var i = 0, len = value.length; i < len; i++) {
+                result *= 64;
+                result += ALPHA.indexOf(value[i]);
+            }
+            return result;
+          }
+        };
+      }
+    </script>
     <script>
       const queryParams = new URLSearchParams(window.location.search);
       const questions = [];
@@ -88,15 +136,21 @@
         }
         return q.ans;
       }
+      {
+        const querySeed = queryParams.get("seed");
+        seed = querySeed ? Base64.decode(queryParams.get("seed")) : Math.floor(Math.random() * 2 ** 48);
+      }
+
       MathJax = {
         loader: {load: ['input/asciimath', 'output/chtml', 'ui/menu']},
         startup: {
           ready: () => {
             mode = queryParams.get("mode") || "ns";
+            document.getElementById("title").innerText = `Monkey Sense ${mode === "ns" ? "Number Sense" : mode === "zetamac" ? "Zetamac" : "Estimate"} — ${Base64.encode(seed)}`;
             let offset = 0;
             for (let element of document.getElementsByClassName("page-group")) {
               element.innerHTML = new Array(40).fill(0).map((_, i) => {
-                const shouldBeEstimate = mode === "estimate" || (i + 1) % 10 == 0;
+                const shouldBeEstimate = mode === "estimate" || mode === "ns" && (i + 1) % 10 == 0;
                 do {
                   generateQuestion(Math.floor((i + offset) / 20));
                 }
@@ -105,7 +159,7 @@
                 const isGuess = modeData.question.guess;
                 if (isGuess)
                   modeData.question.str = modeData.question.str.replace("*", "");
-                return `<div class="question">${isGuess ? "*" : ""}(${i + 1 + offset}) &nbsp;${modeData.question.str}<span class="answer-blank"></span></div>`;
+                return `<div class="question">${isGuess ? "*" : ""}(${i + 1 + offset}) &nbsp;${modeData.question.str}<span class="answer-blank">${"_".repeat(12)}</span></div>`;
                 // return `<div class="question"><div>${modeData.question.str}</div><div class="answer-blank"></div></div>`;
               }).join("");
               offset += 40;
@@ -122,11 +176,15 @@
         }
       };
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
+    <script src="generator.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   </head>
   <body style="background-color: white;">
+    <h1 id="title"></h1>
     <div class="page-group"></div>
     <div class="page-group"></div>
-    <h1 style="font-size: xx-large; text-align: center;">Answer Key</h1>
+    <h1 style="text-align: center;">Answer Key</h1>
     <br/>
     <div id="answers"></div>
   </body>
