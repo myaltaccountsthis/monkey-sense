@@ -1,6 +1,7 @@
 // UTIL
 import seedrandom from "seedrandom";
 import { randomSeed } from "./Base64";
+import { ModeData, QuestionGenerator } from "./types";
 
 const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
 
@@ -77,12 +78,12 @@ const tens = [
   "ninety",
 ]
 
-const getSeed = (querySeed?: string) => querySeed ?? randomSeed();
+export const getSeed = (querySeed?: string) => querySeed ?? randomSeed();
 
-class RNG {
+export class RNG {
   rng: seedrandom.PRNG;
-  constructor(seed?: string) {
-    this.rng = seedrandom(getSeed());
+  constructor(seed: string = randomSeed()) {
+    this.rng = seedrandom(seed);
   }
   
   // Random [0, 1)
@@ -230,43 +231,16 @@ class Fraction {
   }
 }
 
-interface Question {
-  ans: number;
-  str: string;
-  ansStr?: string;
-  ansArr?: string[];
-  guess?: boolean;
-}
-type QuestionGeneratorFunction = (...args: any[]) => Question;
-interface QuestionGenerator {
-  weight: number;
-  tier: number;
-  func: QuestionGeneratorFunction;
-}
-interface Message {
-  type: string;
-  data: any;
-  extra?: any;
-  tag?: string;
-}
-interface ModeData {
-  lastT: number;
-  total: number;
-  question: Question;
-}
-type GameMode = "Default" | "NoEnter" | "Hardcore" | "Test"
-
-class QuestionGeneratorList {
+export class QuestionGeneratorList {
   rng: RNG;
   questionGens: {[key: string]: QuestionGenerator};
-  gameMode: GameMode;
   tiers: string[][];
-  constructor(rng: RNG, gm: GameMode) {
+  constructor(rng: RNG) {
     this.rng = rng;
-    this.gameMode = gm;
     const { random, randomInt } = rng;
     this.questionGens = {
       add: {
+        name: "Addition",
         weight: 2,
         tier: 0,
         func: (min = 10, max = 9999) => {
@@ -276,6 +250,7 @@ class QuestionGeneratorList {
         },
       },
       sub: {
+        name: "Subtraction",
         weight: 2,
         tier: 0,
         func: (min = 10, max = 9999) => {
@@ -285,6 +260,7 @@ class QuestionGeneratorList {
         },
       },
       mult: {
+        name: "Multiplication",
         weight: 3,
         tier: 1,
         func: (min = 10, maxA = 599, maxB = 79) => {
@@ -294,6 +270,7 @@ class QuestionGeneratorList {
         },
       },
       div: {
+        name: "Division",
         weight: 1,
         tier: 1,
         func: (min = 5, maxAns = 100, maxDiv = 40) => {
@@ -305,6 +282,7 @@ class QuestionGeneratorList {
         },
       },
       sqrt: {
+        name: "Square Root Estimation",
         weight: 2,
         tier: 1,
         func: () => {
@@ -314,6 +292,7 @@ class QuestionGeneratorList {
         },
       },
       cbrt: {
+        name: "Cube Root Estimation",
         weight: 2,
         tier: 2,
         func: () => {
@@ -323,6 +302,7 @@ class QuestionGeneratorList {
         },
       },
       rdec: {
+        name: "Repeating Decimal",
         weight: 2,
         tier: 1,
         func: () => {
@@ -342,6 +322,7 @@ class QuestionGeneratorList {
         },
       },
       sq: {
+        name: "Memorized Squares",
         weight: 1,
         tier: 0,
         func: () => {
@@ -350,6 +331,7 @@ class QuestionGeneratorList {
         },
       },
       cb: {
+        name: "Memorized Cubes",
         weight: 1,
         tier: 1,
         func: () => {
@@ -358,6 +340,7 @@ class QuestionGeneratorList {
         },
       },
       sqadd: {
+        name: "Sum of Squares",
         weight: 1,
         tier: 1,
         func: () => {
@@ -394,6 +377,7 @@ class QuestionGeneratorList {
         },
       },
       fracadd: {
+        name: "Fraction Addition",
         weight: 4,
         tier: 2,
         func: () => {
@@ -470,6 +454,7 @@ class QuestionGeneratorList {
         },
       },
       ngonal: {
+        name: "Polygonal Numbers",
         weight: 2,
         tier: 1,
         func: () => {
@@ -483,6 +468,7 @@ class QuestionGeneratorList {
         },
       },
       modexp: {
+        name: "Modular Exponentiation",
         weight: 1,
         tier: 3,
         func: () => {
@@ -500,6 +486,7 @@ class QuestionGeneratorList {
         },
       },
       mod: {
+        name: "Modular Arithmetic",
         weight: 3,
         tier: 1,
         func: () => {
@@ -520,6 +507,7 @@ class QuestionGeneratorList {
         },
       },
       pow: {
+        name: "Exponent Algebra",
         weight: 2,
         tier: 2,
         func: () => {
@@ -552,6 +540,7 @@ class QuestionGeneratorList {
         },
       },
       fracmult: {
+        name: "Fraction Multiplication",
         weight: 4,
         tier: 2,
         func: () => {
@@ -641,6 +630,7 @@ class QuestionGeneratorList {
         },
       },
       complex: {
+        name: "Complex Numbers",
         weight: 2,
         tier: 2,
         func: () => {
@@ -678,6 +668,7 @@ class QuestionGeneratorList {
         },
       },
       estmix: {
+        name: "Mixed Estimation",
         weight: 2,
         tier: 1,
         func: () => {
@@ -688,6 +679,7 @@ class QuestionGeneratorList {
         },
       },
       estdiv: {
+        name: "Division Estimation",
         weight: 1,
         tier: 1,
         func: () => {
@@ -697,6 +689,7 @@ class QuestionGeneratorList {
         },
       },
       fibsum: {
+        name: "Fibonacci Sum",
         weight: 2,
         tier: 2,
         func: () => {
@@ -728,6 +721,7 @@ class QuestionGeneratorList {
         },
       },
       trirecip: {
+        name: "Reciprocal Triangular Numbers",
         weight: 1,
         tier: 1,
         func: () => {
@@ -753,6 +747,7 @@ class QuestionGeneratorList {
         },
       },
       binomexp: {
+        name: "Binomial Expansion",
         weight: 2,
         tier: 3,
         func: () => {
@@ -797,6 +792,7 @@ class QuestionGeneratorList {
         },
       },
       relprime: {
+        name: "Relatively Prime",
         weight: 1,
         tier: 1,
         func: () => {
@@ -824,6 +820,7 @@ class QuestionGeneratorList {
         }
       },
       posfact: {
+        name: "Positive Factors",
         weight: 1,
         tier: 1,
         func: () => {
@@ -850,6 +847,7 @@ class QuestionGeneratorList {
         }
       },
       base: {
+        name: "Base Conversion",
         weight: 1,
         tier: 3,
         func: () => {
@@ -863,6 +861,7 @@ class QuestionGeneratorList {
         }
       },
       basearith: {
+        name: "Base Arithmetic",
         weight: 3,
         tier: 3,
         func: () => {
@@ -892,6 +891,7 @@ class QuestionGeneratorList {
         },
       },
       inverse: {
+        name: "Inverse Functions",
         weight: 1,
         tier: 3,
         func: () => {
@@ -937,6 +937,7 @@ class QuestionGeneratorList {
       //   }
       // },
       set: {
+        name: "Subsets",
         weight: 1,
         tier: 1,
         func: () => {
@@ -964,6 +965,7 @@ class QuestionGeneratorList {
         }
       },
       lcm: {
+        name: "Least Common Multiple",
         weight: 1,
         tier: 0,
         func: () => {
@@ -977,6 +979,7 @@ class QuestionGeneratorList {
         }
       },
       gcd: {
+        name: "Greatest Common Divisor",
         weight: 1,
         tier: 0,
         func: () => {
@@ -990,6 +993,7 @@ class QuestionGeneratorList {
         }
       },
       quadfact: {
+        name: "Factorable Quadratics",
         weight: 1,
         tier: 1,
         func: () => {
@@ -1003,6 +1007,7 @@ class QuestionGeneratorList {
         }
       },
       roundsqrt: {
+        name: "Rounded Square Roots",
         weight: 1,
         tier: 1,
         func: () => {
@@ -1017,6 +1022,7 @@ class QuestionGeneratorList {
         }
       },
       sumsqrt: {
+        name: "Sum of Square Roots",
         weight: 1,
         tier: 3,
         func: () => {
@@ -1033,6 +1039,7 @@ class QuestionGeneratorList {
         }
       },
       rootdata: {
+        name: "Polynomial Roots",
         weight: 4,
         tier: 2,
         func: () => {
@@ -1087,6 +1094,7 @@ class QuestionGeneratorList {
         }
       },
       cuberules: {
+        name: "Sum/Difference of Cubes",
         weight: 3,
         tier: 2,
         func: () => {
@@ -1131,6 +1139,7 @@ class QuestionGeneratorList {
         }
       },
       rootfrac: {
+        name: "Fractional Roots",
         weight: 2,
         tier: 3,
         func: () => {
@@ -1170,6 +1179,7 @@ class QuestionGeneratorList {
         }
       },
       fracrecip: {
+        name: "Reciprocal Fractions",
         weight: 1,
         tier: 1,
         func: () => {
@@ -1193,6 +1203,7 @@ class QuestionGeneratorList {
         }
       },
       modequal: {
+        name: "Modular Equivalence",
         weight: 1,
         tier: 3,
         func: () => {
@@ -1211,6 +1222,7 @@ class QuestionGeneratorList {
         }
       },
       diffsquares: {
+        name: "Difference of Squares",
         weight: 2,
         tier: 0,
         func: () => {
@@ -1223,6 +1235,7 @@ class QuestionGeneratorList {
         }
       },
       fracsub: {
+        name: "Fraction Subtraction",
         weight: 1,
         tier: 0,
         func: () => {
@@ -1249,6 +1262,7 @@ class QuestionGeneratorList {
         }
       },
       fracdiv: {
+        name: "Fraction Division",
         weight: 1,
         tier: 0,
         func: () => {
@@ -1264,6 +1278,7 @@ class QuestionGeneratorList {
         }
       },
       multadd: {
+        name: "Easy Multiplication",
         weight: 1,
         tier: 0,
         func: () => {
@@ -1276,6 +1291,7 @@ class QuestionGeneratorList {
         }
       },
       binomnum: {
+        name: "Binomial Number Expansion",
         weight: 1,
         tier: 3,
         func: () => {
@@ -1290,6 +1306,7 @@ class QuestionGeneratorList {
         }
       },
       varies: {
+        name: "Function relationships",
         weight: 1,
         tier: 2,
         func: () => {
@@ -1314,6 +1331,7 @@ class QuestionGeneratorList {
         }
       },
       numdivis: {
+        name: "Number of Multiples",
         weight: 1,
         tier: 1,
         func: () => {
@@ -1327,6 +1345,7 @@ class QuestionGeneratorList {
         }
       },
       roman: {
+        name: "Roman Numerals",
         weight: 1,
         tier: 0,
         func: () => {
@@ -1347,6 +1366,7 @@ class QuestionGeneratorList {
         }
       },
       setint: {
+        name: "Set Intersection",
         weight: 1,
         tier: 1,
         func: () => {
@@ -1365,6 +1385,7 @@ class QuestionGeneratorList {
         }
       },
       basefrac: {
+        name: "Base Fractions",
         weight: 1,
         tier: 3,
         func: () => {
@@ -1389,6 +1410,7 @@ class QuestionGeneratorList {
         }
       },
       quadvert: {
+        name: "Quadratic Vertex",
         weight: 1,
         tier: 3,
         func: () => {
@@ -1413,6 +1435,7 @@ class QuestionGeneratorList {
         }
       },
       quadroot: {
+        name: "Quadratic Roots",
         weight: 1,
         tier: 2,
         func: () => {
@@ -1436,6 +1459,7 @@ class QuestionGeneratorList {
         }
       },
       fracest: {
+        name: "Fraction Estimation",
         weight: 2,
         tier: 3,
         func: () => {
@@ -1459,6 +1483,7 @@ class QuestionGeneratorList {
         }
       },
       systems: {
+        name: "Systems of Equations",
         weight: 2,
         tier: 1,
         func: () => {
@@ -1490,6 +1515,7 @@ class QuestionGeneratorList {
         }
       },
       focus: {
+        name: "Focus of a Parabola",
         weight: 1,
         tier: 3,
         func: () => {
@@ -1514,6 +1540,7 @@ class QuestionGeneratorList {
         }
       },
       deriv: {
+        name: "Derivatives",
         weight: 1,
         tier: 3,
         func: () => {
@@ -1528,6 +1555,7 @@ class QuestionGeneratorList {
         }
       },
       words: {
+        name: "Word Conversions",
         weight: 1,
         tier: 0,
         func: () => {
@@ -1543,6 +1571,7 @@ class QuestionGeneratorList {
         }
       },
       estadd: {
+        name: "Addition Estimation",
         weight: 2,
         tier: 0,
         func: () => {
@@ -1567,6 +1596,7 @@ class QuestionGeneratorList {
         }
       },
       estmult: {
+        name: "Multiplication Estimation",
         weight: 1,
         tier: 0,
         func: () => {
@@ -1587,142 +1617,18 @@ class QuestionGeneratorList {
     for (const key of keys) {
       this.tiers[this.questionGens[key].tier].push(key);
     }
-    let mode = "";
-    let modeData: ModeData = {} as ModeData;
-
-    /*
-    let active = false;
-    function startMode(newMode, text) {
-      if (!active) {
-        mode = newMode;
-        active = true;
-        // const keyStr = text.includes(" ")
-        //   ? text.substring(text.indexOf(" ") + 1).trim()
-        //   : "";
-        const keyStr = text.trim();
-        if (keyStr.length == 0) {
-          keys = Object.keys(questionGens);
-        }
-        else
-          keys = keyStr.split(" ").filter(key => questionGens[key]);
-        if (keys.length === 0)
-          keys = Object.keys(questionGens);
-        modeData = { total: 0, lastT: Date.now() };
-        const category = generateQuestion();
-        return [{ type: "status", tag: "start", data: "Starting monkey sense..." }, { type: "question", data: getQuestionText() }, { type: "status", tag: "questionCategory", data: category }];
-      }
-      return [{ type: "status", tag: "alreadyrunning", data: "Monkey Sense isalready running!" }];
-    }
-
-    function stopMode() {
-      active = false;
-      return [{ type: "status", tag: "stop", data: "Stopping math..." }];
-    }
-    */
-
-    // let useChatCommands = false;
-
-    /**
-     * Handle text to determine if the answer iscorrect
-     * @returns array of objects with type ("status" | "question" | "reply"), data: string, and (tag?: string) if type="status"
-     * type="reply" means that the answer iscorrect
-     */
-    /*
-    function onMessage(text: string) {
-      if (useChatCommands && text.startsWith("!stop")) {
-        return stopMode();
-      }
-      if (useChatCommands && text.startsWith("!ns")) {
-        return startMode(text);
-      }
-      if (useChatCommands && text.startsWith("!question")) {
-        return [{ type: "status", data: getQuestionText() }];
-      }
-      return modeHandler(text);
-    };
-    */
-
   }
 
-  modeHandler(str: string) {
-    const arr: Message[] = [];
-    const n = parseFloat(str);
-    if (mode !== "") {
-      const t = Date.now() - modeData.lastT;
-      const extra = {time: t, question: modeData.question, response: str};
-      if (modeData.question.ansStr || modeData.question.ansArr) {
-        if (modeData.question.ansArr?.includes(str) || str === modeData.question.ansStr) {
-          arr.push({
-            type: "reply",
-            data: `Correct! The answer is${modeData.question.ansStr}. You took ${t}ms.`,
-            extra: extra
-          });
-          arr.push({ type: "status", tag: "answer", data: "" });
-        }
-        else return [{type: "status", tag: "wrong", data: `The answer is${modeData.question.ans}`, extra: extra}];
-      }
-      else if (!isNaN(n)) {
-        if (
-          modeData.question.guess &&
-          Math.abs((n - modeData.question.ans) / modeData.question.ans) < 0.05
-        ) {
-          const diff =
-            Math.abs((n - modeData.question.ans) / modeData.question.ans);
-          const prefix =
-            diff < 0.01 ?
-              "🟦 Excellent guess!" :
-              diff < 0.03 ?
-                "🟩 Great guess!" :
-                "🟨 Good guess!";
-          arr.push({
-            type: "reply",
-            data: `${prefix} ${(diff * 100).toFixed(1)}% off. The answer is${Math.round(
-              modeData.question.ans * 0.95,
-            )}-${Math.round(modeData.question.ans * 1.05)}. You took ${t}ms.`,
-            extra: extra
-          });
-          arr.push({ type: "status", tag: "answer", data: `${prefix} ${(diff * 100).toFixed(1)}% off. ${Math.round(
-            modeData.question.ans - .05 * modeData.question.ans,
-          )}-${Math.round(modeData.question.ans + .05 * modeData.question.ans)}` });
-        }
-        else if (n === modeData.question.ans) {
-          arr.push({
-            type: "reply",
-            data: `Correct! The answer is${modeData.question.ans}. You took ${t}ms.`,
-            extra: extra
-          });
-          arr.push({ type: "status", tag: "answer", data: "" });
-        }
-        else return [{type: "status", tag: "wrong", data: `The answer is${modeData.question.ans}`, extra: extra}];
-      }
-      else return arr;
-
-      arr.push({ type: "status", tag: "answertime", data: t});
-      arr.push(...this.advanceQuestion());
-    }
-    return arr;
-  };
-
-  advanceQuestion() {
-    const arr: Message[] = [];
-    modeData.total++;
-    modeData.lastT = Date.now();
-    const category = this.generateQuestion();
-    arr.push({ type: "question", data: getQuestionText() });
-    arr.push({ type: "status", tag: "questionCategory", data: category});
-    return arr;
-  }
-
-  generateQuestion(tier = -1): string {
+  generateQuestion(modeData: ModeData, filterKeys: string[] = Object.keys(this.questionGens), tier = -1): string {
     const { random, randomInt } = this.rng;
     let print = tier != -1;
-    if (tier === -1 && this.gameMode !== "Test") {
-      tier = Math.min(Math.floor(modeData.total / getTestLength() * 4), tiers.length - 1);
-      print = false;
-    }
+    // if (tier === -1 && modeData.gameMode !== "Test") {
+    //   tier = Math.min(Math.floor(modeData.total / getTestLength() * 4), tiers.length - 1);
+    //   print = false;
+    // }
     let question, key;
-    if (mode === "zetamac") {
-      const available = ["add", "sub", "mult", "div"].filter(key => keys.includes(key));
+    if (modeData.enterMode === "Zetamac") {
+      const available = ["add", "sub", "mult", "div"].filter(key => filterKeys.includes(key));
       if (available.length === 0)
         available.push(...["add", "sub", "mult", "div"]);
       let rand = randomInt(1, available.length);
@@ -1736,8 +1642,8 @@ class QuestionGeneratorList {
       else
         question = this.questionGens.div.func(2, 100, 12);
     }
-    else if (mode === "estimate") {
-      const available = ["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"].filter(key => keys.includes(key));
+    else if (modeData.enterMode === "Estimate") {
+      const available = ["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"].filter(key => filterKeys.includes(key));
       if (available.length === 0)
         available.push(...["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"]);
       let rand = randomInt(1, available.length);
@@ -1746,27 +1652,27 @@ class QuestionGeneratorList {
     }
     else if (tier != -1) {
       let totalWeight = 0;
-      for (key of tiers[tier]) totalWeight += this.questionGens[key].weight;
+      for (key of this.tiers[tier]) totalWeight += this.questionGens[key].weight;
       let rand = 0;
       do {
         rand = random() * totalWeight;
-        for (key of tiers[tier]) {
-          rand -= questionGens[key].weight;
+        for (key of this.tiers[tier]) {
+          rand -= this.questionGens[key].weight;
           if (rand < 0) break;
         }
-        const questionGen = questionGens[key];
+        const questionGen = this.questionGens[key!];
         question = questionGen.func();
-      } while (!print && (question.guess === true) != (Math.floor((modeData.total + 1) % (getTestLength() >= 40 ? 10 : 5)) == 0));
+      } while (!print && (question.guess === true) != (Math.floor((modeData.total + 1) % (modeData.testLength >= 40 ? 10 : 5)) == 0));
     }
     else {
       let totalWeight = 0;
-      for (key of keys) totalWeight += questionGens[key].weight;
+      for (key of filterKeys) totalWeight += this.questionGens[key].weight;
       let rand = random() * totalWeight;
-      for (key of keys) {
-        rand -= questionGens[key].weight;
+      for (key of filterKeys) {
+        rand -= this.questionGens[key].weight;
         if (rand < 0) break;
       }
-      const questionGen = questionGens[key];
+      const questionGen = this.questionGens[key!];
       question = questionGen.func();
     }
     modeData.question = question;
@@ -1775,10 +1681,6 @@ class QuestionGeneratorList {
     //   // also replace sqrt, cbrt
     // }
     // console.log(modeData.question.ans);
-    return key;
-  }
-
-  getQuestionText() {
-    return `Q${modeData.total + 1}: ${modeData.question.str}`;
+    return key!;
   }
 }

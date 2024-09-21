@@ -9,8 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/mathjax": "^0.0.40",
     "@types/seedrandom": "^3.0.8",
-    "next": "14.2.12",
+    "mathjax": "^3.2.2",
+    "next": "^14.2.12",
+    "nextjs": "^0.0.3",
     "react": "^18",
     "react-dom": "^18",
     "seedrandom": "^3.0.5"
