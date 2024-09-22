@@ -1,15 +1,13 @@
 "use client"
 
 import { QuestionGeneratorList, RNG } from "@/util/generator";
-import { AnsweredQuestion, defaultQuestion, EnterMode, enterModes, GameMode, gameModes, MathJax, Message, MessageExtra, ModeData, Question, TestLength, testLengths } from "@/util/types";
-import { useEffect, useRef, useState } from "react";
+import { AnsweredQuestion, defaultQuestion, EnterMode, enterModes, GameMode, gameModes, MathJaxConfig, Message, MessageExtra, ModeData, Question, TestLength, testLengths } from "@/util/types";
+import { useRef, useState } from "react";
 import TextBox from "./textbox";
 import Timer from "./timer";
-import { actionAsyncStorage } from "next/dist/client/components/action-async-storage-instance";
+import { MathJax, MathJaxContext } from "better-react-mathjax";
 
-interface GameProps {
-
-}
+interface GameProps {}
 
 const timePerQuestion = 7500;
 
@@ -23,12 +21,11 @@ export default function Game({}: GameProps) {
     const [questionCount, setQuestionCount] = useState(0);
     const [startT, setStartT] = useState(0);
     const [active, setActive] = useState(false);
-
+    
     const [answerTime, setAnswerTime] = useState(0);
     const [lastAnswer, setLastAnswer] = useState("");
     const [scoreStr, setScoreStr] = useState("");
     const [accuracy, setAccuracy] = useState(-1);
-    const [questionStr, setQuestionStr] = useState("");
     
     const questionGenRef = useRef<QuestionGeneratorList>(new QuestionGeneratorList(new RNG()));
     const questionGen = questionGenRef.current;
@@ -39,7 +36,7 @@ export default function Game({}: GameProps) {
     const answeredQuestions = useRef<AnsweredQuestion[]>([]);
     const currentCategoryRef = useRef<string>("");
     const currentIncorrectRef = useRef<boolean>(false);
-    const prevAnswerTimeRef = useRef(0);
+    const timeRef = useRef(0);
 
     const isInGame = () => {
         return active;
@@ -52,14 +49,16 @@ export default function Game({}: GameProps) {
     const displayQuestion = () => {
         textBoxRef.current = "";
         currentIncorrectRef.current = false;
-        setTimeout(() => MathJax.typeset(), 1);
     };
     
     const advanceQuestion = () => {
         const arr: Message[] = [];
         setTotal(total + 1);
         setLastT(Date.now());
-        currentCategoryRef.current = questionGen.generateQuestion({ lastT, total, testLength, question, enterMode, gameMode }, filterKeysRef.current);
+        const modeQuestion = questionGen.generateQuestion({ lastT, total, testLength, question, enterMode, gameMode }, filterKeysRef.current);
+        currentCategoryRef.current = modeQuestion.category;
+        setQuestion(modeQuestion.question);
+        displayQuestion();
         // Todo remove
         return arr;
     }
@@ -145,7 +144,7 @@ export default function Game({}: GameProps) {
         else
             return;
         // Update answer time, check for test end
-        prevAnswerTimeRef.current = t;
+        setAnswerTime(t);
         setQuestionCount(questionCount + 1);
         if (checkForTestEnd())
             return;
@@ -155,7 +154,7 @@ export default function Game({}: GameProps) {
     // NEW STUFF
 
     const getTimeColorBounds = () => {
-        if (gameMode === "zetamac")
+        if (gameMode === "Zetamac")
             return { blueEnd: 800, green: 1200, yellow: 2000, redEnd: 3000 };
         return { blueEnd: 3000, green: 5000, yellow: 7500, redEnd: 15000 };
     }
@@ -182,7 +181,9 @@ export default function Game({}: GameProps) {
         return ["Default", "Hardcore", "TestMode"].includes(enterMode);
     }
 
-    const time = (Date.now() - startT);
+    if (active)
+        timeRef.current = Date.now() - startT;
+    const time = timeRef.current;
 
     const checkForTestEnd = () => {
         if (gameMode !== "Test" && gameMode !== "Zetamac" && questionCount >= testLength) {
@@ -206,8 +207,10 @@ export default function Game({}: GameProps) {
             filterKeysRef.current = Object.keys(questionGen.questionGens);
         setTotal(0);
         setLastT(Date.now());
-        const category = questionGen.generateQuestion({ lastT, total, testLength, question, enterMode, gameMode }, filterKeysRef.current);
-        currentCategoryRef.current = category;
+        const modeQuestion = questionGen.generateQuestion({ lastT, total, testLength, question, enterMode, gameMode }, filterKeysRef.current);
+        currentCategoryRef.current = modeQuestion.category;
+        setQuestion(modeQuestion.question);
+        displayQuestion();
         
         textBoxRef.current = "";
         textBoxElementRef.current?.focus();
@@ -217,9 +220,6 @@ export default function Game({}: GameProps) {
         setLastAnswer("");
         setScoreStr("");
         setAccuracy(-1);
-        
-        intervalRef.current = setInterval(() => {
-        }, 100);
     }
 
     const doTimeUpdate = () => {
@@ -272,13 +272,14 @@ export default function Game({}: GameProps) {
         const score = total * 5 - (total - correct) * 9;
         if (total > 0 && enterMode != "Test") {
             
-            if (gameMode === "zetamac")
+            if (gameMode === "Zetamac")
                 setScoreStr(`${correct} (${correct * 120 / testLength} adj.)`);
             else
                 setScoreStr(`${score} (${score * 80 / testLength} adj.)`);
         }
-        setAccuracy((correct / total * 100));
-        console.log(`Total: ${correct}/${total} correct, Accuracy: ${Math.round(correct / total * 100)}%`);
+        const acc = (correct / Math.max(total, 1) * 100);
+        setAccuracy(acc);
+        console.log(`Total: ${correct}/${total} correct, Accuracy: ${Math.round(acc)}%`);
         console.log(`Total time: ${Math.round(totalTime)}ms, Average time: ${Math.round(totalTime / total)}ms`);
         console.log(`Score: ${score} (${score * 80 / total} adj.)`);
         console.log("-----End-----");
@@ -293,43 +294,37 @@ export default function Game({}: GameProps) {
         modeHandler(textBoxRef.current);
     }
 
-    useEffect(() => {
-        // Show all categories at the start
-        console.log("Categories:")
-        for (const category in questionGen.questionGens) {
-            console.log(category);
-        }
-    }, [])
-
     return (
         <div>
-            <div id="question">{isInGame() ? question.str : "Click Start"}</div>
-            <div className="flex-center">
+            <MathJaxContext config={MathJaxConfig}>
+                <MathJax id="question">{isInGame() ? getQuestionText() : "Click start"}</MathJax>
+            </MathJaxContext>
+                
+            <div className="flex-center my-4">
                 <TextBox ref={textBoxElementRef} valueRef={textBoxRef} onChange={onInputChange} onEnter={onEnterPressed} />
             </div>
-            <br />
-            <div className="mb-2">
-                <label htmlFor="mode">Mode&nbsp;</label>
-                <select name="mode" id="mode" tabIndex={-1}>
-                    { gameModes.map((mode) => <option value={mode} selected={mode === gameMode}>{mode}</option>) }
+            <div className="my-4" style={{display: !active ? "block" : "none"}}>
+                <label htmlFor="mode" className="mr-2">Mode</label>
+                <select name="mode" id="mode" tabIndex={-1} value={gameMode} onChange={(e) => setGameMode(e.target.value)}>
+                    { gameModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) }
                 </select>
-                
-                <label htmlFor="entermode"></label>
-                <select>
-                    { enterModes.map((mode) => <option value={mode} selected={mode === enterMode}>{mode}</option>) }
+                <br/>
+                <label htmlFor="entermode" className="mr-2">Behavior</label>
+                <select name="entermode" id="entermode" tabIndex={-1} value={enterMode} onChange={(e) => setEnterMode(e.target.value)}>
+                    { enterModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) }
                 </select>
 
-                {
-                    gameMode === "Test" && intervalRef.current == null && (
-                        <div className="flex flex-row justify-center items-center gap-1">
-                            <label htmlFor="testmode">Test Mode</label>
-                            <select name="testlength" id="testlength" tabIndex={-1}>
-                                { testLengths.map((length) => <option value={length} selected={length === testLength} onSelect={e => setTestLength(parseInt(e.currentTarget.value))}>{length}</option>) }
-                            </select>
-                        </div>
-                    )
-                }
+                { enterMode === "Test" && (
+                    <>
+                        <br/>
+                        <label htmlFor="testmode" className="mr-2">Test Length</label>
+                        <select id="testlength" tabIndex={-1} value={testLength} onChange={(e) => setTestLength(parseInt(e.target.value))}>
+                            { testLengths.map((length) => <option key={length} value={length}>{length}</option>) }
+                        </select>
+                    </>
+                )}
                 
+                <br/>
             </div>
             <div className="flex-center">
                 <button id="start" onClick={doStart}>Start</button>
@@ -340,8 +335,8 @@ export default function Game({}: GameProps) {
             <div>
                 <div className="flex-center">
                     <div>Last Time:</div>
-                    <div id="answertime" style={{color: questionCount > 0 && gameMode !== "Test" ? getTimeColor(prevAnswerTimeRef.current) : ""}}>
-                        {questionCount > 0 && gameMode !== "Test" ? `${Math.round(prevAnswerTimeRef.current)}ms` : ""}
+                    <div id="answertime" style={{color: questionCount > 0 && gameMode !== "Test" ? getTimeColor(answerTime) : ""}}>
+                        {questionCount > 0 && gameMode !== "Test" ? `${Math.round(answerTime)}ms` : ""}
                     </div>
                 </div>
                 <div id="lastanswer">{lastAnswer}</div>
@@ -358,7 +353,7 @@ export default function Game({}: GameProps) {
                     </div>
                     <div className="flex-center">
                         <div>Accuracy:</div>
-                        <div id="accuracy" style={{color: getAccuracyColor(accuracy >= 0 ? accuracy : 100)}}>{accuracy.toFixed(1) + "%"}</div>
+                        <div id="accuracy" style={{color: getAccuracyColor(Math.max(0, accuracy / 100))}}>{questionCount > 0 && accuracy !== -1 ? accuracy.toFixed(1) + "%" : ""}</div>
                     </div>
                     <div className="flex-center">
                         <div>Score:</div>

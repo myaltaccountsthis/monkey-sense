@@ -1,13 +1,8 @@
-export declare module MathJax {
-  export function init(options: any): void;
-  export function typeset(): void;
+export const MathJaxConfig = {
+  loader: {load: ['input/asciimath', 'output/chtml', 'ui/menu']}
 }
 
-MathJax.init({
-    loader: {load: ["input/asciimath", "output/chtml", "ui/menu"]}
-});
-
-export const enterModes = ["Default", "NoEnter", "Hardcore", "Test"];
+export const enterModes = ["Default", "No Enter", "Hardcore", "Test"];
 export type EnterMode = typeof enterModes[number];
 
 export const gameModes = ["Number Sense", "Zetamac", "Estimate"];
@@ -24,6 +19,11 @@ export interface Question {
   guess?: boolean;
 }
 export const defaultQuestion = {ans: 0, str: ""};
+
+export interface ModeQuestion {
+  category: string;
+  question: Question;
+}
 
 export interface AnsweredQuestion {
   category: string;

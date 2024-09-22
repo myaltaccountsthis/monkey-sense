@@ -8,12 +8,12 @@ interface TimerProps {
 
 export default function Timer({ intervalRef, shouldMakeInterval, doTimeUpdate }: TimerProps) {
     const [time, setTime] = useState<number>(0);
-    if (shouldMakeInterval && !intervalRef.current) {
+    if (shouldMakeInterval && intervalRef.current == null) {
         intervalRef.current = setInterval(() => {
             setTime(doTimeUpdate());
         }, 100);
     }
-    else if (!shouldMakeInterval && intervalRef.current) {
+    else if (!shouldMakeInterval && intervalRef.current != null) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
     }

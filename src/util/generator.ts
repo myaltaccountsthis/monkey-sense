@@ -1,7 +1,7 @@
 // UTIL
 import seedrandom from "seedrandom";
 import { randomSeed } from "./Base64";
-import { ModeData, QuestionGenerator } from "./types";
+import { ModeData, ModeQuestion, QuestionGenerator } from "./types";
 
 const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
 
@@ -233,11 +233,15 @@ class Fraction {
 
 export class QuestionGeneratorList {
   rng: RNG;
+  random: () => number;
+  randomInt: (min: number, max: number) => number;
   questionGens: {[key: string]: QuestionGenerator};
   tiers: string[][];
   constructor(rng: RNG) {
     this.rng = rng;
-    const { random, randomInt } = rng;
+    this.random = rng.random.bind(rng);
+    this.randomInt = rng.randomInt.bind(rng);
+    const random = this.random, randomInt = this.randomInt;
     this.questionGens = {
       add: {
         name: "Addition",
@@ -1619,15 +1623,17 @@ export class QuestionGeneratorList {
     }
   }
 
-  generateQuestion(modeData: ModeData, filterKeys: string[] = Object.keys(this.questionGens), tier = -1): string {
-    const { random, randomInt } = this.rng;
+  generateQuestion(modeData: ModeData, filterKeys: string[] = Object.keys(this.questionGens), tier = -1): ModeQuestion {
+    console.log(modeData.gameMode);
+    console.log("Called")
+    const random = this.random, randomInt = this.randomInt;
     let print = tier != -1;
     // if (tier === -1 && modeData.gameMode !== "Test") {
     //   tier = Math.min(Math.floor(modeData.total / getTestLength() * 4), tiers.length - 1);
     //   print = false;
     // }
     let question, key;
-    if (modeData.enterMode === "Zetamac") {
+    if (modeData.gameMode === "Zetamac") {
       const available = ["add", "sub", "mult", "div"].filter(key => filterKeys.includes(key));
       if (available.length === 0)
         available.push(...["add", "sub", "mult", "div"]);
@@ -1642,7 +1648,7 @@ export class QuestionGeneratorList {
       else
         question = this.questionGens.div.func(2, 100, 12);
     }
-    else if (modeData.enterMode === "Estimate") {
+    else if (modeData.gameMode === "Estimate") {
       const available = ["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"].filter(key => filterKeys.includes(key));
       if (available.length === 0)
         available.push(...["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"]);
@@ -1675,12 +1681,11 @@ export class QuestionGeneratorList {
       const questionGen = this.questionGens[key!];
       question = questionGen.func();
     }
-    modeData.question = question;
     // if (!useAsciiMath) {
     //   modeData.question.str = modeData.question.str.replace(/`/g, "");
     //   // also replace sqrt, cbrt
     // }
     // console.log(modeData.question.ans);
-    return key!;
+    return { category: key!, question: question};
   }
 }

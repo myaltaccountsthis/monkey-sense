@@ -37,7 +37,6 @@ div {
 
 #question {
     font-size: xx-large;
-    margin-bottom: 8px;
     min-height: 40px;
 }
 
@@ -49,8 +48,6 @@ button {
 #inputbox {
     color: black;
     font-size: x-large;
-    margin-top: 10px;
-    margin-bottom: 10px;
 }
 
 .flex-center {
