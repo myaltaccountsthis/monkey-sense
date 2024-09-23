@@ -9,10 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/pg": "^8.11.10",
     "@types/seedrandom": "^3.0.8",
     "better-react-mathjax": "^2.0.3",
     "next": "^14.2.12",
     "nextjs": "^0.0.3",
+    "pg": "^8.13.0",
     "react": "^18",
     "react-dom": "^18",
     "seedrandom": "^3.0.5"

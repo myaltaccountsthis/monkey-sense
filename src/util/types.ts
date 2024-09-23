@@ -7,6 +7,11 @@ export type EnterMode = typeof enterModes[number];
 
 export const gameModes = ["Number Sense", "Zetamac", "Estimate"];
 export type GameMode = typeof gameModes[number];
+export const gameModeMappings: {[key: GameMode]: string} = {
+    "Number Sense": "ns",
+    "Zetamac": "zm",
+    "Estimate": "est"
+};
 
 export const testLengths = [10, 20, 40, 80, 120, 160]
 export type TestLength = typeof testLengths[number];
@@ -61,4 +66,11 @@ export interface ModeData {
   question: Question;
   enterMode: EnterMode;
   gameMode: GameMode;
+}
+
+export interface LeaderboardEntry {
+  name: string;
+  correct: number;
+  answered: number;
+  test_length: number;
 }

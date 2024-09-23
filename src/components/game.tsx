@@ -1,11 +1,12 @@
 "use client"
 
 import { QuestionGeneratorList, RNG } from "@/util/generator";
-import { AnsweredQuestion, defaultQuestion, EnterMode, enterModes, GameMode, gameModes, MathJaxConfig, Message, MessageExtra, ModeData, Question, TestLength, testLengths } from "@/util/types";
-import { useRef, useState } from "react";
+import { AnsweredQuestion, defaultQuestion, EnterMode, enterModes, GameMode, gameModeMappings, gameModes, LeaderboardEntry, MathJaxConfig, Message, MessageExtra, ModeData, Question, TestLength, testLengths } from "@/util/types";
+import { useEffect, useRef, useState } from "react";
 import TextBox from "./textbox";
 import Timer from "./timer";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
+import { getLeaderboard } from "@/util/database";
 
 interface GameProps {}
 
@@ -26,6 +27,7 @@ export default function Game({}: GameProps) {
     const [lastAnswer, setLastAnswer] = useState("");
     const [scoreStr, setScoreStr] = useState("");
     const [accuracy, setAccuracy] = useState(-1);
+    const [leaderboardEntries, setLeaderboardEntries] = useState<{[key: GameMode]: LeaderboardEntry[]}>({});
     
     const questionGenRef = useRef<QuestionGeneratorList>(new QuestionGeneratorList(new RNG()));
     const questionGen = questionGenRef.current;
@@ -294,6 +296,10 @@ export default function Game({}: GameProps) {
         modeHandler(textBoxRef.current);
     }
 
+    useEffect(() => {
+        fetch(`/leaderboard?mode=all`).then(res => res.json()).then(setLeaderboardEntries);
+    }, []);
+
     return (
         <div>
             <MathJaxContext config={MathJaxConfig}>
@@ -326,12 +332,11 @@ export default function Game({}: GameProps) {
                 
                 <br/>
             </div>
-            <div className="flex-center">
+            <div className="flex-center my-4">
                 <button id="start" onClick={doStart}>Start</button>
                 <div></div>
                 <button id="stop" onClick={doStop}>Stop</button>
             </div>
-            <br />
             <div>
                 <div className="flex-center">
                     <div>Last Time:</div>
@@ -364,6 +369,23 @@ export default function Game({}: GameProps) {
                         <Timer intervalRef={intervalRef} shouldMakeInterval={active} doTimeUpdate={doTimeUpdate} />
                     </div>
                 </div>
+            </div>
+            <br/>
+            <div>
+                <div>Leaderboard</div>
+                <table className="m-auto border-spacing-x-2">
+                    <tbody>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                        {leaderboardEntries[gameMode] ? leaderboardEntries[gameMode].map((entry, i) =>
+                            <tr key={i}><td>{entry.name}</td><td>{entry.correct}</td><td>{entry.answered}</td><td>{entry.test_length}</td></tr>
+                        ) : <tr><td>Loading leaderboards...</td></tr>}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
