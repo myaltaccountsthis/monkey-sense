@@ -6,7 +6,7 @@ const Base64 = {
     if (typeof(value) !== 'number') {
       throw 'Value is not number!';
     }
-    var result = '', mod;
+    let result = '', mod;
     for (let i = 0; i < DIGITS; i++) {
       mod = value % 64;
       result = ALPHA.charAt(mod) + result;
@@ -15,8 +15,8 @@ const Base64 = {
     return result;
   },
   decode: (value: string) => {
-    var result = 0;
-    for (var i = 0, len = value.length; i < len; i++) {
+    let result = 0;
+    for (let i = 0, len = value.length; i < len; i++) {
       result *= 64;
       result += ALPHA.indexOf(value[i]);
     }

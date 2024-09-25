@@ -1,18 +1,15 @@
 "use client"
 
-import { QuestionGeneratorList, RNG } from "@/util/generator";
-import { AnsweredQuestion, defaultQuestion, EnterMode, enterModes, GameMode, gameModeMappings, gameModes, LeaderboardEntry, MathJaxConfig, Message, MessageExtra, ModeData, Question, TestLength, testLengths } from "@/util/types";
+import { getAnswerDisplay, judgeQuestion, QuestionGeneratorList, RNG } from "@/util/generator";
+import { AnsweredQuestion, defaultQuestion, EnterMode, enterModes, GameMode, gameModeMappings, gameModes, LeaderboardEntry, MathJaxConfig, Message, MessageExtra, Question, TestLength, testLengths, timePerQuestion } from "@/util/types";
 import { useEffect, useRef, useState } from "react";
 import TextBox from "./textbox";
 import Timer from "./timer";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import { getLeaderboard } from "@/util/database";
+import { useRouter } from "next/navigation"
 
-interface GameProps {}
-
-const timePerQuestion = 7500;
-
-export default function Game({}: GameProps) {
+export default function Game() {
+    const router = useRouter();
     const [lastT, setLastT] = useState(0);
     const [total, setTotal] = useState(0);
     const [testLength, setTestLength] = useState<TestLength>(80);
@@ -22,6 +19,7 @@ export default function Game({}: GameProps) {
     const [questionCount, setQuestionCount] = useState(0);
     const [startT, setStartT] = useState(0);
     const [active, setActive] = useState(false);
+    const [startingTest, setStartingTest] = useState(false);
     
     const [answerTime, setAnswerTime] = useState(0);
     const [lastAnswer, setLastAnswer] = useState("");
@@ -69,12 +67,12 @@ export default function Game({}: GameProps) {
         // On correct answer
         answeredQuestions.current.push({ category: currentCategoryRef.current, incorrect: currentIncorrectRef.current, time: extra.time, question:                        extra.question, response: extra.response });
         currentIncorrectRef.current = false;
-        if (gameMode !== "Test")
+        if (enterMode !== "Test")
             setLastAnswer(str);
     }
     
     const onWrongAnswer = (extra: MessageExtra) => {
-        if (gameMode === "Test") {
+        if (enterMode === "Test") {
             // Only called in test mode
             // only time .time is used in "wrong" message
             answeredQuestions.current.push({ category: currentCategoryRef.current, incorrect: true, time: extra.time, question: extra.question, response: extra.response });
@@ -92,59 +90,19 @@ export default function Game({}: GameProps) {
         }
     };
     
-    /*
-    Types of messages:
-    Reply {
-        data, extra
-    }
-    
-    Status {
-        tag = ["answer", "wrong", "answertime", "start", "stop", "questionCategory"]
-        data
-    }
-
-    Question {
-        data
-    }
-
-    */
     const modeHandler = (str: string) => {
-        const n = parseFloat(str);
         if (!isInGame())
             return;
         
         const t = Date.now() - lastT;
         const extra = { time: t, question: question, response: str };
-        // If non-numeric answer
-        if (question.ansStr || question.ansArr) {
-            // If correct
-            if (question.ansArr?.includes(str) || str === question.ansStr) {
-                onCorrectAnswer(extra);
-            }
-            else {
-                onWrongAnswer(extra);
-                return;
-            }
-        }
-        else if (!isNaN(n)) {
-            // Check guess bounds
-            if (question.guess && Math.abs((n - question.ans) / question.ans) < 0.05) {
-                const diff = Math.abs((n - question.ans) / question.ans);
-                const prefix =  diff < 0.01 ?   "🟦 Excellent guess!" :
-                                diff < 0.03 ?   "🟩 Great guess!" :
-                                                "🟨 Good guess!";
-                onCorrectAnswer(extra, `${prefix} ${(diff * 100).toFixed(1)}% off. ${Math.round(question.ans - .05 * question.ans)}-${Math.round(question.ans + .05 * question.ans)}`);
-            }
-            else if (n === question.ans) {
-                onCorrectAnswer(extra);
-            }
-            else {
-                onWrongAnswer(extra);
-                return;
-            }
-        }
-        else
+        const judgement = judgeQuestion(question, str);
+        if (!judgement.correct) {
+            onWrongAnswer(extra);
             return;
+        }
+        onCorrectAnswer(extra, judgement.other);
+
         // Update answer time, check for test end
         setAnswerTime(t);
         setQuestionCount(questionCount + 1);
@@ -188,7 +146,7 @@ export default function Game({}: GameProps) {
     const time = timeRef.current;
 
     const checkForTestEnd = () => {
-        if (gameMode !== "Test" && gameMode !== "Zetamac" && questionCount >= testLength) {
+        if (enterMode !== "Test" && gameMode !== "Zetamac" && questionCount >= testLength) {
             doStop();
             return true;
         }
@@ -196,6 +154,15 @@ export default function Game({}: GameProps) {
     }
 
     const startMode = () => {
+        // Switch to /test if in test mode
+        if (enterMode === "Test") {
+            setActive(false);
+            setStartingTest(true);
+            console.log("routing");
+            router.push(`/test/new?mode=${gameModeMappings[gameMode]}&testLength=${testLength}&randomKey=${Date.now().toString()}`);
+            return;
+        }
+
         // const keyStr = text.includes(" ")
         //   ? text.substring(text.indexOf(" ") + 1).trim()
         //   : "";
@@ -254,7 +221,7 @@ export default function Game({}: GameProps) {
             if (!question.incorrect)
                 byCategory[question.category].correct++;
             else if (shouldRequireEnter())
-                console.log("[%s] %s (you put %s, ans = %s)", question.category, question.question.str, question.response, question.question.ans);
+                console.log("[%s] %s (you put %s, ans = %s)", question.category, question.question.str, question.response, getAnswerDisplay(question.question));
             byCategory[question.category].total++;
             byCategory[question.category].totalTime += question.time;
         }
@@ -300,6 +267,12 @@ export default function Game({}: GameProps) {
         fetch(`/leaderboard?mode=all`).then(res => res.json()).then(setLeaderboardEntries);
     }, []);
 
+    if (startingTest) {
+        return (
+            <div className="text-2xl">Starting Test...</div>
+        );
+    }
+
     return (
         <div>
             <MathJaxContext config={MathJaxConfig}>
@@ -340,8 +313,8 @@ export default function Game({}: GameProps) {
             <div>
                 <div className="flex-center">
                     <div>Last Time:</div>
-                    <div id="answertime" style={{color: questionCount > 0 && gameMode !== "Test" ? getTimeColor(answerTime) : ""}}>
-                        {questionCount > 0 && gameMode !== "Test" ? `${Math.round(answerTime)}ms` : ""}
+                    <div id="answertime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(answerTime) : ""}}>
+                        {questionCount > 0 && enterMode !== "Test" ? `${Math.round(answerTime)}ms` : ""}
                     </div>
                 </div>
                 <div id="lastanswer">{lastAnswer}</div>
@@ -352,8 +325,8 @@ export default function Game({}: GameProps) {
                     </div>
                     <div className="flex-center">
                         <div>Average Time:</div>
-                        <div id="averagetime" style={{color: questionCount > 0 && gameMode !== "Test" ? getTimeColor(time / questionCount) : ""}}>
-                            {questionCount > 0 && gameMode !== "Test" ? `${Math.round(time / questionCount)}ms` : ""}
+                        <div id="averagetime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(time / questionCount) : ""}}>
+                            {questionCount > 0 && enterMode !== "Test" ? `${Math.round(time / questionCount)}ms` : ""}
                         </div>
                     </div>
                     <div className="flex-center">
@@ -373,19 +346,22 @@ export default function Game({}: GameProps) {
             <br/>
             <div>
                 <div>Leaderboard</div>
-                <table className="m-auto border-spacing-x-2">
-                    <tbody>
-                        <tr>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                        {leaderboardEntries[gameMode] ? leaderboardEntries[gameMode].map((entry, i) =>
-                            <tr key={i}><td>{entry.name}</td><td>{entry.correct}</td><td>{entry.answered}</td><td>{entry.test_length}</td></tr>
-                        ) : <tr><td>Loading leaderboards...</td></tr>}
-                    </tbody>
-                </table>
+                { leaderboardEntries[gameMode] ? 
+                    <table className="m-auto border-spacing-x-2">
+                        <tbody>
+                            <tr>
+                                <th>Name</th>
+                                <th>C</th>
+                                <th>T</th>
+                                <th>L</th>
+                                <th>ADJ</th>
+                            </tr>
+                            { leaderboardEntries[gameMode].map((entry, i) =>
+                                <tr key={i}><td>{entry.name}</td><td>{entry.correct}</td><td>{entry.answered}</td><td>{entry.test_length}</td><td>{entry.adjusted}</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                 : <div>Loading leaderboards...</div> }
             </div>
         </div>
     );

@@ -12,6 +12,7 @@
     "@types/pg": "^8.11.10",
     "@types/seedrandom": "^3.0.8",
     "better-react-mathjax": "^2.0.3",
+    "iron-session": "^8.0.3",
     "next": "^14.2.12",
     "nextjs": "^0.0.3",
     "pg": "^8.13.0",

@@ -14,13 +14,15 @@ const TextBox = forwardRef(({ onChange, onEnter, valueRef }: TextBoxProps, ref: 
         forceUpdate(x => x + 1);
     };
     const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        e.key === "Enter" && onEnter();
+        if (e.key === "Enter")
+            onEnter();
     };
     return (
         <div>
             <input ref={ref} name="inputbox" id="inputbox" type="text" onInput={onInput} onKeyDown={onKeyDown} value={valueRef.current} />
         </div>
     );
-})
+});
+TextBox.displayName = "TextBox";
 
 export default TextBox;

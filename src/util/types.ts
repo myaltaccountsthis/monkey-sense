@@ -1,6 +1,15 @@
 export const MathJaxConfig = {
-  loader: {load: ['input/asciimath', 'output/chtml', 'ui/menu']}
+  loader: {load: ['input/asciimath', 'output/svg']},
+  options: {
+    menuOptions: {
+      settings: {
+        inTabOrder: false
+      }
+    },
+  },
 }
+
+export const timePerQuestion = 7500;
 
 export const enterModes = ["Default", "No Enter", "Hardcore", "Test"];
 export type EnterMode = typeof enterModes[number];
@@ -8,13 +17,24 @@ export type EnterMode = typeof enterModes[number];
 export const gameModes = ["Number Sense", "Zetamac", "Estimate"];
 export type GameMode = typeof gameModes[number];
 export const gameModeMappings: {[key: GameMode]: string} = {
-    "Number Sense": "ns",
-    "Zetamac": "zm",
-    "Estimate": "est"
+  "Number Sense": "ns",
+  "Zetamac": "zm",
+  "Estimate": "est"
 };
 
 export const testLengths = [10, 20, 40, 80, 120, 160]
 export type TestLength = typeof testLengths[number];
+export function isValidTestLength(testLength: number | string | null) {
+  if (!testLength || typeof testLength == "string" && !(testLength = parseInt(testLength)) || !testLengths.includes(testLength))
+    return null;
+  return testLength;
+};
+
+export interface TestOptions {
+  id: string;
+  testLength: number;
+  gameMode: GameMode;
+};
 
 export interface Question {
   ans: number;
@@ -22,13 +42,13 @@ export interface Question {
   ansStr?: string;
   ansArr?: string[];
   guess?: boolean;
-}
+};
 export const defaultQuestion = {ans: 0, str: ""};
 
 export interface ModeQuestion {
   category: string;
   question: Question;
-}
+};
 
 export interface AnsweredQuestion {
   category: string;
@@ -36,6 +56,11 @@ export interface AnsweredQuestion {
   time: number;
   question: Question;
   response?: string;
+};
+
+export interface AnswerJudgement {
+  correct: boolean;
+  other?: string;
 };
 
 export type QuestionGeneratorFunction = (...args: any[]) => Question;
@@ -73,4 +98,12 @@ export interface LeaderboardEntry {
   correct: number;
   answered: number;
   test_length: number;
+  adjusted: number;
+}
+
+export interface TestResults {
+  questions: Question[];
+  judgements: AnswerJudgement[];
+  answers: string[];
+  entry: LeaderboardEntry;
 }

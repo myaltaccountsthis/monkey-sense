@@ -1,7 +1,7 @@
 // UTIL
 import seedrandom from "seedrandom";
 import { randomSeed } from "./Base64";
-import { ModeData, ModeQuestion, QuestionGenerator } from "./types";
+import { AnswerJudgement, LeaderboardEntry, ModeData, ModeQuestion, Question, QuestionGenerator } from "./types";
 
 const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
 
@@ -233,15 +233,13 @@ class Fraction {
 
 export class QuestionGeneratorList {
   rng: RNG;
-  random: () => number;
-  randomInt: (min: number, max: number) => number;
+  randoms: { random: () => number, randomInt: (min: number, max: number) => number };
   questionGens: {[key: string]: QuestionGenerator};
   tiers: string[][];
   constructor(rng: RNG) {
     this.rng = rng;
-    this.random = rng.random.bind(rng);
-    this.randomInt = rng.randomInt.bind(rng);
-    const random = this.random, randomInt = this.randomInt;
+    this.randoms = { random: rng.random.bind(rng), randomInt: rng.randomInt.bind(rng) };
+    const { random, randomInt } = this.randoms;
     this.questionGens = {
       add: {
         name: "Addition",
@@ -313,8 +311,8 @@ export class QuestionGeneratorList {
           const d = randomInt(0, 1);
           const bLen = randomInt(1, 2);
           const dMult = Math.pow(10, d);
-          let b = (Math.pow(10, bLen) - 1) * dMult;
-          let a = randomInt(1, b - 1);
+          const b = (Math.pow(10, bLen) - 1) * dMult;
+          const a = randomInt(1, b - 1);
           const rep = `${a % (b / dMult)}`.padStart(bLen, "0");
           const pre = Math.floor((a / b) * dMult);
           const str = `\`.${d > 0 ? pre : ""}${rep}${rep}${rep}... = \``;
@@ -387,8 +385,8 @@ export class QuestionGeneratorList {
         func: () => {
           if (random() < 0.2) {
             // a/b + b/a
-            let a = randomInt(5, 15);
-            let b = Math.sign(random() - 0.5) * randomInt(1, 3) + a;
+            const a = randomInt(5, 15);
+            const b = Math.sign(random() - 0.5) * randomInt(1, 3) + a;
             const frac1 = new Fraction(a, b);
             const frac2 = new Fraction(b, a);
             const num = Math.pow(frac1.denominator - frac1.numerator, 2);
@@ -421,8 +419,8 @@ export class QuestionGeneratorList {
             const a = randomInt(2, 5);
             const rDen = randomInt(2, 6);
             const rNum = randomInt(1, rDen - 1) * Math.sign(random() - 0.3);
-            let ansNum = a * rDen;
-            let ansDen = rDen - rNum;
+            const ansNum = a * rDen;
+            const ansDen = rDen - rNum;
             const ans = new Fraction(ansNum, ansDen);
             const arr = Array(5)
               .fill(0)
@@ -551,7 +549,7 @@ export class QuestionGeneratorList {
           if (random() < 0.2) {
             // x y/m + n z/a = b, find m and n
             const c = randomInt(10, 32);
-            let bDen = randomInt(3, 12);
+            const bDen = randomInt(3, 12);
             let bNum = 0;
             do {
               bNum = randomInt(bDen * 2, Math.round(Math.sqrt(c) * bDen));
@@ -582,7 +580,7 @@ export class QuestionGeneratorList {
           }
           if (random() < 0.4) {
             // a * b/c where a and b are close to c
-            let c = randomInt(13, 25);
+            const c = randomInt(13, 25);
             let b = c;
             do {
               b = c + randomInt(1, 4) * Math.sign(random() - 0.6666);
@@ -592,7 +590,7 @@ export class QuestionGeneratorList {
               a = c + randomInt(1, 7) * Math.sign(random() - 0.6666);
             } while (gcd(a, c) > 1);
             let numer = (c - a) * (c - b);
-            let val = a + b - c + Math.floor(numer / c);
+            const val = a + b - c + Math.floor(numer / c);
             numer = ((numer % c) + c) % c;
             return {
               ans: 0,
@@ -602,10 +600,10 @@ export class QuestionGeneratorList {
           }
           if (random() < .66) {
             // foil where a b/c * d e/f and a % f == 0 and d % c == 0
-            let d1 = randomInt(2, 12);
-            let d2 = randomInt(2, 12);
-            let n1 = Math.max(randomInt(-2, Math.min(5, d1 - 1)), 1);
-            let n2 = Math.max(randomInt(-2, Math.min(5, d2 - 1)), 1);
+            const d1 = randomInt(2, 12);
+            const d2 = randomInt(2, 12);
+            const n1 = Math.max(randomInt(-2, Math.min(5, d1 - 1)), 1);
+            const n2 = Math.max(randomInt(-2, Math.min(5, d2 - 1)), 1);
             const frac1 = new Fraction(n1, d1);
             const frac2 = new Fraction(n2, d2);
             const a = Math.max(randomInt(-2, 3), 1) * frac2.denominator;
@@ -643,7 +641,7 @@ export class QuestionGeneratorList {
           const c = randomInt(1, 9);
           const d = randomInt(1, 9);
           const neg = random() < 0.5;
-          let str = `\`(${a} ${neg ? "-" : "+"} ${b}i)(${c} + ${d}i) = a + bi\`. `;
+          const str = `\`(${a} ${neg ? "-" : "+"} ${b}i)(${c} + ${d}i) = a + bi\`. `;
           if (a + b + c + d < 16 && random() < 0.5) {
             return {
               ans:
@@ -730,8 +728,8 @@ export class QuestionGeneratorList {
         tier: 1,
         func: () => {
           const n = randomInt(3, 10);
-          let num = n - 1;
-          let den = n + 1;
+          const num = n - 1;
+          const den = n + 1;
           const ansFrac = new Fraction(num, den); 
           const arr = Array(n - 1)
             .fill(0)
@@ -804,7 +802,7 @@ export class QuestionGeneratorList {
           do {
             a = randomInt(8, 50);
           } while (primes.includes(a));
-          let arr: number[] = [];
+          const arr: number[] = [];
           let temp = a;
           for (let i = 2; i <= temp; i++) {
             while (temp % i == 0) {
@@ -832,7 +830,7 @@ export class QuestionGeneratorList {
           do {
             a = randomInt(8, 50);
           } while (primes.includes(a));
-          let arr: number[] = [];
+          const arr: number[] = [];
           let temp = a;
           let ans = 1;
           for (let i = 2; i <= temp; i++) {
@@ -1616,7 +1614,7 @@ export class QuestionGeneratorList {
       },
     };
 
-    let keys = Object.keys(this.questionGens);
+    const keys = Object.keys(this.questionGens);
     this.tiers = [[], [], [], []];
     for (const key of keys) {
       this.tiers[this.questionGens[key].tier].push(key);
@@ -1624,10 +1622,8 @@ export class QuestionGeneratorList {
   }
 
   generateQuestion(modeData: ModeData, filterKeys: string[] = Object.keys(this.questionGens), tier = -1): ModeQuestion {
-    console.log(modeData.gameMode);
-    console.log("Called")
-    const random = this.random, randomInt = this.randomInt;
-    let print = tier != -1;
+    const { random, randomInt } = this.randoms;
+    const print = tier != -1;
     // if (tier === -1 && modeData.gameMode !== "Test") {
     //   tier = Math.min(Math.floor(modeData.total / getTestLength() * 4), tiers.length - 1);
     //   print = false;
@@ -1637,7 +1633,7 @@ export class QuestionGeneratorList {
       const available = ["add", "sub", "mult", "div"].filter(key => filterKeys.includes(key));
       if (available.length === 0)
         available.push(...["add", "sub", "mult", "div"]);
-      let rand = randomInt(1, available.length);
+      const rand = randomInt(1, available.length);
       key = available[rand - 1];
       if (key === "add")
         question = this.questionGens.add.func(2, 100);
@@ -1652,7 +1648,7 @@ export class QuestionGeneratorList {
       const available = ["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"].filter(key => filterKeys.includes(key));
       if (available.length === 0)
         available.push(...["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"]);
-      let rand = randomInt(1, available.length);
+      const rand = randomInt(1, available.length);
       key = available[rand - 1];
       question = this.questionGens[key].func();
     }
@@ -1688,4 +1684,45 @@ export class QuestionGeneratorList {
     // console.log(modeData.question.ans);
     return { category: key!, question: question};
   }
+}
+
+export function judgeQuestion(question: Question, str: string) {
+  const n = parseFloat(str);
+  let judgement: AnswerJudgement = { correct: false };
+  if (question.ansStr || question.ansArr) {
+    // If correct
+    if (question.ansArr?.includes(str) || str === question.ansStr) {
+      judgement = { correct: true };
+    }
+  }
+  else if (!isNaN(n)) {
+    // Check guess bounds
+    if (question.guess && Math.abs((n - question.ans) / question.ans) < 0.05) {
+      const diff = Math.abs((n - question.ans) / question.ans);
+      const prefix = diff < 0.01 ? "🟦 Excellent guess!" :
+        diff < 0.03 ? "🟩 Great guess!" :
+          "🟨 Good guess!";
+      judgement = { correct: true, other: `${prefix} ${(diff * 100).toFixed(1)}% off. ${Math.round(question.ans - .05 * question.ans)}-${Math.round(question.ans + .05 * question.ans)}` };
+    }
+    else if (n === question.ans) {
+      judgement = { correct: true };
+    }
+  }
+  return judgement;
+}
+
+export function calculateScore(correct: number, answered: number) {
+  return answered * 5 - (answered - correct) * 9;
+}
+
+export function calculateAdjustedScore(correct: number, answered: number, test_length: number) {
+  return calculateScore(correct, answered) * (80 / test_length);
+}
+
+export function getAnswerDisplay(question: Question) {
+  if (question.ansArr)
+    return question.ansArr.join(" or ");
+  if (question.ansStr)
+    return question.ansStr;
+  return question.ans.toString();
 }
