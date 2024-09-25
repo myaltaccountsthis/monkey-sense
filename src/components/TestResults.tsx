@@ -9,9 +9,9 @@ export default function MathJaxClient({ testResults }: { testResults: TestResult
     return (
         <MathJaxContext config={MathJaxConfig}>
             {
-                testResults.questions.map((question, i) =>
+                testResults.judgements.map((judgement, i) =>
                     <div className="my-2" key={i}>
-                        {`Q${i + 1}`}. <MathJax inline>{question.str}</MathJax> {testResults.judgements[i].correct ? "✔️" : `❌ (you put ${testResults.answers[i]}, ans = ${getAnswerDisplay(question)})`}
+                        {`Q${i + 1}`}. <MathJax inline>{testResults.questions[i].str}</MathJax> {testResults.answers[i]} {judgement.correct ? "✔️" : `❌ (ans = ${getAnswerDisplay(testResults.questions[i])})`}
                     </div>
                 )
             }

@@ -12,7 +12,7 @@ export default async function Results() {
     return (
         <div>
             <div>
-                <div>Your Results</div>
+                <h1>Your Results</h1>
                 <div>Out of {testResults.entry.answered} questions answered</div>
                 <div>{testResults.entry.correct} were correct</div>
                 <div>Test had {testResults.entry.test_length} questions</div>

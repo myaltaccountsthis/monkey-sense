@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const encrypted = encryptSeed(seed);
     const session = await getSession();
     session.testOptions = { id: encrypted.toString(), testLength: testLength, gameMode: gameMode };
+    session.testStart = Date.now();
     session.testResults = null;
     await session.save();
     return NextResponse.redirect(new URL("/test?t=" + Date.now().toString(), request.url));

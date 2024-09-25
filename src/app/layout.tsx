@@ -12,7 +12,7 @@ export default function RootLayout({ children }: Readonly<{children: React.React
             <head>
                 <meta charSet="utf-8" />
             </head>
-            <body className="text-center">
+            <body className="text-center m-0">
                 {children}
             </body>
         </html>

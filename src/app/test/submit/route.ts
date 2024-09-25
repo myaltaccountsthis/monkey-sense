@@ -1,8 +1,8 @@
 import { getTestQuestions, submitLeaderboardEntry } from "@/util/database";
 import { decryptSeed } from "@/util/encryptSeed";
-import { calculateAdjustedScore, getAnswerDisplay, judgeQuestion } from "@/util/generator";
+import { calculateAdjustedScore, judgeQuestion } from "@/util/generator";
 import { getSession } from "@/util/session";
-import { gameModeMappings, gameModes, isValidTestLength, LeaderboardEntry } from "@/util/types";
+import { getNumQuestions, LeaderboardEntry } from "@/util/types";
 import { NextRequest, NextResponse } from "next/server";
 
 interface Submission {
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     let correct = 0;
     let answered = 0;
     let hasAnsweredQuestion = false;
-    const questions = getTestQuestions(decryptSeed(submission.id), submission.gameMode, submission.testLength);
+    const questions = getTestQuestions(decryptSeed(submission.id), submission.gameMode, getNumQuestions(submission.gameMode, submission.testLength));
     const judgements = [];
     for (let i = submission.testLength - 1; i >= 0; i--) {
         hasAnsweredQuestion ||= submission.answers[i].length > 0;
@@ -53,9 +53,11 @@ export async function POST(request: NextRequest) {
         }
     }
     judgements.reverse();
-    const entry: LeaderboardEntry = { name: submission.name.substring(0, 20), correct: correct, answered: answered, test_length: submission.testLength, adjusted: calculateAdjustedScore(correct, answered, submission.testLength) };
+    const score = submission.gameMode === "Zetamac" ? correct : calculateAdjustedScore(correct, answered, submission.testLength);
+    const entry: LeaderboardEntry = { name: submission.name.substring(0, 20), correct: correct, answered: answered, test_length: submission.testLength, adjusted: score, time: (Date.now() - session.testStart) / 1000 };
     submitLeaderboardEntry(submission.gameMode, entry);
     session.testResults = { questions: questions, judgements: judgements, answers: submission.answers, entry: entry };
+    session.testStart = 0;
     await session.save();
     return NextResponse.redirect(new URL("/test/results", request.url));
     // return NextResponse.json(judgements.map((judgement, i) => `Q${i + 1}: ${questions[i].str} - ${judgement.correct ? "✔️" : `❌ (you put ${submission.answers[i]}, ans = ${getAnswerDisplay(questions[i])}`}`));

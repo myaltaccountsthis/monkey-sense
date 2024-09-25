@@ -12,6 +12,7 @@ const sessionOptions: SessionOptions = {
 
 export interface SessionData {
     testOptions: TestOptions;
+    testStart: number;
     testResults: TestResults | null;
 };
 

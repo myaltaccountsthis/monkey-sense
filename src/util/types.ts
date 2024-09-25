@@ -10,6 +10,14 @@ export const MathJaxConfig = {
 }
 
 export const timePerQuestion = 7500;
+export function getTestDuration(gameMode: GameMode, testLength: number) {
+  if (gameMode == "Zetamac")
+    return testLength * 1000;
+  return testLength * timePerQuestion;
+}
+export function getNumQuestions(gameMode: GameMode, testLength: number) {
+  return gameMode === "Zetamac" ? testLength * 2 : testLength
+}
 
 export const enterModes = ["Default", "No Enter", "Hardcore", "Test"];
 export type EnterMode = typeof enterModes[number];
@@ -99,6 +107,7 @@ export interface LeaderboardEntry {
   answered: number;
   test_length: number;
   adjusted: number;
+  time: number;
 }
 
 export interface TestResults {

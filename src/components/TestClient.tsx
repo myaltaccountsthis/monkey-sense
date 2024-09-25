@@ -2,15 +2,26 @@
 
 import { MathJaxConfig } from "@/util/types";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
+import TestTopBar from "./TestTopBar";
+import { useRef } from "react";
 
 interface TestClientProps {
     strings: string[];
+    startT: number;
+    testDuration: number;
 };
 
-export default function TestClient({ strings }: TestClientProps) {
+export default function TestClient({ strings, startT, testDuration }: TestClientProps) {
+    const formRef = useRef<HTMLFormElement>(null);
+    const ignoreEnter = (e: React.KeyboardEvent<HTMLFormElement>) => {
+        if (e.key === "Enter" && e.currentTarget.getAttribute("type") !== "submit")
+            e.preventDefault();
+    };
     return (
         <MathJaxContext config={MathJaxConfig}>
-            <form action="/test/submit" method="POST" onKeyDown={(e) => {if (e.key === "Enter") e.preventDefault();}}>
+            <TestTopBar startT={startT} testDuration={testDuration} onSubmit={() => formRef.current?.submit()} />
+            <br/>
+            <form ref={formRef} action="/test/submit" method="POST" onKeyDown={ignoreEnter}>
                 <div className="flex flex-col items-center gap-y-4 flex-wrap px-4">
                     {
                         strings.map((str, i) =>

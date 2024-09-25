@@ -344,7 +344,7 @@ export default function Game() {
                 </div>
             </div>
             <br/>
-            <div>
+            <div className={active ? "hidden" : ""}>
                 <div>Leaderboard</div>
                 { leaderboardEntries[gameMode] ? 
                     <table className="m-auto border-spacing-x-2">

@@ -42,5 +42,5 @@ export function getTestQuestions(seed: string, gameMode: GameMode, testLength: n
 export async function submitLeaderboardEntry(gameMode: GameMode, entry: LeaderboardEntry) {
     if (entry.answered * 2 < entry.test_length)
         return [];
-    return (await pool.query(`INSERT INTO leaderboard_${gameModeMappings[gameMode]} VALUES ($1, $2, $3, $4, $5)`, [entry.name, entry.correct, entry.answered, entry.test_length, entry.adjusted])).rows;
+    return (await pool.query(`INSERT INTO leaderboard_${gameModeMappings[gameMode]} VALUES ($1, $2, $3, $4, $5, $6)`, [entry.name, entry.correct, entry.answered, entry.test_length, entry.adjusted, entry.time])).rows;
 }
