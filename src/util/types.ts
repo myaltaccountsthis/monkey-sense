@@ -19,7 +19,7 @@ export function getNumQuestions(gameMode: GameMode, testLength: number) {
   return gameMode === "Zetamac" ? testLength * 2 : testLength
 }
 
-export const enterModes = ["Default", "No Enter", "Hardcore", "Test"];
+export const enterModes = ["Default", "No Enter", "Hardcore", "Test", "Print"];
 export type EnterMode = typeof enterModes[number];
 
 export const gameModes = ["Number Sense", "Zetamac", "Estimate"];

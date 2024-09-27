@@ -31,9 +31,9 @@ export function getTestQuestions(seed: string, gameMode: GameMode, testLength: n
         while ((question.guess === true) != shouldBeEstimate);
         modeData.total++;
         questions.push(question);
-        const isGuess = question.guess;
-        if (isGuess)
-            question.str = question.str.replace("*", "");
+        // const isGuess = question.guess;
+        // if (isGuess)
+            // question.str = question.str.replace("*", "");
     }
     return questions;
 }

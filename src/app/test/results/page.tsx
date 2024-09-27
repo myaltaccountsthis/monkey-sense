@@ -1,11 +1,23 @@
+"use client"
+
 import TestResults from "@/components/TestResults";
-import { getSession } from "@/util/session";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
-export default async function Results() {
-    const session = await getSession();
-    const testResults = session.testResults;
+export default function Results() {
+    const [loaded, setLoaded] = useState(false);
+    const dataRef = useRef<any | null>(null);
+
+    useEffect(() => {
+        dataRef.current = JSON.parse(sessionStorage?.getItem("TestResults")!);
+        setLoaded(true);
+    }, []);
+
+    if (!loaded)
+        return <div>Loading results...</div>
+
+    const testResults = dataRef.current;
     if (!testResults)
         redirect("/");
 

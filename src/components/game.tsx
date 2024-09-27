@@ -7,6 +7,8 @@ import TextBox from "./textbox";
 import Timer from "./timer";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useRouter } from "next/navigation"
+import LeaderboardEntryComponent from "./LeaderboardEntryComponent";
+import Leaderboard from "./Leaderboard";
 
 export default function Game() {
     const router = useRouter();
@@ -159,7 +161,10 @@ export default function Game() {
             setActive(false);
             setStartingTest(true);
             console.log("routing");
-            router.push(`/test/new?mode=${gameModeMappings[gameMode]}&testLength=${testLength}&randomKey=${Date.now().toString()}`);
+            fetch(`/test/new?mode=${gameModeMappings[gameMode]}&testLength=${testLength}`).then(res => res.json()).then(data => {
+                sessionStorage.setItem("TestData", JSON.stringify(Object.assign(data, {gameMode: gameMode, testLength: testLength})));
+                router.push("/test");
+            });
             return;
         }
 
@@ -167,6 +172,14 @@ export default function Game() {
         //   ? text.substring(text.indexOf(" ") + 1).trim()
         //   : "";
         const keyStr = textBoxRef.current.trim();
+
+        // Handle print
+        if (enterMode === "Print") {
+            setActive(false);
+            console.log("routing");
+            router.push(`/print?${keyStr == "" ? "" : `seed=${keyStr}&`}`)
+        }
+
         if (keyStr.length == 0) {
             filterKeysRef.current = Object.keys(questionGen.questionGens);
         }
@@ -345,23 +358,7 @@ export default function Game() {
             </div>
             <br/>
             <div className={active ? "hidden" : ""}>
-                <div>Leaderboard</div>
-                { leaderboardEntries[gameMode] ? 
-                    <table className="m-auto border-spacing-x-2">
-                        <tbody>
-                            <tr>
-                                <th>Name</th>
-                                <th>C</th>
-                                <th>T</th>
-                                <th>L</th>
-                                <th>ADJ</th>
-                            </tr>
-                            { leaderboardEntries[gameMode].map((entry, i) =>
-                                <tr key={i}><td>{entry.name}</td><td>{entry.correct}</td><td>{entry.answered}</td><td>{entry.test_length}</td><td>{entry.adjusted}</td></tr>
-                            )}
-                        </tbody>
-                    </table>
-                 : <div>Loading leaderboards...</div> }
+                <Leaderboard leaderboardEntries={leaderboardEntries} gameMode={gameMode} />
             </div>
         </div>
     );

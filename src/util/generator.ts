@@ -256,8 +256,14 @@ export class QuestionGeneratorList {
         weight: 2,
         tier: 0,
         func: (min = 10, max = 9999) => {
-          const a = randomInt(min, max);
-          const b = randomInt(min, max);
+          let a: number;
+          let b = randomInt(min, max);
+          do {
+            a = randomInt(min, max);
+          } while (a == b);
+          if (a < b) {
+            [a, b] = [b, a];
+          }
           return { ans: a - b, str: `\`${a} - ${b} = \`` };
         },
       },
@@ -1308,7 +1314,7 @@ export class QuestionGeneratorList {
         }
       },
       varies: {
-        name: "Function relationships",
+        name: "Function Relationships",
         weight: 1,
         tier: 2,
         func: () => {

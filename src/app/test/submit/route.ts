@@ -1,8 +1,7 @@
 import { getTestQuestions, submitLeaderboardEntry } from "@/util/database";
 import { decryptSeed } from "@/util/encryptSeed";
 import { calculateAdjustedScore, judgeQuestion } from "@/util/generator";
-import { getSession } from "@/util/session";
-import { getNumQuestions, LeaderboardEntry } from "@/util/types";
+import { gameModeMappings, gameModes, getNumQuestions, getTestDuration, LeaderboardEntry, TestResults } from "@/util/types";
 import { NextRequest, NextResponse } from "next/server";
 
 interface Submission {
@@ -11,14 +10,16 @@ interface Submission {
     answers: string[];
     id: bigint;
     name: string;
+    time: number;
 };
 
-export async function POST(request: NextRequest) {
+export async function handleSubmit(body: FormData): Promise<TestResults | null> {
     let submission: Submission | null = null;
-    const session = await getSession();
     try {
-        const body = await request.formData();
-        const { testLength, gameMode, id } = session.testOptions;
+        const testLength = parseInt(body.get("testLength") as string);
+        const gameMode = body.get("mode") as string;
+        const id = body.get("id") as string;
+        const time = parseFloat(body.get("time") as string);
         // const testLength = isValidTestLength(testOptions.testLength);
         // const gameMode = gameModes.find(gm => gameModeMappings[gm] === body.mode);
         // const id = BigInt(body.id);
@@ -26,15 +27,16 @@ export async function POST(request: NextRequest) {
         const name = body.get("name") as string || "unknown";
         const idInt = BigInt(id);
         // Validate fields
-        if (!testLength || !gameMode || !answers || answers.length !== testLength ||
+        const testDuration = getTestDuration(gameMode, testLength) / 1000;
+        if (!testLength || !gameMode || !answers || answers.length !== testLength || time > testDuration + 1 ||
             !answers.every((s: string) => typeof s === "string") || typeof idInt != "bigint")
-            return Response.error();
-        submission = {testLength: testLength, gameMode: gameMode, answers: answers, id: idInt, name: name};
-        session.testOptions.id = "";
+            throw "Bad";
+        submission = {testLength: testLength, gameMode: gameMode, answers: answers, id: idInt, name: name, time: Math.min(time, testDuration)};
     }
     catch {}
+    // If error parsing client request, then return Bad Request
     if (!submission || typeof submission != "object") {
-        return Response.json("", {status: 500});
+        return null;
     }
     // Grade submission
     let correct = 0;
@@ -53,12 +55,16 @@ export async function POST(request: NextRequest) {
         }
     }
     judgements.reverse();
-    const score = submission.gameMode === "Zetamac" ? correct : calculateAdjustedScore(correct, answered, submission.testLength);
-    const entry: LeaderboardEntry = { name: submission.name.substring(0, 20), correct: correct, answered: answered, test_length: submission.testLength, adjusted: score, time: (Date.now() - session.testStart) / 1000 };
+    const score = submission.gameMode === "Zetamac" ? correct / submission.testLength * 120 : calculateAdjustedScore(correct, answered, submission.testLength);
+    const entry: LeaderboardEntry = { name: submission.name.substring(0, 20), correct: correct, answered: answered, test_length: submission.testLength, adjusted: score, time: submission.time };
     submitLeaderboardEntry(submission.gameMode, entry);
-    session.testResults = { questions: questions, judgements: judgements, answers: submission.answers, entry: entry };
-    session.testStart = 0;
-    await session.save();
-    return NextResponse.redirect(new URL("/test/results", request.url));
+    return { questions: questions, judgements: judgements, answers: submission.answers, entry: entry };
     // return NextResponse.json(judgements.map((judgement, i) => `Q${i + 1}: ${questions[i].str} - ${judgement.correct ? "✔️" : `❌ (you put ${submission.answers[i]}, ans = ${getAnswerDisplay(questions[i])}`}`));
+}
+
+export async function POST(request: NextRequest) {
+    const data = await handleSubmit(await request.formData());
+    if (!data)
+        return NextResponse.json("", {status: 400});
+    return NextResponse.json(data);
 }
