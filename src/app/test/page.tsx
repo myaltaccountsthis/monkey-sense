@@ -1,6 +1,6 @@
 import "@/app/globals.css"
 import TestClient from "@/components/TestClient";
-import { handleSubmit } from "./submit/route";
+import { handleSubmit } from "@/util/database";
 
 const onSubmit = async (formData: FormData) => {
     "use server"

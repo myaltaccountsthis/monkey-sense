@@ -5,10 +5,10 @@ import { AnsweredQuestion, defaultQuestion, EnterMode, enterModes, GameMode, gam
 import { useEffect, useRef, useState } from "react";
 import TextBox from "./textbox";
 import Timer from "./timer";
-import { MathJax, MathJaxContext } from "better-react-mathjax";
+// import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useRouter } from "next/navigation"
-import LeaderboardEntryComponent from "./LeaderboardEntryComponent";
 import Leaderboard from "./Leaderboard";
+import { MathJax, MathJaxContext } from "better-react-mathjax";
 
 export default function Game() {
     const router = useRouter();
@@ -287,7 +287,7 @@ export default function Game() {
     return (
         <div>
             <MathJaxContext config={MathJaxConfig}>
-                <MathJax id="question">{isInGame() ? getQuestionText() : "Click start"}</MathJax>
+                <MathJax id="question" dynamic>{isInGame() ? getQuestionText() : "Click start"}</MathJax>
             </MathJaxContext>
                 
             <div className="flex-center my-4">

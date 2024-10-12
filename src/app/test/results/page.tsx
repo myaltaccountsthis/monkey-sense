@@ -10,7 +10,7 @@ export default function Results() {
     const dataRef = useRef<any | null>(null);
 
     useEffect(() => {
-        dataRef.current = JSON.parse(sessionStorage?.getItem("TestResults")!);
+        dataRef.current = JSON.parse(sessionStorage.getItem("TestResults") ?? "");
         setLoaded(true);
     }, []);
 
@@ -29,10 +29,10 @@ export default function Results() {
                 <div>{testResults.entry.correct} were correct</div>
                 <div>Test had {testResults.entry.test_length} questions</div>
             </div>
-            <br/>
+            <br />
             <div>Questions</div>
             <TestResults testResults={testResults} />
-            <br/>
+            <br />
             <Link href="/">
                 <button>Return</button>
             </Link>
