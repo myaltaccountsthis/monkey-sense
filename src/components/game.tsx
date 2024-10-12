@@ -160,7 +160,6 @@ export default function Game() {
         if (enterMode === "Test") {
             setActive(false);
             setStartingTest(true);
-            console.log("routing");
             fetch(`/test/new?mode=${gameModeMappings[gameMode]}&testLength=${testLength}`).then(res => res.json()).then(data => {
                 sessionStorage.setItem("TestData", JSON.stringify(Object.assign(data, {gameMode: gameMode, testLength: testLength})));
                 router.push("/test");
@@ -176,7 +175,6 @@ export default function Game() {
         // Handle print
         if (enterMode === "Print") {
             setActive(false);
-            console.log("routing");
             router.push(`/print?${keyStr == "" ? "" : `seed=${keyStr}&`}`)
         }
 
