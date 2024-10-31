@@ -1,5 +1,5 @@
 const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
-const DIGITS = 8;
+export const DIGITS = 8;
 
 const Base64 = {
   encode: (value: number) => {

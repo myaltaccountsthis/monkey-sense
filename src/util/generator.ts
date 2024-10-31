@@ -82,7 +82,9 @@ export const getSeed = (querySeed?: string) => querySeed ?? randomSeed();
 
 export class RNG {
   rng: seedrandom.PRNG;
+  seed: string;
   constructor(seed: string = randomSeed()) {
+    this.seed = seed;
     this.rng = seedrandom(seed);
   }
   

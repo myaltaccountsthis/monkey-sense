@@ -1,0 +1,95 @@
+body {
+  background-color: white;
+}
+
+div, h1, button, input {
+  color: black;
+  text-align: left;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 13.8px;
+  word-wrap: normal;
+}
+
+h1 {
+  font-size: xx-large;
+  margin-bottom: 1.5em;
+}
+
+* {
+  font-weight: bold;
+}
+
+mjx-container * {
+  font-weight: normal;
+}
+
+.page-group {
+  column-count: 2;
+  column-width: 35%;
+  column-gap: 10%;
+  page-break-after: always;
+  margin: 0px 2%;
+}
+
+#answers {
+  column-count: 4;
+  column-gap: 3%;
+  margin: 0px 2%;
+}
+
+#answers>div {
+  margin-bottom: 1.5em;
+}
+
+.question {
+  margin-bottom: 1.2em;
+  padding-left: 2.2em;
+  line-height: 130%;
+  width: 100%;
+  text-indent: -2.2em;
+  /* display: flex;
+    justify-content: left;
+    column-gap: 8px; */
+}
+
+/* .answer-blank {
+    margin-left: 8px;
+    border-bottom: .1px solid black;
+    transform: scaleY(.5);
+    /* flex: 1 1 auto;
+    align-self: self-end;
+  } */
+
+/* .answer-blank::before {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    width: 100%;
+    height: .1px;
+    background-color: black;
+  } */
+
+.answer-blank {
+  font-weight: bold;
+  margin-left: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* .answer-blank::after {
+    background-color: gray;
+    content: "_____________________________";
+    font-weight: bold;
+    z-index: -1;
+  } */
+
+/* .question::after {
+    content: "________________";
+    font-weight: bold;
+    margin-left: .5em;
+  } */
+
+@page {
+  size: letter;
+  margin: .5in;
+}
