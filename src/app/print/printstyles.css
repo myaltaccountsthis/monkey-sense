@@ -25,10 +25,10 @@ mjx-container * {
 
 .page-group {
   column-count: 2;
-  column-width: 35%;
+  /* column-width: 35%; */
   column-gap: 10%;
   page-break-after: always;
-  margin: 0px 2%;
+  margin-right: 4%;
 }
 
 #answers {
