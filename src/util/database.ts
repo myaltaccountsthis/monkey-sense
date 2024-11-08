@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import { GameMode, gameModeMappings, getNumQuestions, getTestDuration, LeaderboardEntry, ModeData, Question, TestResults } from "./types";
 import { calculateAdjustedScore, judgeQuestion, QuestionGeneratorList, RNG } from "./generator";
 import { decryptSeed } from "./encryptSeed";
+import { Filter } from 'bad-words';
 
 const pool = new Pool({
     user: process.env.PG_USER,
@@ -10,6 +11,8 @@ const pool = new Pool({
     port: parseInt(process.env.PG_PORT!),
     database: process.env.PG_DATABASE
 });
+
+const filter = new Filter();
 
 // Fetch leaderboard of specific game mode
 export async function getLeaderboard(leaderboardKey: string | null): Promise<LeaderboardEntry[]> {
@@ -98,7 +101,7 @@ export async function handleSubmit(body: FormData): Promise<TestResults | null> 
     }
     judgements.reverse();
     const score = submission.gameMode === "Zetamac" ? correct / submission.testLength * 120 : calculateAdjustedScore(correct, answered, submission.testLength);
-    const entry: LeaderboardEntry = { name: submission.name.substring(0, 20), correct: correct, answered: answered, test_length: submission.testLength, adjusted: score, time: submission.time };
+    const entry: LeaderboardEntry = { name: filter.clean(submission.name.substring(0, 20)), correct: correct, answered: answered, test_length: submission.testLength, adjusted: score, time: submission.time };
     submitLeaderboardEntry(submission.gameMode, entry);
     return { questions: questions, judgements: judgements, answers: submission.answers, entry: entry };
     // return NextResponse.json(judgements.map((judgement, i) => `Q${i + 1}: ${questions[i].str} - ${judgement.correct ? "✔️" : `❌ (you put ${submission.answers[i]}, ans = ${getAnswerDisplay(questions[i])}`}`));
