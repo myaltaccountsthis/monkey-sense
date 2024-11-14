@@ -267,6 +267,11 @@ export default function Game() {
         console.log("-----End-----");
     }
 
+    const startPractice = (question: string) => {
+        textBoxRef.current = question;
+        doStart();
+    }
+
     function onInputChange() {
         if (!shouldRequireEnter())
             modeHandler(textBoxRef.current);
@@ -324,7 +329,7 @@ export default function Game() {
                 <Button className="stop" onClick={doStop}>Stop</Button>
             </div>
             {!active &&
-                <QuestionList questionGen={questionGen} />
+                <QuestionList questionGen={questionGen} startPractice={startPractice} />
             }
             {active &&
                 <div>
