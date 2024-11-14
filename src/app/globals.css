@@ -3,15 +3,8 @@
 @tailwind utilities;
 
 :root {
-    --background: #fff;
-    --foreground: #000;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #333;
-        --foreground: #fff;
-    }
+    --background: #333;
+    --foreground: #fff;
 }
 
 body {
@@ -55,4 +48,26 @@ button {
     justify-content: center;
     column-gap: 6px;
     white-space: nowrap;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #888;
+    border-radius: 5px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }

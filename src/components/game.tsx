@@ -9,6 +9,8 @@ import Timer from "./timer";
 import { useRouter } from "next/navigation"
 import Leaderboard from "./Leaderboard";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
+import QuestionList from "./QuestionList";
+import Button from "./Button";
 
 export default function Game() {
     const router = useRouter();
@@ -317,43 +319,48 @@ export default function Game() {
                 <br/>
             </div>
             <div className="flex-center my-4">
-                <button id="start" onClick={doStart}>Start</button>
+                <Button className="start" onClick={doStart}>Start</Button>
                 <div></div>
-                <button id="stop" onClick={doStop}>Stop</button>
+                <Button className="stop" onClick={doStop}>Stop</Button>
             </div>
-            <div>
-                <div className="flex-center">
-                    <div>Last Time:</div>
-                    <div id="answertime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(answerTime) : ""}}>
-                        {questionCount > 0 && enterMode !== "Test" ? `${Math.round(answerTime)}ms` : ""}
-                    </div>
-                </div>
-                <div id="lastanswer">{lastAnswer}</div>
-                <div id="data">
+            {!active &&
+                <QuestionList questionGen={questionGen} />
+            }
+            {active &&
+                <div>
                     <div className="flex-center">
-                        <div>Question Count:</div>
-                        <div id="questioncount">{questionCount}</div>
-                    </div>
-                    <div className="flex-center">
-                        <div>Average Time:</div>
-                        <div id="averagetime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(time / questionCount) : ""}}>
-                            {questionCount > 0 && enterMode !== "Test" ? `${Math.round(time / questionCount)}ms` : ""}
+                        <div>Last Time:</div>
+                        <div id="answertime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(answerTime) : ""}}>
+                            {questionCount > 0 && enterMode !== "Test" ? `${Math.round(answerTime)}ms` : ""}
                         </div>
                     </div>
-                    <div className="flex-center">
-                        <div>Accuracy:</div>
-                        <div id="accuracy" style={{color: getAccuracyColor(Math.max(0, accuracy / 100))}}>{questionCount > 0 && accuracy !== -1 ? accuracy.toFixed(1) + "%" : ""}</div>
-                    </div>
-                    <div className="flex-center">
-                        <div>Score:</div>
-                        <div id="score">{scoreStr}</div>
-                    </div>
-                    <div className="flex-center">
-                        <div>Total Time:</div>
-                        <Timer intervalRef={intervalRef} shouldMakeInterval={active} doTimeUpdate={doTimeUpdate} />
+                    <div id="lastanswer">{lastAnswer}</div>
+                    <div id="data">
+                        <div className="flex-center">
+                            <div>Question Count:</div>
+                            <div id="questioncount">{questionCount}</div>
+                        </div>
+                        <div className="flex-center">
+                            <div>Average Time:</div>
+                            <div id="averagetime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(time / questionCount) : ""}}>
+                                {questionCount > 0 && enterMode !== "Test" ? `${Math.round(time / questionCount)}ms` : ""}
+                            </div>
+                        </div>
+                        <div className="flex-center">
+                            <div>Accuracy:</div>
+                            <div id="accuracy" style={{color: getAccuracyColor(Math.max(0, accuracy / 100))}}>{questionCount > 0 && accuracy !== -1 ? accuracy.toFixed(1) + "%" : ""}</div>
+                        </div>
+                        <div className="flex-center">
+                            <div>Score:</div>
+                            <div id="score">{scoreStr}</div>
+                        </div>
+                        <div className="flex-center">
+                            <div>Total Time:</div>
+                            <Timer intervalRef={intervalRef} shouldMakeInterval={active} doTimeUpdate={doTimeUpdate} />
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
             <br/>
             <div className={active ? "hidden" : ""}>
                 <Leaderboard leaderboardEntries={leaderboardEntries} gameMode={gameMode} />
