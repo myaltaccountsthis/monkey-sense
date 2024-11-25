@@ -11,6 +11,7 @@ import Leaderboard from "./Leaderboard";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import QuestionList from "./QuestionList";
 import Button from "./Button";
+import { QuestionInfoDropdown } from "./QuestionInfoDropdown";
 
 export default function Game() {
     const router = useRouter();
@@ -268,6 +269,8 @@ export default function Game() {
     }
 
     const startPractice = (question: string) => {
+        if (isInGame())
+            doStop();
         textBoxRef.current = question;
         doStart();
     }
@@ -329,7 +332,7 @@ export default function Game() {
                 <Button className="stop" onClick={doStop}>Stop</Button>
             </div>
             {!active &&
-                <QuestionList questionGen={questionGen} startPractice={startPractice} />
+                <QuestionList questionGens={questionGen} startPractice={startPractice} />
             }
             {active &&
                 <div>
@@ -364,6 +367,8 @@ export default function Game() {
                             <Timer intervalRef={intervalRef} shouldMakeInterval={active} doTimeUpdate={doTimeUpdate} />
                         </div>
                     </div>
+                    <div className="h-4" />
+                    <QuestionInfoDropdown questionGens={questionGen} selected={currentCategoryRef.current} startPractice={startPractice} />
                 </div>
             }
             <br/>

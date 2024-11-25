@@ -1,20 +1,20 @@
 import QuestionInfo from "./QuestionInfo";
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { QuestionGeneratorList } from "@/util/generator";
 import Button from "./Button";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { Question } from "@/util/types";
 
 interface QuestionListProps {
-    questionGen: QuestionGeneratorList;
+    questionGens: QuestionGeneratorList;
     startPractice: (question: string) => void;
 }
 
-export default function QuestionList({ questionGen, startPractice }: QuestionListProps) {
-    const gens = questionGen.questionGens;
+export default function QuestionList({ questionGens, startPractice }: QuestionListProps) {
+    const gens = questionGens.questionGens;
     const sortedGens = Object.keys(gens).sort((a, b) => (gens[a].tier - gens[b].tier) * 100 - (gens[a].weight - gens[b].weight));
+    const [filteredGens, setFilteredGens] = useState<string[]>(sortedGens);
     
-    const [question, setQuestion] = useState<Question | null>(null);
     const [active, setActive] = useState(false);
     const [selected, setSelected] = useState<string | null>(null);
 
@@ -24,16 +24,12 @@ export default function QuestionList({ questionGen, startPractice }: QuestionLis
             startPractice(selected);
         }
     }
-    const regenerate = () => {
-        if (selected) {
-            setQuestion(gens[selected].func());
-        }
+    
+    const filter = (e: FormEvent<HTMLInputElement>) => {
+        const search = e.currentTarget.value;
+        setFilteredGens(sortedGens.filter(q => gens[q].name.toLowerCase().includes(search.toLowerCase())));
+        setSelected(null);
     }
-
-    useEffect(() => {
-        if (selected)
-            setQuestion(gens[selected].func());
-    }, [selected]);
 
     return (
         <>
@@ -49,41 +45,20 @@ export default function QuestionList({ questionGen, startPractice }: QuestionLis
             <div className={`rounded-md m-auto w-[80%] max-w-[800px] grid justify-center transition-all duration-300 border-2 border-black border-solid grid-cols-[1fr]
                 ${active ? "p-8 grid-rows-[1fr] border-opacity-100 bg-zinc-700" : "grid-rows-[0fr] border-opacity-0"}`}>
                     <div className="overflow-hidden w-full">
-                        <div className="flex flex-row justify-between items-start w-full">
-                            <div className="flex flex-col justify-start items-start overflow-y-scroll max-h-[600px] bg-zinc-600 rounded-md border-2 border-black border-solid p-0 overflow-x-clip">
-                                {sortedGens.map((q, i) => <QuestionInfo key={i} id={q} question={gens[q]} selected={selected} update={setSelected} />)}
+                        <div className="flex flex-row gap-2 items-start w-full">
+                            <div className="w-1/2 max-w-48">
+                                <input type="text" placeholder="Search" className="w-full box-border p-2 rounded-md border-2 border-black border-solid text-black" onChange={filter}/>
+                                <div className="flex flex-col justify-start items-start overflow-y-scroll w-full max-h-[600px] bg-zinc-600 rounded-md border-2 border-black border-solid p-0 overflow-x-clip">
+                                    {filteredGens.map((q, i) =>
+                                        <Button key={i} className={`w-full px-2 ${selected == q ? "bg-zinc-400" : "bg-zinc-600"} hover:bg-zinc-500 active:bg-zinc-400 hover:scale-x-100 rounded-none border-l-0 min-h-20 border-t-0`} onClick={() => {setSelected(q)}}>
+                                            <div className="text-gray-200">{gens[q].name}</div>
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
-                            <div className="w-full">
-                                {selected &&
-                                    <div>
-                                        <div className="text-3xl">{gens[selected].name}</div>
-                                        <br />
-                                        Weight: {gens[selected].weight}
-                                        <br />
-                                        Tier: {gens[selected].tier + 1}
-                                        <div className="h-4" />
-                                        <Button onClick={practice}>Practice</Button>
-                                        <div className="h-12" />
-                                        <div className="bg-zinc-500 w-fit m-auto p-4 rounded-md border-2 border-black border-solid">
-                                            <div className="text-2xl">Sample Problem:</div>
-                                            <br />
-                                            {question &&
-                                                <MathJaxContext>
-                                                    <MathJax>
-                                                        {question.str}
-                                                    </MathJax>
-                                                    <br />
-                                                    <MathJax>
-                                                        {question.ansArr ? `\`${question.ansArr}\`` : question.ansStr ? `\`${question.ansStr}\`` : `\`${question.ans}\``}
-                                                    </MathJax>
-                                                </MathJaxContext>
-                                            }
-                                            <br />
-                                            <Button onClick={regenerate}>New Problem</Button>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
+                            {selected &&
+                                <QuestionInfo questionGens={questionGens} selected={selected} practice={practice} />
+                            }
                         </div>
                     </div>
             </div>

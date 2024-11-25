@@ -75,6 +75,7 @@ export type QuestionGeneratorFunction = (...args: any[]) => Question;
 
 export interface QuestionGenerator {
   name: string;
+  description: string;
   weight: number;
   tier: number;
   func: QuestionGeneratorFunction;

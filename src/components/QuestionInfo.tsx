@@ -1,20 +1,59 @@
-import { QuestionGenerator } from "../util/types";
+import { use, useEffect, useState } from "react";
+import { Question, QuestionGenerator } from "../util/types";
+import { QuestionGeneratorList } from "@/util/generator";
+import { MathJax, MathJaxContext } from "better-react-mathjax";
 import Button from "./Button";
 
 interface QuestionInfoProps {
-    id: string;
-    question: QuestionGenerator;
-    selected: string | null;
-    update: (name: string) => void;
+    questionGens: QuestionGeneratorList;
+    selected: string;
+    practice: () => void;
 }
 
-export default function QuestionInfo({ id, question, selected, update }: QuestionInfoProps) {
-    const onClick = () => {
-        update(id);
-    };
+export default function QuestionInfo({ questionGens, selected, practice }: QuestionInfoProps) {
+    const questionGen = questionGens.questionGens[selected];
+    const [question, setQuestion] = useState<Question>(questionGen.func());
+
+    const regenerate = () => {
+        setQuestion(questionGen.func());
+    }
+
+    useEffect(() => {
+        setQuestion(questionGen.func());
+    }, [selected]);
+
     return (
-        <Button className={`w-full ${selected == id ? "bg-zinc-400" : "bg-zinc-600"} hover:bg-zinc-500 active:bg-zinc-400 hover:scale-x-100 rounded-none border-l-0 min-h-20 border-t-0`} onClick={onClick}>
-            <div className="text-gray-200">{question.name}</div>
-        </Button>
+        <div className="w-full">
+            <div className="px-4">
+                <h3 className="text-2xl my-2">{questionGen.name}</h3>
+                <MathJaxContext>
+                    <MathJax>
+                        {questionGen.description}
+                    </MathJax>
+                </MathJaxContext>
+                <div className="h-4" />
+                Weight: {questionGen.weight}
+                <br />
+                Tier: {questionGen.tier + 1}
+                <div className="h-4" />
+                <Button onClick={practice}>Practice</Button>
+                <div className="h-12" />
+                <div className="bg-zinc-500 w-fit m-auto p-4 rounded-md border-2 border-black border-solid">
+                    <div className="text-2xl">Sample Problem:</div>
+                    <br />
+                    <MathJaxContext>
+                        <MathJax>
+                            {question.str}
+                        </MathJax>
+                        <br />
+                        <MathJax>
+                            {question.ansArr ? `\`${question.ansArr}\`` : question.ansStr ? `\`${question.ansStr}\`` : `\`${Number.isInteger(question.ans) ? question.ans : question.ans.toFixed(3)}\``}
+                        </MathJax>
+                    </MathJaxContext>
+                    <br />
+                    <Button onClick={regenerate}>New Problem</Button>
+                </div>
+            </div>
+        </div>
     );
 }
