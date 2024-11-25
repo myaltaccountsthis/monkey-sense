@@ -19,7 +19,7 @@ const TextBox = forwardRef(({ onChange, onEnter, valueRef }: TextBoxProps, ref: 
     };
     return (
         <div>
-            <input ref={ref} name="inputbox" id="inputbox" type="text" onInput={onInput} onKeyDown={onKeyDown} value={valueRef.current} />
+            <input className="rounded-md border-2 border-black border-solid bg-gray-100 hover:bg-gray-200" ref={ref} name="inputbox" id="inputbox" type="text" onInput={onInput} onKeyDown={onKeyDown} value={valueRef.current} />
         </div>
     );
 });

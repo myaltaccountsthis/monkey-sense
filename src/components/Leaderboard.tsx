@@ -20,11 +20,11 @@ export default function Leaderboard({ leaderboardEntries, gameMode }: Leaderboar
                 <tbody>
                     <tr>
                         <th>Name</th>
-                        <th>C</th>
-                        <th>T</th>
-                        <th>L</th>
-                        <th>ADJ</th>
-                        <th>T</th>
+                        <th>Correct</th>
+                        <th>Total</th>
+                        <th>Length</th>
+                        <th>Adj. Score</th>
+                        <th>Time</th>
                     </tr>
                     { leaderboardEntries[gameMode].map((entry, i) =>
                         <LeaderboardEntryComponent key={i} entry={entry} i={i} />
