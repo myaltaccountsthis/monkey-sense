@@ -53,7 +53,7 @@ interface Submission {
     testLength: number;
     gameMode: string;
     answers: string[];
-    id: bigint;
+    id: string;
     name: string;
     time: number;
 };
@@ -70,13 +70,12 @@ export async function handleSubmit(body: FormData): Promise<TestResults | null> 
         // const id = BigInt(body.id);
         const answers = Array(testLength).fill(0).map((_, i) => body.get(`q${i}`) as string);
         const name = body.get("name") as string || "unknown";
-        const idInt = BigInt(id);
         // Validate fields
         const testDuration = getTestDuration(gameMode, testLength) / 1000;
         if (!testLength || !gameMode || !answers || answers.length !== testLength || time > testDuration + 1 ||
-            !answers.every((s: string) => typeof s === "string") || typeof idInt != "bigint")
+            !answers.every((s: string) => typeof s === "string"))
             throw "Bad";
-        submission = {testLength: testLength, gameMode: gameMode, answers: answers, id: idInt, name: name, time: Math.min(time, testDuration)};
+        submission = {testLength: testLength, gameMode: gameMode, answers: answers, id: id, name: name, time: Math.min(time, testDuration)};
     }
     catch {}
     // If error parsing client request, then return Bad Request
@@ -87,7 +86,12 @@ export async function handleSubmit(body: FormData): Promise<TestResults | null> 
     let correct = 0;
     let answered = 0;
     let hasAnsweredQuestion = false;
-    const questions = getTestQuestions(decryptSeed(submission.id), submission.gameMode, getNumQuestions(submission.gameMode, submission.testLength));
+    const { seed, time } = decryptSeed(submission.id);
+    if (Date.now() - time - submission.time * 1000 > 15000) {
+        console.log(submission.name, "took too long to submit");
+        return null;
+    }
+    const questions = getTestQuestions(seed, submission.gameMode, getNumQuestions(submission.gameMode, submission.testLength));
     const judgements = [];
     for (let i = submission.testLength - 1; i >= 0; i--) {
         hasAnsweredQuestion ||= submission.answers[i].length > 0;

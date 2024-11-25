@@ -1,29 +1,15 @@
-import Base64 from "./Base64";
+import crypto from "crypto";
 
-const MOD = BigInt("1000000000000000003");
-const PRIME = BigInt("9899999999999999941");
-const PRIME_INV = inv(PRIME);
-
-function modexp(base: bigint, pow: bigint) {
-    let result = BigInt(1);
-    while (pow > 0) {
-        if (pow % BigInt(2) == BigInt(1))
-            result = result * base % MOD;
-        base = base * base % MOD;
-        pow /= BigInt(2);
-    }
-    return result;
-}
-
-function inv(x: bigint) {
-    return modexp(x, MOD - BigInt(2));
-}
+const algorithm = "aes-256-gcm";
+const AES_KEY = Buffer.from(BigInt(process.env.AES_KEY!).toString(16), "hex");
+const AES_IV = Buffer.from(BigInt(process.env.AES_IV!).toString(16), "hex");
 
 export function encryptSeed(seed: string) {
-    const num = BigInt(Base64.decode(seed));
-    return num * PRIME % MOD;
+    const cipher = crypto.createCipheriv(algorithm, AES_KEY, AES_IV);
+    const json = JSON.stringify({ seed: seed, time: Date.now() });
+    return cipher.update(json, "utf8", "base64") + cipher.final("base64");
 }
-export function decryptSeed(encryptedNum: bigint) {
-    const num = encryptedNum * PRIME_INV % MOD;
-    return Base64.encode(Number(num));
+export function decryptSeed(encrypted: string) {
+    const cipher = crypto.createDecipheriv(algorithm, AES_KEY, AES_IV);
+    return JSON.parse(cipher.update(encrypted, "base64", "ascii"));
 }

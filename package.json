@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/crypto-js": "^4.2.2",
     "@types/pg": "^8.11.10",
     "@types/seedrandom": "^3.0.8",
     "bad-words": "^4.0.0",
