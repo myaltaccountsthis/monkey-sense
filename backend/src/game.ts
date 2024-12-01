@@ -202,8 +202,13 @@ export class Game {
 
         switch (newState) {
         case ServerState.WAITING_START:
+            for (const user of Object.values(this.players)) {
+                if (user.answeredCorrect)
+                    user.points += user.delta;
+            }
             this.gameState.rounds = 0;
             messages.push(...this.setTimer(WAIT_TIME));
+            messages.push({ type: "players", data: this.players });
             break;
 
         case ServerState.WAITING_QUESTION:
