@@ -2020,6 +2020,7 @@ export class QuestionGeneratorList {
               } ${
                 k == 0 ? "" : `${k > 0 ? "+" : "-"} ${Math.abs(k)}`
               }\`. \`y = \``;
+              break;
             case 1:
               str = `Let \`(x, y)\` be the focus of \`x = ${
                 numer == denom ? "" : numer == -denom ? "-" : a.formatted()
@@ -2028,6 +2029,7 @@ export class QuestionGeneratorList {
               } ${
                 k == 0 ? "" : `${k > 0 ? "+" : "-"} ${Math.abs(k)}`
               }\`. \`x = \``;
+              break;
           }
           return {
             ans: 0,
@@ -2084,7 +2086,7 @@ export class QuestionGeneratorList {
         tier: 0,
         func: () => {
           const nums = Math.max(randomInt(1, 5), 3);
-          const arr = [];
+          const arr: number[] = [];
           for (let i = 0; i < nums; i++) {
             const n =
               Math.floor(
@@ -2217,7 +2219,7 @@ export class QuestionGeneratorList {
   }
 }
 
-export function judgeQuestion(question: Question, str: string) {
+export function judgeQuestion(question: Question, str: string): AnswerJudgement {
   const n = parseFloat(str);
   let judgement: AnswerJudgement = { correct: false };
   if (question.ansStr || question.ansArr) {

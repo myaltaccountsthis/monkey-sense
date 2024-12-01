@@ -1,9 +1,9 @@
 import QuestionInfo from "./QuestionInfo";
 import { FormEvent, useEffect, useState } from "react";
-import { QuestionGeneratorList } from "@/util/generator";
+import { QuestionGeneratorList } from "../../backend/src/util/generator";
 import Button from "./Button";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import { Question } from "@/util/types";
+import { Question } from "../../backend/src/util/types";
 
 interface QuestionListProps {
     questionGens: QuestionGeneratorList;

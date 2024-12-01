@@ -1,4 +1,4 @@
-import { QuestionGeneratorList } from "@/util/generator";
+import { QuestionGeneratorList } from "../../backend/src/util/generator";
 import Button from "./Button"
 import QuestionInfo from "./QuestionInfo"
 import { useState } from "react";

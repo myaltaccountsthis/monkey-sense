@@ -1,6 +1,6 @@
 import { Pool } from "pg";
-import { GameMode, gameModeMappings, getNumQuestions, getTestDuration, LeaderboardEntry, ModeData, Question, TestResults } from "./types";
-import { calculateAdjustedScore, judgeQuestion, QuestionGeneratorList, RNG } from "./generator";
+import { GameMode, gameModeMappings, getNumQuestions, getTestDuration, LeaderboardEntry, ModeData, Question, TestResults } from "../../backend/src/util/types";
+import { calculateAdjustedScore, judgeQuestion, QuestionGeneratorList, RNG } from "../../backend/src/util/generator";
 import { decryptSeed } from "./encryptSeed";
 import { Filter } from 'bad-words';
 

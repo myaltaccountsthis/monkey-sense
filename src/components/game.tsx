@@ -1,7 +1,7 @@
 "use client"
 
-import { getAnswerDisplay, judgeQuestion, QuestionGeneratorList, RNG } from "@/util/generator";
-import { AnsweredQuestion, defaultQuestion, EnterMode, enterModes, GameMode, gameModeMappings, gameModes, LeaderboardEntry, MathJaxConfig, Message, MessageExtra, Question, TestLength, testLengths, timePerQuestion } from "@/util/types";
+import { getAnswerDisplay, judgeQuestion, QuestionGeneratorList, RNG } from "../../backend/src/util/generator";
+import { AnsweredQuestion, defaultQuestion, EnterMode, enterModes, GameMode, gameModeMappings, gameModes, LeaderboardEntry, MathJaxConfig, Message, MessageExtra, Question, TestLength, testLengths, timePerQuestion } from "../../backend/src/util/types";
 import { useEffect, useRef, useState } from "react";
 import TextBox from "./textbox";
 import Timer from "./timer";

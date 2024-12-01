@@ -1,7 +1,7 @@
-import { randomSeed } from "@/util/Base64";
+import { randomSeed } from "../../../../backend/src/util/Base64";
 import { getTestQuestions } from "@/util/database";
 import { encryptSeed } from "@/util/encryptSeed";
-import { gameModeMappings, gameModes, TestOptions } from "@/util/types";
+import { gameModeMappings, gameModes, TestOptions } from "../../../../backend/src/util/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {

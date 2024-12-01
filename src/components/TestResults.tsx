@@ -1,7 +1,7 @@
 "use client"
 
-import { getAnswerDisplay } from "@/util/generator";
-import { MathJaxConfig, TestResults } from "@/util/types";
+import { getAnswerDisplay } from "../../backend/src/util/generator";
+import { MathJaxConfig, TestResults } from "../../backend/src/util/types";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import React from "react";
 

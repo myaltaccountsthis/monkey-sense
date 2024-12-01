@@ -1,6 +1,6 @@
 import { use, useEffect, useState } from "react";
-import { Question, QuestionGenerator } from "../util/types";
-import { QuestionGeneratorList } from "@/util/generator";
+import { Question, QuestionGenerator } from "../../backend/src/util/types";
+import { QuestionGeneratorList } from "../../backend/src/util/generator";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import Button from "./Button";
 

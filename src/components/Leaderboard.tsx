@@ -1,4 +1,4 @@
-import { GameMode, LeaderboardEntry } from "@/util/types"
+import { GameMode, LeaderboardEntry } from "../../backend/src/util/types"
 import LeaderboardEntryComponent from "./LeaderboardEntryComponent";
 
 interface LeaderboardProps {

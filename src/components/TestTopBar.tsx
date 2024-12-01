@@ -23,7 +23,7 @@ export default function TestTopBar({ startT, testDuration, onSubmit }: TestTopBa
 
     return (
         <div className="overflow-hidden sticky bg-[#555] top-0 z-10">
-            <div>Funny topbar</div>
+            <div>Monkey Sense Test</div>
             <Timer intervalRef={intervalRef} shouldMakeInterval={!done} doTimeUpdate={doTimeUpdate}></Timer>
         </div>
     )

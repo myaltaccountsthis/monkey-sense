@@ -1,4 +1,4 @@
-import { LeaderboardEntry } from "@/util/types";
+import { LeaderboardEntry } from "../../backend/src/util/types";
 
 interface LeaderboardEntryComponentProps {
     entry: LeaderboardEntry;

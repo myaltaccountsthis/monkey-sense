@@ -1,5 +1,5 @@
 import { getLeaderboard } from "@/util/database";
-import { GameMode, gameModeMappings, gameModes, LeaderboardEntry } from "@/util/types";
+import { GameMode, gameModeMappings, gameModes, LeaderboardEntry } from "../../../backend/src/util/types";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
