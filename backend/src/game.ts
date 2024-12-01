@@ -3,13 +3,12 @@ import { randomUUID } from "crypto";
 import EventEmitter from "events";
 import { getAnswerDisplay, judgeQuestion, QuestionGeneratorList, RNG } from "./util/generator";
 import { defaultQuestion, Question } from "./util/types";
-import { UserData, GameState, ServerState, WSMessage, NUM_TRIES } from "./util/gametypes";
+import { UserData, GameState, ServerState, WSMessage, NUM_TRIES, FULL_POINTS } from "./util/gametypes";
 
 const MIN_PLAYERS = 2;
 const MAX_PLAYERS = 50;
-const MAX_ROUNDS = 10;
-const INTERMISSION_TIME = 10, WAIT_TIME = 5, ANSWER_TIME = 30, ANSWER_TIME_SKIPPED = 10;
-const FULL_POINTS = 10;
+const MAX_ROUNDS = 20;
+const WAIT_TIME = 3, ANSWER_TIME = 30, ANSWER_TIME_SKIPPED = 10, RESULTS_TIME = 5, ENDING_GAME_TIME = 10;
 
 export class Game {
     clients: {[key: string]: WebSocket};
@@ -17,6 +16,8 @@ export class Game {
     gameState: GameState;
     currentState: ServerState;
     currentQuestion: Question;
+    prevPoints: number;
+    originalStartTime: number;
     questionGen: QuestionGeneratorList;
     events: EventEmitter;
     
@@ -26,6 +27,8 @@ export class Game {
         this.gameState = { timer: 10, startTime: 0, question: "", rounds: 0 };
         this.currentState = ServerState.CANNOT_START;
         this.currentQuestion = defaultQuestion;
+        this.prevPoints = 0;
+        this.originalStartTime = 0;
         this.questionGen = new QuestionGeneratorList(new RNG());
         this.events = new EventEmitter();
     }
@@ -33,10 +36,10 @@ export class Game {
     async start() {
         this.events.on("connect", (id: string) => {
             this.updatePlayer(id);
-            this.sendAllClients({ type: "players", data: { [id]: this.players[id] }});
+            this.sendAllClients([{ type: "players", data: { [id]: this.players[id] }}], id);
         });
         this.events.on("disconnect", (id: string) => {
-            this.sendAllClients({ type: "players", data: { [id]: null }});
+            this.sendAllClients([{ type: "players", data: { [id]: null }}]);
         });
         this.events.on("message", (id: string, data: WSMessage) => {
             try {
@@ -44,21 +47,21 @@ export class Game {
                 case "username": {
                     if (this.players[id].username) {
                         console.warn("Username already set to", this.players[id].username);
-                        this.sendClient("Username already set", { type: "username", data: false, error: "Username already set" });
+                        this.sendClient("Username already set", [{ type: "username", data: false, error: "Username already set" }]);
                         break;
                     }
                     if (data.data.length === 0) {
-                        this.sendClient(id, { type: "username", data: false, error: "Username is empty" });
+                        this.sendClient(id, [{ type: "username", data: false, error: "Username is empty" }]);
                         break;
                     }
                     if (Object.values(this.players).map(user => user.username).includes(data.data)) {
-                        this.sendClient(id, { type: "username", data: false, error: "Username already taken" });
+                        this.sendClient(id, [{ type: "username", data: false, error: "Username already taken" }]);
                         break;
                     }
                     this.players[id].username = data.data;
                     this.players[id].inGame = true;
-                    this.sendClient(id, { type: "username", data: data.data });
-                    this.sendAllClients({ type: "players", data: { [id]: this.players[id] }});
+                    this.sendClient(id, [{ type: "username", data: data.data }, { type: "players", data: { [id]: this.players[id] }}]);
+                    this.sendAllClients([{ type: "players", data: { [id]: this.players[id] }}], id);
                     this.checkMinPlayers();
                     console.log("Set %s's username to %s", id, data.data);
                     break;
@@ -66,34 +69,34 @@ export class Game {
                 case "response": {
                     if (this.currentState !== ServerState.IN_PROGRESS) {
                         console.warn("Received response when not in progress");
-                        this.sendClient(id, { type: "response", data: false, error: "Not in progress" });
+                        this.sendClient(id, [{ type: "response", data: false, error: "Not in progress" }]);
                         break;
                     }
                     if (this.players[id].tries <= 0) {
                         console.warn("Received response when out of tries");
-                        this.sendClient(id, { type: "response", data: false, error: "Out of tries" });
+                        this.sendClient(id, [{ type: "response", data: false, error: "Out of tries" }]);
                         break;
                     }
                     const judgement = judgeQuestion(this.currentQuestion, data.data);
                     if (!judgement.correct) {
                         this.players[id].tries--;
-                        this.sendClient(id, { type: "players", data: { [id]: { tries: this.players[id].tries } }});
-                        this.sendClient(id, { type: "response", data: false, error: "Incorrect" });
+                        this.sendClient(id, [{ type: "players", data: { [id]: { tries: this.players[id].tries } }}, { type: "response", data: false, error: "Incorrect" }]);
+                        this.checkSkip();
                         break;
                     }
-                    this.sendClient(id, { type: "response", data: judgement.other || "Correct" });
-                    this.players[id].answeredCorrect = true;
-                    this.players[id].delta = this.getGainedPoints();
-                    this.sendAllClients({ type: "players", data: { [id]: this.players[id] }});
                     const t = Date.now();
                     const endT = t + ANSWER_TIME_SKIPPED * 1000;
-                    if (Object.values(this.players).filter(player => player.inGame).every(player => player.answeredCorrect))
-                        this.gameState.timer = 0;
-                    else if (endT < this.gameState.startTime + this.gameState.timer * 1000) {
-                        this.gameState.timer = ANSWER_TIME_SKIPPED;
-                        this.gameState.startTime = endT - this.gameState.timer * 1000;
-                        this.sendAllClients({ type: "game", data: { startTime: this.gameState.startTime, timer: this.gameState.timer } });
+
+                    this.players[id].answeredCorrect = true;
+                    this.players[id].delta = this.getGainedPoints(this.players[id].tries);
+                    this.sendClient(id, [{ type: "response", data: { feedback: judgement.other || "Correct", time: (t - this.originalStartTime) / 1000 } }]);
+                    const messages: WSMessage[] = [];
+                    messages.push({ type: "players", data: { [id]: this.players[id] }});
+                    
+                    if (!this.checkSkip() && endT < this.gameState.startTime + this.gameState.timer * 1000) {
+                        messages.push(...this.setTimer(ANSWER_TIME_SKIPPED));
                     }
+                    this.sendAllClients(messages);
                     break;
                 }
                 default: {
@@ -145,11 +148,17 @@ export class Game {
         return this.players[id].username !== "";
     }
 
-    updatePlayer(id: string) {
-        this.sendClient(id, { type: "players", data: this.players });
+    checkSkip() {
+        if (Object.values(this.players).filter(player => player.inGame).every(player => player.answeredCorrect || player.tries === 0)) {
+            this.gameState.timer = 0;
+            return true;
+        }
+        return false;
     }
-    updateAllPlayers() {
-        this.sendAllClients({ type: "players", data: this.players });
+
+    // Make sure player is up to date on everything (called when player joinds)
+    updatePlayer(id: string) {
+        this.sendClient(id, [{ type: "players", data: this.players }, { type: "game", data: this.gameState }, { type: "state", data: this.currentState }]);
     }
 
     numPlayersInGame() {
@@ -159,7 +168,7 @@ export class Game {
     setTimer(time: number) {
         this.gameState.timer = time;
         this.gameState.startTime = Date.now();
-        this.sendAllClients({ type: "game", data: { timer: time, startTime: this.gameState.startTime } });
+        return [{ type: "game", data: { timer: time, startTime: this.gameState.startTime } }];
     }
 
     checkMinPlayers() {
@@ -173,25 +182,36 @@ export class Game {
         }
     }
 
-    getGainedPoints() {
+    getGainedPoints(tries: number) {
         // TODO change to formula
-        return FULL_POINTS;
+        const totalT = ANSWER_TIME * 1000;
+        const rawPointsFullAcc = FULL_POINTS * (1 - .5 * (Date.now() - this.originalStartTime) / totalT);
+        const rawPoints = rawPointsFullAcc * tries / NUM_TRIES;
+        // this.prevPoints = Math.min(rawPointsFullAcc, this.prevPoints - 1);
+        const points = Math.round(Math.min(rawPoints, this.prevPoints) * 10) / 10;
+        return points;
     }
 
     changeServerState(newState: ServerState) {
         if (this.currentState === newState)
             return;
+        
+        // Send all the messages in bulk, for global messages
+        const messages: WSMessage[] = [];
         this.currentState = newState;
+
         switch (newState) {
         case ServerState.WAITING_START:
             this.gameState.rounds = 0;
-            this.setTimer(INTERMISSION_TIME);
+            messages.push(...this.setTimer(WAIT_TIME));
             break;
+
         case ServerState.WAITING_QUESTION:
             this.gameState.rounds++;
-            this.sendAllClients({ type: "game", data: { rounds: this.gameState.rounds } });
-            this.setTimer(WAIT_TIME);
+            messages.push({ type: "game", data: { rounds: this.gameState.rounds } });
+            messages.push(...this.setTimer(WAIT_TIME));
             break;
+
         case ServerState.IN_PROGRESS:
             this.currentQuestion = this.questionGen.generateQuestion({ gameMode: "Number Sense", lastT: 0, total: 0, testLength: 0, question: defaultQuestion, enterMode: "Default" }).question;
             for (const user of Object.values(this.players)) {
@@ -199,26 +219,32 @@ export class Game {
                 user.answeredCorrect = false;
                 user.delta = 0;
             }
+            // Set prev points to a large number
+            this.prevPoints = FULL_POINTS * 100;
+            this.originalStartTime = Date.now();
             this.gameState.question = this.currentQuestion.str;
-            this.sendAllClients({ type: "game", data: { question: this.currentQuestion.str } });
-            this.setTimer(ANSWER_TIME);
+            messages.push({ type: "game", data: { question: this.currentQuestion.str } });
+            messages.push({ type: "players", data: this.players });
+            messages.push(...this.setTimer(ANSWER_TIME));
             break;
+
         case ServerState.WAITING_NEXT:
             for (const user of Object.values(this.players)) {
                 if (user.answeredCorrect)
                     user.points += user.delta;
             }
             this.gameState.question = getAnswerDisplay(this.currentQuestion);
-            this.sendAllClients({ type: "game", data: { question: this.gameState.question } });
-            this.sendAllClients({ type: "players", data: this.players });
-            this.setTimer(WAIT_TIME);
+            messages.push({ type: "game", data: { question: this.gameState.question } });
+            messages.push({ type: "players", data: this.players });
+            messages.push(...this.setTimer(RESULTS_TIME));
             break;
+
         case ServerState.ENDING_GAME:
-            this.setTimer(INTERMISSION_TIME);
+            messages.push(...this.setTimer(ENDING_GAME_TIME));
             break;
         }
-        this.updateAllPlayers();
-        this.sendAllClients({ type: "state", data: newState });
+        messages.push({ type: "state", data: newState });
+        this.sendAllClients(messages);
         console.log("Changed server state to", newState);
     }
 
@@ -244,13 +270,14 @@ export class Game {
         this.events.emit("disconnect", id);
     }
 
-    sendClient(id: string, message: WSMessage) {
-        this.clients[id].send(JSON.stringify(message));
+    sendClient(id: string, messages: WSMessage[]) {
+        this.clients[id].send(JSON.stringify(messages));
     }
 
-    sendAllClients(message: WSMessage) {
+    sendAllClients(messages: WSMessage[], ignore?: string) {
         for (const id in this.clients)
-            this.sendClient(id, message);
+            if (id !== ignore)
+                this.sendClient(id, messages);
     }
 
     bindOnMessage(id: string) {

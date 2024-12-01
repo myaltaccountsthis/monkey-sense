@@ -26,7 +26,7 @@ wss.on("connection", (ws) => {
 	console.log("Currently connected:", wss.clients.size);
 });
 
-server.listen(8080);
+server.listen(process.env.NODE_ENV === "production" ? 8080 : 8081);
 game.start();
 
 console.log("Listening on port", server.address());

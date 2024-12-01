@@ -123,7 +123,7 @@ const binaryExp = (base: number, exp: number, mod: number): number => {
   return (half * half) % mod;
 };
 
-const getNumberRankStr = (n: number) => {
+export const getNumberRankStr = (n: number) => {
   switch (n) {
     case 1:
       return `${n}st`;
@@ -136,7 +136,7 @@ const getNumberRankStr = (n: number) => {
   }
 };
 
-const toRoman = (n: number) => {
+export const toRoman = (n: number) => {
   let str = ``;
   const keys = Object.keys(romans).map(Number);
   for (let i = keys.length - 1; i >= 0; i--) {
@@ -149,7 +149,7 @@ const toRoman = (n: number) => {
   return str;
 };
 
-const joinAdd = (arr: number[] | string[]) => {
+export const joinAdd = (arr: number[] | string[]) => {
   if (arr.length === 1) return arr[0];
   // Make sure to only include + if this number is positive, otherwise - is already included
   return arr
@@ -2219,6 +2219,12 @@ export class QuestionGeneratorList {
   }
 }
 
+export function getGuessRange(value: number) {
+  return `${Math.round(
+    value - 0.05 * value
+  )}-${Math.round(value + 0.05 * value)}`;
+}
+
 export function judgeQuestion(question: Question, str: string): AnswerJudgement {
   const n = parseFloat(str);
   let judgement: AnswerJudgement = { correct: false };
@@ -2239,9 +2245,7 @@ export function judgeQuestion(question: Question, str: string): AnswerJudgement 
           : "🟨 Good guess!";
       judgement = {
         correct: true,
-        other: `${prefix} ${(diff * 100).toFixed(1)}% off. ${Math.round(
-          question.ans - 0.05 * question.ans
-        )}-${Math.round(question.ans + 0.05 * question.ans)}`,
+        other: `${prefix} ${(diff * 100).toFixed(1)}% off. ${getGuessRange(question.ans)}`,
       };
     } else if (n === question.ans) {
       judgement = { correct: true };
@@ -2263,6 +2267,7 @@ export function calculateAdjustedScore(
 }
 
 export function getAnswerDisplay(question: Question) {
+  if (question.guess) return getGuessRange(question.ans);
   if (question.ansArr) return question.ansArr.join(" or ");
   if (question.ansStr) return question.ansStr;
   return question.ans.toString();

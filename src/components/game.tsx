@@ -13,6 +13,30 @@ import QuestionList from "./QuestionList";
 import Button from "./Button";
 import { QuestionInfoDropdown } from "./QuestionInfoDropdown";
 
+export const getTimeColorBounds = (gameMode: string) => {
+    if (gameMode === "Zetamac")
+        return { blueEnd: 800, green: 1200, yellow: 2000, redEnd: 3000 };
+    return { blueEnd: 3000, green: 5000, yellow: 7500, redEnd: 15000 };
+}
+/**
+ * Returns a CSS color string based on how good the answer time is
+ */
+export const getTimeColor = (ms: number, gameMode: string = "Number Sense") => {
+    const { blueEnd, green, yellow, redEnd } = getTimeColorBounds(gameMode);
+    const r = Math.max(0, Math.min(1, (ms - green) / (yellow - green))) * 0xff;
+    const g = Math.max(0, Math.min(1, 1 - (ms - yellow) / (redEnd - yellow))) * 0xff;
+    const b = Math.max(0, Math.min(1, 1 - (ms - blueEnd) / (green - blueEnd))) * 0xff;
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+export const getAccuracyColor = (accuracy: number) => {
+    const blueEnd = .95, green = .9, yellow = .8, redEnd = .7;
+    const r = Math.max(0, Math.min(1, (green - accuracy) / (green - yellow))) * 0xff;
+    const g = Math.max(0, Math.min(1, 1 - (yellow - accuracy) / (yellow - redEnd))) * 0xff;
+    const b = Math.max(0, Math.min(1, 1 - (blueEnd - accuracy) / (blueEnd - green))) * 0xff;
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
 export default function Game() {
     const router = useRouter();
     const [lastT, setLastT] = useState(0);
@@ -118,29 +142,7 @@ export default function Game() {
 
     // NEW STUFF
 
-    const getTimeColorBounds = () => {
-        if (gameMode === "Zetamac")
-            return { blueEnd: 800, green: 1200, yellow: 2000, redEnd: 3000 };
-        return { blueEnd: 3000, green: 5000, yellow: 7500, redEnd: 15000 };
-    }
-    /**
-     * Returns a CSS color string based on how good the answer time is
-     */
-    const getTimeColor = (ms: number) => {
-        const { blueEnd, green, yellow, redEnd } = getTimeColorBounds();
-        const r = Math.max(0, Math.min(1, (ms - green) / (yellow - green))) * 0xff;
-        const g = Math.max(0, Math.min(1, 1 - (ms - yellow) / (redEnd - yellow))) * 0xff;
-        const b = Math.max(0, Math.min(1, 1 - (ms - blueEnd) / (green - blueEnd))) * 0xff;
-        return `rgb(${r}, ${g}, ${b})`;
-    }
     
-    const getAccuracyColor = (accuracy: number) => {
-        const blueEnd = .95, green = .9, yellow = .8, redEnd = .7;
-        const r = Math.max(0, Math.min(1, (green - accuracy) / (green - yellow))) * 0xff;
-        const g = Math.max(0, Math.min(1, 1 - (yellow - accuracy) / (yellow - redEnd))) * 0xff;
-        const b = Math.max(0, Math.min(1, 1 - (blueEnd - accuracy) / (blueEnd - green))) * 0xff;
-        return `rgb(${r}, ${g}, ${b})`;
-    }
 
     const shouldRequireEnter = () => {
         return ["Default", "Hardcore", "TestMode"].includes(enterMode);
@@ -338,7 +340,7 @@ export default function Game() {
                 <div>
                     <div className="flex-center">
                         <div>Last Time:</div>
-                        <div id="answertime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(answerTime) : ""}}>
+                        <div id="answertime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(answerTime, gameMode) : ""}}>
                             {questionCount > 0 && enterMode !== "Test" ? `${Math.round(answerTime)}ms` : ""}
                         </div>
                     </div>
@@ -350,7 +352,7 @@ export default function Game() {
                         </div>
                         <div className="flex-center">
                             <div>Average Time:</div>
-                            <div id="averagetime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(time / questionCount) : ""}}>
+                            <div id="averagetime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(time / questionCount, gameMode) : ""}}>
                                 {questionCount > 0 && enterMode !== "Test" ? `${Math.round(time / questionCount)}ms` : ""}
                             </div>
                         </div>

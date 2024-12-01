@@ -31,3 +31,4 @@ export enum ServerState {
 }
 
 export const NUM_TRIES = 3;
+export const FULL_POINTS = 10;
