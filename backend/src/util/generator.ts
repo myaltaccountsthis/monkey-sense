@@ -2128,6 +2128,67 @@ export class QuestionGeneratorList {
           };
         },
       },
+      squareperim: {
+        name: "Area Change from Perimeter",
+        description: "Find the change in area when the perimeter of a square is increased/decreased. Let `p1` and `p2` be the perimeters of the squares. The change in area is `(p2^2 - p1^2) / 16` or `(p2 / 4)^2 - (p1 / 4)^2.",
+        weight: 10,
+        tier: 2,
+        func: () => {
+          const p1 = randomInt(10, 20);
+          const p2 = randomInt(p1 + 2, p1 + 10);
+          return {
+            ans: 0,
+            str: `If the perimeter of a square is increased from \`${p1}\` to \`${p2}\`, the change in area is`,
+            ansArr: new Fraction(p2 * p2 - p1 * p1, 16).getAnswerArr(),
+          };
+        }
+      },
+      sumratcoef: {
+        name: "Sum of Rational Coefficients",
+        description: "Find the sum of the coefficients of a rational function. For each `(ax + b)` term, replace it with the sum `a + b`. Then add all terms as if they were fractions.",
+        weight: 10,
+        tier: 3,
+        func: () => {
+          // Pairs of numer, numer, denom, denom
+          const nums = Array(8).fill(0).map((_, i) => randomInt(1, 5) * Math.sign(random() - 0.5));
+          for (let i = 0; i < 8; i += 2) {
+            if (Math.random() < .5) {
+              nums[i] = 1;
+            }
+            if (i != 2 && nums[i] < 0) {
+              nums[i] *= -1;
+            }
+            if (nums[i] + nums[i + 1] == 0) {
+              if (nums[i + 1] == -1) {
+                nums[i + 1] += Math.sign(random() - 0.5) * 2;
+              } else {
+                nums[i + 1] += Math.sign(random() - 0.5);
+              }
+            }
+          }
+          const xStrs = nums.filter((_, i) => i % 2 == 0).map((n, i) => `${n > 1 ? n : ""}x ${nums[i * 2 + 1] > 0 ? "+" : "-"} ${Math.abs(nums[i * 2 + 1])}`);
+          // Sum of the pairs
+          const sums = Array(4).fill(0);
+          for (let i = 0; i < 4; i++) {
+            sums[i] = nums[i * 2] + nums[i * 2 + 1];
+          }
+          const numer = sums[0] * sums[3] + sums[1] * sums[2];
+          const denom = sums[2] * sums[3];
+          const ans = numer + denom;
+          const str1 = `(${xStrs[0]})/(${xStrs[2]})`;
+          if (nums[2] < 0) {
+            return {
+              ans: ans,
+              str: `If \`${str1} - (${-nums[2] > 1 ? -nums[2] : ""}x ${nums[3] < 0 ? "+" : "-"} ${Math.abs(nums[3])})/(${xStrs[3]}) = (ax^2 + bx + c) / (dx^2 + ex + f)\`, then \`a + b + c + d + e + f = \``,
+            }
+          }
+          return {
+            ans: ans,
+            str: `If \`${str1} + (${xStrs[1]})/(${xStrs[3]}) = (ax^2 + bx + c) / (dx^2 + ex + f)\`, then \`a + b + c + d + e + f = \``
+          }
+        }
+      },
+
     };
 
     const keys = Object.keys(this.questionGens);

@@ -182,6 +182,11 @@ export default function Game() {
             setActive(false);
             router.push(`/print?${keyStr == "" ? "" : `seed=${keyStr}&`}`)
         }
+        // Handle duel
+        if (enterMode === "Duel") {
+            setActive(false);
+            router.push(`/duel`)
+        }
 
         if (keyStr.length == 0) {
             filterKeysRef.current = Object.keys(questionGen.questionGens);
