@@ -2130,15 +2130,22 @@ export class QuestionGeneratorList {
       },
       squareperim: {
         name: "Area Change from Perimeter",
-        description: "Find the change in area when the perimeter of a square is increased/decreased. Let `p1` and `p2` be the perimeters of the squares. The change in area is `(p2^2 - p1^2) / 16` or `(p2 / 4)^2 - (p1 / 4)^2.",
+        description: "Find the change in area when the perimeter of a square is increased/decreased. Let `p_1` and `p_2` be the perimeters of the squares. The change in area is `((p_2)^2 - (p_1)^2) / 16` or `((p_2) / 4)^2 - ((p_1) / 4)^2`.",
         weight: 10,
         tier: 2,
         func: () => {
           const p1 = randomInt(10, 20);
           const p2 = randomInt(p1 + 2, p1 + 10);
+          if (random() < 0.5) {
+            return {
+              ans: 0,
+              str: `If the perimeter of a square is decreased from \`${p2}\` to \`${p1}\`, the decrease in area is`,
+              ansArr: new Fraction(p2 * p2 - p1 * p1, 16).getAnswerArr(),
+            };
+          }
           return {
             ans: 0,
-            str: `If the perimeter of a square is increased from \`${p1}\` to \`${p2}\`, the change in area is`,
+            str: `If the perimeter of a square is increased from \`${p1}\` to \`${p2}\`, the increase in area is`,
             ansArr: new Fraction(p2 * p2 - p1 * p1, 16).getAnswerArr(),
           };
         }
@@ -2188,7 +2195,41 @@ export class QuestionGeneratorList {
           }
         }
       },
-
+      chainrule: {
+        name: "Chain Rule",
+        description: "Find the derivative of a `(ax + b)^c` function. Use the chain rule to get the answer `c * a * (ax + b)^(c - 1)`.",
+        weight: 10,
+        tier: 3,
+        func: () => {
+          const a = randomInt(1, 5);
+          const b = randomInt(1, 5) * Math.sign(random() - 0.5);
+          const c = randomInt(2, 5);
+          const x = randomInt(1, 5) * Math.sign(random() - 0.5);
+          return {
+            ans: c * a * Math.pow(a * x + b, c - 1),
+            str: `Let \`f(x) = (${a > 1 ? a : ""}x ${b > 0 ? "+" : "-"} ${Math.abs(b)})^${c}\`. \`f^'(${x}) = \``,
+          };
+        }
+      },
+      varsum: {
+        name: "Sum of Variable Sequence",
+        description: "Find a certain term giving a sequence `x + (x + a) + (x + 2a) + ... + (x + (n - 1)a)` and the sum. Find the number of terms and calculate the desired term.",
+        weight: 6,
+        tier: 1,
+        func: () => {
+          const a = randomInt(1, 4);
+          const num = (a % 2 === 0 ? randomInt(4, 10) : randomInt(2, 5) * 2);
+          const mid = randomInt(4, 10);
+          const sum = num * mid;
+          const x = mid - a * (num - 1) / 2;
+          const term = randomInt(1, num - 1);
+          const ans = x + a * term;
+          return {
+            ans: ans,
+            str: `Given the sequence \`x + (x + ${a}) + (x + ${2 * a}) + ${x > 4 ? "... + " : ""} (x + ${(num - 1) * a}) = ${sum}\`, what is the value of the \`(x + ${a * term})\` term.`,
+          }
+        }
+      }
     };
 
     const keys = Object.keys(this.questionGens);
