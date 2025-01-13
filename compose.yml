@@ -1,0 +1,30 @@
+services:
+  monkey-sense:
+    container_name: monkey-sense
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: monkeysense:latest
+    env_file: "prod_env"
+    ports:
+      - "3000:3000"
+    networks:
+      - database_default
+    restart: unless-stopped
+  monkey-sense-server:
+    container_name: monkey-sense-server
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: monkeysense-server:latest
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "8080:8080"
+    networks:
+      - database_default
+    restart: unless-stopped
+
+networks:
+  database_default:
+    external: true
