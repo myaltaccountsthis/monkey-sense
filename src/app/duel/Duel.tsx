@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { getTimeColor } from "@/components/game";
 import { getNumberRankStr } from "../../../backend/src/util/generator";
+import ChatLog from "@/components/ChatLog";
 
 const devMode = process.env.NODE_ENV === "development" && false
 
@@ -336,6 +337,7 @@ export default function Duel({ getHost, reset }: { getHost: () => Promise<string
                         ) }
                         { devMode && <div>Game Data: {JSON.stringify(gameData)}</div> }
                         <br/>
+                        <ChatLog messages={} />
                     </div>
             }
             { initialized && <Players usernameRef={usernameRef} playerData={playerData} serverState={serverState} /> }

@@ -30,5 +30,12 @@ export enum ServerState {
     ENDING_GAME         // Display final results, wait to start a new game
 }
 
+export interface ChatMessage {
+    userData: UserData;
+    body: string;
+    // correct, incorrect, neutral
+    type: string;
+  }
+
 export const NUM_TRIES = 3;
 export const FULL_POINTS = 10;
