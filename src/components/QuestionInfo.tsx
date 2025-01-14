@@ -1,5 +1,5 @@
 import { use, useEffect, useState } from "react";
-import { Question, QuestionGenerator } from "../../backend/src/util/types";
+import { MathJaxConfig, Question, QuestionGenerator } from "../../backend/src/util/types";
 import { getGuessRange, QuestionGeneratorList } from "../../backend/src/util/generator";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import Button from "./Button";
@@ -25,34 +25,32 @@ export default function QuestionInfo({ questionGens, selected, practice }: Quest
     return (
         <div className="w-full">
             <div className="px-4">
-                <h3 className="text-2xl my-2">{questionGen.name}</h3>
-                <MathJaxContext>
-                    <MathJax>
+                <MathJaxContext config={MathJaxConfig}>
+                    <h3 className="text-2xl my-2">{questionGen.name}</h3>
+                    <MathJax dynamic>
                         {questionGen.description}
                     </MathJax>
-                </MathJaxContext>
-                <div className="h-4" />
-                Weight: {questionGen.weight}
-                <br />
-                Tier: {questionGen.tier + 1}
-                <div className="h-4" />
-                <Button onClick={practice}>Practice</Button>
-                <div className="h-12" />
-                <div className="bg-zinc-500 w-fit m-auto p-4 rounded-md border-2 border-black border-solid">
-                    <div className="text-2xl">Sample Problem:</div>
+                    <div className="h-4" />
+                    Weight: {questionGen.weight}
                     <br />
-                    <MathJaxContext>
-                        <MathJax>
+                    Tier: {questionGen.tier + 1}
+                    <div className="h-4" />
+                    <Button onClick={practice}>Practice</Button>
+                    <div className="h-12" />
+                    <div className="bg-zinc-500 w-fit m-auto p-4 rounded-md border-2 border-black border-solid">
+                        <div className="text-2xl">Sample Problem:</div>
+                        <br />
+                        <MathJax dynamic>
                             {question.str}
                         </MathJax>
                         <br />
-                        <MathJax>
+                        <MathJax dynamic>
                             {question.ansArr ? `\`${question.ansArr}\`` : question.guess ? getGuessRange(question.ans) : question.ansStr ? `\`${question.ansStr}\`` : `\`${Number.isInteger(question.ans) ? question.ans : question.ans.toFixed(3)}\``}
                         </MathJax>
-                    </MathJaxContext>
-                    <br />
-                    <Button onClick={regenerate}>New Problem</Button>
-                </div>
+                        <br />
+                        <Button onClick={regenerate}>New Problem</Button>
+                    </div>
+                </MathJaxContext>
             </div>
         </div>
     );

@@ -26,13 +26,13 @@ export default function Print() {
     const mode = params.get("mode") || "ns";
     const seed = params.get("seed");
     const seedRef = useRef<string | null>(seed);
-    const [shouldPrint, setShouldPrint] = useState(false);
     const [questions, setQuestions] = useState<Question[]>([]);
+    const loadedRef = useRef(false);
 
-    if (shouldPrint) {
-        setShouldPrint(false);
-        setTimeout(() => print(), 1000);
-    }
+    const onLoaded = () => {
+        if (loadedRef.current)
+            setTimeout(print, 500);
+    };
 
     useEffect(() => {
         if (questions.length === 0) {
@@ -53,14 +53,15 @@ export default function Print() {
                 }
             }
             setQuestions(newQuestions);
+            loadedRef.current = true;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
         <div>
-            <MathJaxContext config={MathJaxConfig} onLoad={() => setShouldPrint(true)}>
-                <MathJax>
+            <MathJaxContext config={MathJaxConfig}>
+                <MathJax onTypeset={onLoaded}>
                     <h1 id="title">Monkey Sense {mode === "ns" ? "Number Sense" : mode === "zetamac" ? "Zetamac" : "Estimate"} — {seedRef.current}</h1>
                     <div>
                         { questions.length === 80 &&
