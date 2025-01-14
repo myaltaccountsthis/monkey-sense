@@ -1,6 +1,6 @@
 import { use, useEffect, useState } from "react";
 import { MathJaxConfig, Question, QuestionGenerator } from "../../backend/src/util/types";
-import { QuestionGeneratorList } from "../../backend/src/util/generator";
+import { getGuessRange, QuestionGeneratorList } from "../../backend/src/util/generator";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import Button from "./Button";
 
@@ -45,7 +45,7 @@ export default function QuestionInfo({ questionGens, selected, practice }: Quest
                         </MathJax>
                         <br />
                         <MathJax dynamic>
-                            {question.ansArr ? `\`${question.ansArr}\`` : question.ansStr ? `\`${question.ansStr}\`` : `\`${Number.isInteger(question.ans) ? question.ans : question.ans.toFixed(3)}\``}
+                            {question.ansArr ? `\`${question.ansArr}\`` : question.guess ? getGuessRange(question.ans) : question.ansStr ? `\`${question.ansStr}\`` : `\`${Number.isInteger(question.ans) ? question.ans : question.ans.toFixed(3)}\``}
                         </MathJax>
                         <br />
                         <Button onClick={regenerate}>New Problem</Button>

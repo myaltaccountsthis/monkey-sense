@@ -84,6 +84,36 @@ const tens = [
   "ninety",
 ];
 
+// For unit conversion, 2 is for estimation
+const units = [
+  ["fathoms", "feet"],
+  ["rods", "feet"],
+  ["mph", "ft/s"],
+  ["square miles", "acres"],
+  ["fluid ounces", "gallons"],
+  ["cups", "gallons"],
+];
+const convs = [
+  [1, 6],
+  [2, 33],
+  [15, 22],
+  [1, 640],
+  [128, 1],
+  [16, 1],
+];
+const units2 = [
+  ["gallons", "cubic inches"],
+  ["leagues of land", "acres"]
+];
+const convs2 = [
+  [1, 231],
+  [1, 4428.4]
+];
+for (let i = 0; i < units.length; i++) {
+  units2.push(units[i]);
+  convs2.push(convs[i]);
+}
+
 export const getSeed = (querySeed?: string) => querySeed ?? randomSeed();
 
 export class RNG {
@@ -520,10 +550,23 @@ export class QuestionGeneratorList {
       fracadd2: {
         name: "a/b + b/a",
         description:
-          "Reciprocal fraction addition. Answer is `2 + (a - b)^2 / (ab)`.",
+          "Reciprocal fraction addition. Answer is `2 + (a - b)^2 / (ab)`. If `a` and `b` are linear functions with the form `x + c`, then the result is `2 B/C` where `B` is `(b - a)^2`.",
         weight: 8,
         tier: 1,
         func: () => {
+          if (random() < .5) {
+            // The 2B/C trick
+            const dist = randomInt(3, 20);
+            const mid = randomInt(-5, 5);
+            const a = mid - Math.floor(dist / 2);
+            const b = mid + Math.ceil(dist / 2);
+            const str1 = `x ${a > 0 ? "+" : "-"} ${Math.abs(a)}`;
+            const str2 = `x ${b > 0 ? "+" : "-"} ${Math.abs(b)}`;
+            return {
+              ans: (b - a) * (b - a),
+              str: `Let \`(${str1})/(${str2}) + (${str2})/(${str1}) = 2 B/C\`. Find \`B\`.`,
+            }
+          }
           // a/b + b/a
           const a = randomInt(5, 15);
           const b = Math.sign(random() - 0.5) * randomInt(1, 3) + a;
@@ -1368,14 +1411,14 @@ export class QuestionGeneratorList {
         name: "GCD and LCM",
         description: "Given one value and their GCD and LCM, find the other. Use the formula `GCD(a, b) * LCM(a, b) = a * b`.",
         weight: 10,
-        tier: 1,
+        tier: 0,
         func: () => {
           const c = randomInt(2, 6);
           const a = randomInt(3, 12) * c;
           let b = 0;
           do {
             b = randomInt(3, 12) * c;
-          } while (b == a);
+          } while (gcd(b, a) > c);
           const lcm = a * b / c;
           return {
             ans: b,
@@ -2229,7 +2272,103 @@ export class QuestionGeneratorList {
             str: `Given the sequence \`x + (x + ${a}) + (x + ${2 * a}) + ${x > 4 ? "... + " : ""} (x + ${(num - 1) * a}) = ${sum}\`, what is the value of the \`(x + ${a * term})\` term.`,
           }
         }
-      }
+      },
+      perfect: {
+        name: "Perfect Numbers",
+        description: "Memorize your perfect numbers. 6, 28, 496, 8148, ...",
+        weight: 4,
+        tier: 1,
+        func: () => {
+          const perfects = [6, 28, 496, 8128];
+          if (random() < .33) {
+            // Choose perfect number out of random set
+            const n = randomInt(3, 5);
+            const arr = Array(n - 1).fill(1);
+            const used = new Set();
+            for (let i = 0; i < n - 1; i++) {
+              const factorCount = randomInt(2, 5);
+              for (let j = 0; j < factorCount; j++) {
+                arr[i] *= randomInt(2, 7);
+              }
+              while (perfects.includes(arr[i]) || used.has(arr[i])) {
+                arr[i] += 2;
+              }
+              used.add(arr[i]);
+            }
+            const val = perfects[randomInt(0, perfects.length - 1)];
+            arr.push(val);
+            arr.sort((a, b) => a - b);
+            return {
+              ans: val,
+              str: `Which of the following is a perfect number? {${arr.join(", ")}}`,
+            }
+          }
+          if (random() < .5) {
+            // Choose not perfect number out of a random set
+            const arr: number[] = [];
+            const used = new Set();
+            for (let i = 0; i < 2; i++) {
+              let perf = 0;
+              do {
+                perf = perfects[randomInt(0, perfects.length - 1)];
+              } while (used.has(perf));
+              arr.push(perf);
+              used.add(perf);
+            }
+            const factorCount = randomInt(2, 5);
+            let val = 1;
+            for (let j = 0; j < factorCount; j++) {
+              val *= randomInt(2, 7);
+            }
+            if (perfects.includes(val)) {
+              val += 2;
+            }
+            arr.push(val);
+            arr.sort((a, b) => a - b);
+            return {
+              ans: val,
+              str: `Which of the following is not a perfect number? {${arr.join(", ")}}`,
+            }
+          }
+          // Determine nth perfect number
+          const index = randomInt(0, perfects.length - 1);
+          return {
+            ans: perfects[index],
+            str: `What is the ${getNumberRankStr(index + 1)} perfect number?`,
+          }
+        }
+      },
+      unitconv: {
+        name: "Unit Conversion",
+        description: "Common unit conversions. 1 fathom = 6 feet. 1 rod = 16.5 feet. 15 mph = 22 ft/s. 1 mile^2 = 640 acres.",
+        weight: 5,
+        tier: 1,
+        func: () => {
+          const index = randomInt(0, units.length - 1);
+          const val = randomInt(4, 20) / 2;
+          const main = randomInt(0, 1);
+          return {
+            ans: val * convs[index][main],
+            str: `${val * convs[index][main ^ 1]} ${units[index][main ^ 1]} \`=\` ? ${units[index][main]}`,
+          }
+        }
+      },
+      unitconvest: {
+        name: "Unit Conversion Estimation",
+        description: "Estimate common unit conversions. 1 league of land = 4428.4 acres. 1 gallon = 231 in^3. For more conversions, see Unit Conversion section.",
+        weight: 5,
+        tier: 2,
+        func: () => {
+          const index = randomInt(0, units.length - 1);
+          const val = randomInt(10, 400);
+          const main = randomInt(0, 1);
+          return {
+            ans: val * convs[index][main],
+            str: `${val * convs[index][main ^ 1]} ${units[index][main ^ 1]} \`=\` ? ${units[index][main]}`,
+            guess: true,
+          }
+        }
+      },
     };
 
     const keys = Object.keys(this.questionGens);
@@ -2322,9 +2461,8 @@ export class QuestionGeneratorList {
 }
 
 export function getGuessRange(value: number) {
-  return `${Math.round(
-    value - 0.05 * value
-  )}-${Math.round(value + 0.05 * value)}`;
+  return `${Math.round(value - 0.05 * Math.abs(value))} — 
+          ${Math.round(value + 0.05 * Math.abs(value))}`;
 }
 
 export function judgeQuestion(question: Question, str: string): AnswerJudgement {
@@ -2337,12 +2475,12 @@ export function judgeQuestion(question: Question, str: string): AnswerJudgement 
     }
   } else if (!isNaN(n)) {
     // Check guess bounds
-    if (question.guess && Math.abs((n - question.ans) / question.ans) < 0.05) {
+    if (question.guess && Math.abs(Math.round(n - question.ans) / question.ans) <= 0.05) {
       const diff = Math.abs((n - question.ans) / question.ans);
       const prefix =
-        diff < 0.01
+        diff <= 0.01
           ? "🟦 Excellent guess!"
-          : diff < 0.03
+          : diff <= 0.03
           ? "🟩 Great guess!"
           : "🟨 Good guess!";
       judgement = {
