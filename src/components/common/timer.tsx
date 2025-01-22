@@ -18,6 +18,6 @@ export default function Timer({ intervalRef, shouldMakeInterval, doTimeUpdate }:
         intervalRef.current = null;
     }
     return (
-        <div id="totaltime">{`${(time / 1000).toFixed(1)}s`}</div>
+        <div>{`${(time / 1000).toFixed(1)}s`}</div>
     );
 }

@@ -1,15 +1,16 @@
 "use client";
 
-import CheckmarkIcon from "@/components/checkmark";
-import TextBox from "@/components/textbox";
-import WrongIcon from "@/components/wrong";
-import { MathJaxConfig } from "../../../backend/src/util/types";
-import { FULL_POINTS, GameState, NUM_TRIES, ServerState, UserData, WSMessage } from "../../../backend/src/util/gametypes";
+import CheckmarkIcon from "@/components/common/checkmark";
+import TextBox from "@/components/common/textbox";
+import WrongIcon from "@/components/common/wrong";
+import { MathJaxConfig } from "@/../backend/src/util/types";
+import { FULL_POINTS, GameState, NUM_TRIES, ServerState, UserData, WSMessage } from "@/../backend/src/util/gametypes";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { getTimeColor } from "@/components/game";
-import { getNumberRankStr } from "../../../backend/src/util/generator";
+import { getNumberRankStr } from "@/../backend/src/util/generator";
+import { getHost } from "./duelhelper";
 
 const devMode = process.env.NODE_ENV === "development" && false
 
@@ -50,21 +51,14 @@ function Initializing() {
     );
 }
 
-function EnteringGame({ usernameRef: valueRef, onJoinGame, errorMessageRef, loading } : { usernameRef: React.MutableRefObject<string>, onJoinGame: () => void, errorMessageRef: React.MutableRefObject<string | undefined>, loading: boolean }) {
-    const [_, forceUpdate] = useState(0);
-    const onInput = (e: React.FormEvent<HTMLInputElement>) => {
-        valueRef.current = e.currentTarget.value;
-        forceUpdate(x => x + 1);
-    };
-    const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter")
-            onJoinGame();
-    };
+function EnteringGame({ onJoinGame, onJoinGameAsGuest, errorMessageRef, loading, isSignedIn } : { onJoinGame: () => void, onJoinGameAsGuest: () => void, errorMessageRef: React.MutableRefObject<string | undefined>, loading: boolean, isSignedIn: boolean }) {
     return (
         <div>
-            <input className="rounded-md border-2 border-black border-solid bg-gray-100 hover:bg-gray-200 inputbox" name="username" id="username" type="text" onInput={onInput} onKeyDown={onKeyDown} value={valueRef.current} placeholder={"Enter your username"} />
-            <br/>
-            <button className="my-4" onClick={onJoinGame}>Start</button>
+            <h2>Choose an option</h2>
+            <div className="flex flex-row gap-x-4 my-4 justify-center">
+                <button onClick={onJoinGame}>{ isSignedIn ? "Enter" : "Login" }</button>
+                <button onClick={onJoinGameAsGuest}>Play as Guest</button>
+            </div>
             { loading && <div className="loading">Loading</div> }
             { errorMessageRef.current && <div className="text-red-500">{errorMessageRef.current}</div> }
         </div>
@@ -140,7 +134,7 @@ function Players({ usernameRef, playerData, serverState }: { usernameRef: React.
     )
 }
 
-export default function Duel({ getHost, reset }: { getHost: () => Promise<string>, reset: () => void; }) {
+export default function Duel({ reset, isSignedIn }: { reset: () => void, isSignedIn: boolean }) {
     const [_, _upd] = useState(0);
     const [initialized, setInitialized] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -216,12 +210,24 @@ export default function Duel({ getHost, reset }: { getHost: () => Promise<string
         setLoading(true);
     };
 
+    const onJoinGameAsGuest = () => {
+        if (inGame)
+            return;
+        sendMessage({ type: "username", data: "" });
+        errorMessageRef.current = "";
+        setLoading(true);
+    };
+
     useEffect(() => {
         let shouldClear = false;
 		(async () => {
             if (wsRef.current || !getHost)
                 return;
-            const ws = wsRef.current = new WebSocket(await getHost());
+            const host = await getHost();
+            console.log(host);
+            if (!host)
+                return;
+            const ws = wsRef.current = new WebSocket(host);
             if (shouldClear) {
                 ws.close();
                 wsRef.current = null;
@@ -307,10 +313,9 @@ export default function Duel({ getHost, reset }: { getHost: () => Promise<string
 
     return (
         <div>
-            <h1>Monkey Sense</h1>
             {
                 !initialized ? <Initializing /> : 
-                !inGame ? <EnteringGame usernameRef={usernameRef} onJoinGame={onJoinGame} errorMessageRef={errorMessageRef} loading={loading} /> :
+                !inGame ? <EnteringGame onJoinGame={onJoinGame} onJoinGameAsGuest={onJoinGameAsGuest} errorMessageRef={errorMessageRef} loading={loading} isSignedIn={isSignedIn} /> :
                     <div>
                         { [ServerState.WAITING_QUESTION, ServerState.IN_PROGRESS, ServerState.WAITING_NEXT].includes(serverState) && <div className="text-3xl">Round {gameData.rounds}</div> }
                         <DuelTimer startTime={startTimeRef.current} timer={gameData.timer} text="Time:" showTime={serverState !== ServerState.CANNOT_START} />

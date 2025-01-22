@@ -1,10 +1,12 @@
+import Topbar from "@/components/Topbar";
 import DuelResetter from "./DuelResetter";
+import { useUser } from "../(AUTH)/authhelper";
 
-async function getHost() {
-	"use server";
-	return process.env.SERVER_HOST!;
-}
-
-export default function DuelPage() {
-	return <DuelResetter getHost={getHost} />
+export default async function DuelPage() {
+	const user = await useUser();
+	return <>
+		<Topbar />
+		<br/>
+		<DuelResetter isSignedIn={user !== false} />
+	</>
 }

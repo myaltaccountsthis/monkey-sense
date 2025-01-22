@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react";
-import Timer from "./timer";
+import Timer from "../common/timer";
 
 interface TestTopBarProps {
     startT: number;

@@ -1,14 +1,42 @@
-import "@/app/globals.css"
-import TestClient from "@/components/TestClient";
-import { handleSubmit } from "@/util/database";
+import { getTestQuestions, handleSubmit } from "@/util/database";
+import { encryptSeed } from "@/util/encrypt";
+import { randomSeed } from "@/../backend/src/util/Base64";
+import { TestOptions, gameModes, gameModeMappings, TestResults } from "@/../backend/src/util/types";
+import TestClient from "@/components/test/TestClient";
+import { useUser } from "@/app/(AUTH)/authhelper";
 
-const onSubmit = async (formData: FormData) => {
-    "use server"
-    return await handleSubmit(formData);
-};
+export default async function Test({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+    let testOptions: TestOptions | null = null;
+    const seed = randomSeed();
+    const encrypted = encryptSeed(seed);
+    try {
+        if (!searchParams)
+            return <div>Error this should not appear</div>
+        const testLength = parseInt(searchParams.testLength as string || "");
+        if (isNaN(testLength))
+            return <div>Invalid test length</div>
+        const gameMode = gameModes.find(gm => gameModeMappings[gm] === searchParams.mode) || "Number Sense";
+        testOptions = { id: encrypted.toString(), testLength: testLength, gameMode: gameMode };
+    }
+    catch (e) {
+        console.log("err", e)
+    }
+    if (!testOptions)
+        return (
+            <div>Invalid test options</div>
+        );
 
-export default async function Test() {
+    const user = await useUser();
+    const user_id = user ? user.user_id : 0;
+    
+    const startT = Date.now();
+    const questions = getTestQuestions(seed, testOptions.gameMode, testOptions.testLength).map(q => q.str);
+    const onSubmit = async (formData: FormData) : Promise<TestResults | null> => {
+        "use server";
+        return await handleSubmit(formData, user_id);
+    };
+
     return (
-        <TestClient onSubmit={onSubmit} />
+        <TestClient onSubmit={onSubmit} testOptions={testOptions} questions={questions} startT={startT} />
     )
 }

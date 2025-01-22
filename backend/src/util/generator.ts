@@ -2269,7 +2269,7 @@ export class QuestionGeneratorList {
           const ans = x + a * term;
           return {
             ans: ans,
-            str: `Given the sequence \`x + (x + ${a}) + (x + ${2 * a}) + ${x > 4 ? "... + " : ""} (x + ${(num - 1) * a}) = ${sum}\`, what is the value of the \`(x + ${a * term})\` term.`,
+            str: `Given the sequence \`x + (x + ${a}) + (x + ${2 * a}) + ${num > 4 ? "... + " : ""} (x + ${(num - 1) * a}) = ${sum}\`, what is the value of the \`(x + ${a * term})\` term.`,
           }
         }
       },

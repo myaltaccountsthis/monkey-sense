@@ -29,7 +29,7 @@ const TextBox = forwardRef(({ onChange = () => {}, onEnter = () => {}, valueRef,
                     {startContent}
                 </div>
             </div>
-            <input className={twMerge("rounded-md border-2 border-black border-solid bg-gray-100 hover:bg-gray-200", className)} ref={ref} name="inputbox" id="inputbox" type="text" onInput={onInput} onKeyDown={onKeyDown} value={valueRef.current} placeholder={placeholder} autoComplete="off" />
+            <input className={twMerge("rounded-md border-2 border-black border-solid bg-gray-100 hover:bg-gray-200 transition-colors duration-75", className)} ref={ref} name="inputbox" id="inputbox" type="text" onInput={onInput} onKeyDown={onKeyDown} value={valueRef.current} placeholder={placeholder} autoComplete="off" />
             <div className="w-0 h-full relative">
                 <div className="absolute right-0 h-full flex flex-col justify-center">
                     {endContent}

@@ -1,11 +1,14 @@
 import Game from "@/components/game";
+import Topbar from "@/components/Topbar";
+import { useUser } from "./(AUTH)/authhelper";
 
-export default function Home() {
-
+export default async function Home() {
+    const user = await useUser();
     return (
         <div>
-            <h1>Monkey Sense</h1>
-            <Game />
+            <Topbar />
+            <br/>
+            <Game isSignedIn={Boolean(user)} />
         </div>
     );
 }

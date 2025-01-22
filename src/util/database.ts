@@ -1,24 +1,18 @@
 import { Pool } from "pg";
-import { GameMode, gameModeMappings, getNumQuestions, getTestDuration, LeaderboardEntry, ModeData, Question, TestResults } from "../../backend/src/util/types";
-import { calculateAdjustedScore, judgeQuestion, QuestionGeneratorList, RNG } from "../../backend/src/util/generator";
-import { decryptSeed } from "./encryptSeed";
+import { GameMode, gameModeMappings, getNumQuestions, getTestDuration, LeaderboardEntry, ModeData, Question, TestResults } from "@/../backend/src/util/types";
+import { calculateAdjustedScore, judgeQuestion, QuestionGeneratorList, RNG } from "@/../backend/src/util/generator";
+import { decryptSeed } from "./encrypt";
 import { Filter } from 'bad-words';
 
-const pool = new Pool({
-    user: process.env.PG_USER,
-    password: process.env.PG_PASSWORD,
-    host: process.env.HOST,
-    port: parseInt(process.env.PG_PORT!),
-    database: process.env.PG_DATABASE
-});
+export const pool = new Pool();
 
-const filter = new Filter();
+export const filter = new Filter();
 
 // Fetch leaderboard of specific game mode
-export async function getLeaderboard(leaderboardKey: string | null): Promise<LeaderboardEntry[]> {
+export async function getLeaderboard(leaderboardKey: string | null, test_length: number): Promise<LeaderboardEntry[]> {
     if (!leaderboardKey || !Object.values(gameModeMappings).includes(leaderboardKey))
         return [];
-    return (await pool.query(`SELECT * FROM leaderboard_${leaderboardKey} ORDER BY adjusted DESC LIMIT 10`)).rows;
+    return (await pool.query(`SELECT user_id, correct, answered, test_length, adjusted, time, username FROM leaderboard JOIN user_auth USING (user_id) WHERE mode = $1 AND test_length = $2 ORDER BY adjusted DESC, time ASC LIMIT 10`, [leaderboardKey, test_length])).rows;
 }
 
 // Generate random test questions with the given seed
@@ -44,9 +38,10 @@ export function getTestQuestions(seed: string, gameMode: GameMode, testLength: n
 
 // Submit graded test to the leaderboard
 export async function submitLeaderboardEntry(gameMode: GameMode, entry: LeaderboardEntry) {
-    if (entry.answered * 2 < entry.test_length)
-        return [];
-    return (await pool.query(`INSERT INTO leaderboard_${gameModeMappings[gameMode]} VALUES ($1, $2, $3, $4, $5, $6)`, [entry.name, entry.correct, entry.answered, entry.test_length, entry.adjusted, entry.time])).rows;
+    // Do not add to leaderboard if user has not answered at least half of the questions or if the user gets less than 50% correct
+    if (entry.answered * 2 >= entry.test_length && entry.correct * 2 >= entry.answered)
+        await pool.query(`INSERT INTO leaderboard VALUES ($1, $2, $3, $4, $5, $6, $7)`, [entry.user_id, entry.correct, entry.answered, entry.test_length, entry.adjusted, entry.time, gameModeMappings[gameMode]]);
+    await pool.query("UPDATE user_data SET tests_taken = tests_taken + 1, SET questions_answered = questions_answered + $2, SET questions_correct = questions_correct + $3 WHERE user_id = $1", [entry.user_id, entry.answered, entry.correct]);
 }
 
 interface Submission {
@@ -54,28 +49,23 @@ interface Submission {
     gameMode: string;
     answers: string[];
     id: string;
-    name: string;
-    time: number;
 };
 
-export async function handleSubmit(body: FormData): Promise<TestResults | null> {
+export async function handleSubmit(body: FormData, user_id: number): Promise<TestResults | null> {
     let submission: Submission | null = null;
     try {
         const testLength = parseInt(body.get("testLength") as string);
         const gameMode = body.get("mode") as string;
         const id = body.get("id") as string;
-        const time = parseFloat(body.get("time") as string);
         // const testLength = isValidTestLength(testOptions.testLength);
         // const gameMode = gameModes.find(gm => gameModeMappings[gm] === body.mode);
         // const id = BigInt(body.id);
         const answers = Array(testLength).fill(0).map((_, i) => body.get(`q${i}`) as string);
-        const name = body.get("name") as string || "unknown";
         // Validate fields
-        const testDuration = getTestDuration(gameMode, testLength) / 1000;
-        if (!testLength || !gameMode || !answers || answers.length !== testLength || time > testDuration + 1 ||
+        if (!testLength || !gameMode || !answers || answers.length !== testLength || 
             !answers.every((s: string) => typeof s === "string"))
             throw "Bad";
-        submission = {testLength: testLength, gameMode: gameMode, answers: answers, id: id, name: name, time: Math.min(time, testDuration)};
+        submission = {testLength: testLength, gameMode: gameMode, answers: answers, id: id};
     }
     catch {}
     // If error parsing client request, then return Bad Request
@@ -86,11 +76,14 @@ export async function handleSubmit(body: FormData): Promise<TestResults | null> 
     let correct = 0;
     let answered = 0;
     let hasAnsweredQuestion = false;
+    // Check if submitted in time
+    const testDuration = getTestDuration(submission.gameMode, submission.testLength);
     const { seed, time } = decryptSeed(submission.id);
-    if (Date.now() - time - submission.time * 1000 > 15000) {
-        console.log(submission.name, "took too long to submit");
+    if (Date.now() - time > 10 * 1000 + testDuration) {
+        console.log(user_id, "took too long to submit");
         return null;
     }
+    const timeTaken = Math.min(Date.now() - time, testDuration) / 1000;
     const questions = getTestQuestions(seed, submission.gameMode, getNumQuestions(submission.gameMode, submission.testLength));
     const judgements = [];
     for (let i = submission.testLength - 1; i >= 0; i--) {
@@ -105,8 +98,12 @@ export async function handleSubmit(body: FormData): Promise<TestResults | null> 
     }
     judgements.reverse();
     const score = submission.gameMode === "Zetamac" ? correct / submission.testLength * 120 : calculateAdjustedScore(correct, answered, submission.testLength);
-    const entry: LeaderboardEntry = { name: filter.clean(submission.name.substring(0, 20)), correct: correct, answered: answered, test_length: submission.testLength, adjusted: score, time: submission.time };
-    submitLeaderboardEntry(submission.gameMode, entry);
+    const entry: LeaderboardEntry = { user_id: user_id, correct: correct, answered: answered, test_length: submission.testLength, adjusted: score, time: timeTaken };
+    
+    // Do not submit to leaderboard if taking test as guest (user_id = 0)
+    if (user_id)
+        submitLeaderboardEntry(submission.gameMode, entry);
+
     return { questions: questions, judgements: judgements, answers: submission.answers, entry: entry };
     // return NextResponse.json(judgements.map((judgement, i) => `Q${i + 1}: ${questions[i].str} - ${judgement.correct ? "✔️" : `❌ (you put ${submission.answers[i]}, ans = ${getAnswerDisplay(questions[i])}`}`));
 }

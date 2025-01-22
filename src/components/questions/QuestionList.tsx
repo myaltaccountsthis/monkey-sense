@@ -1,7 +1,8 @@
 import QuestionInfo from "./QuestionInfo";
 import { FormEvent, useState } from "react";
-import { QuestionGeneratorList } from "../../backend/src/util/generator";
-import Button from "./Button";
+import { QuestionGeneratorList } from "@/../backend/src/util/generator";
+import Button from "../common/Button";
+import { twMerge } from "tailwind-merge";
 
 interface QuestionListProps {
     questionGens: QuestionGeneratorList;
@@ -48,7 +49,7 @@ export default function QuestionList({ questionGens, startPractice }: QuestionLi
                             <input type="text" placeholder="Search" className="w-full box-border p-2 rounded-md border-2 border-black border-solid text-black" onChange={filter} />
                             <div className="flex flex-col justify-start items-start overflow-y-scroll w-full max-h-[600px] bg-zinc-600 rounded-md border-2 border-black border-solid p-0 overflow-x-clip">
                                 {filteredGens.map((q, i) =>
-                                    <Button key={i} className={`w-full px-2 ${selected == q ? "bg-zinc-400" : "bg-zinc-600"} hover:bg-zinc-500 active:bg-zinc-400 hover:scale-x-100 rounded-none border-l-0 min-h-20 border-t-0`} onClick={() => { setSelected(q) }}>
+                                    <Button key={i} className={twMerge("w-full px-2 bg-zinc-600 active:bg-zinc-400 hover:scale-x-100 rounded-none border-l-0 min-h-20 border-t-0", selected == q ? "!bg-zinc-400" : "hover:bg-zinc-500")} onClick={() => { setSelected(q) }}>
                                         <div className="text-gray-200">{gens[q].name}</div>
                                     </Button>
                                 )}

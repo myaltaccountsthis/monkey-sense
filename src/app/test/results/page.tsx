@@ -1,6 +1,6 @@
 "use client"
 
-import TestResults from "@/components/TestResults";
+import TestResults from "@/components/test/TestResults";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useEffect, useRef, useState } from "react";

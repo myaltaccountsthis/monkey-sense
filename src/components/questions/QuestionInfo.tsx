@@ -1,8 +1,8 @@
-import { use, useEffect, useState } from "react";
-import { MathJaxConfig, Question, QuestionGenerator } from "../../backend/src/util/types";
-import { getGuessRange, QuestionGeneratorList } from "../../backend/src/util/generator";
+import { useEffect, useState } from "react";
+import { MathJaxConfig, Question } from "@/../backend/src/util/types";
+import { getGuessRange, QuestionGeneratorList } from "@/../backend/src/util/generator";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import Button from "./Button";
+import Button from "../common/Button";
 
 interface QuestionInfoProps {
     questionGens: QuestionGeneratorList;

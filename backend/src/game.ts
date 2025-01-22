@@ -286,6 +286,13 @@ export class Game {
     }
 
     bindOnMessage(id: string) {
-        return (message: RawData) => this.events.emit("message", id, JSON.parse(Buffer.from(message.slice(0) as Buffer).toString()));
+        return (message: RawData) => {
+            try {
+                this.events.emit("message", id, JSON.parse(Uint8Array.prototype.slice.call(message).toString()));
+            }
+            catch (e) {
+                console.warn(e);
+            }
+        };
     }
 }

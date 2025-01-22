@@ -12,6 +12,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/pg": "^8.11.10",
     "@types/seedrandom": "^3.0.8",
+    "argon2": "^0.41.1",
     "bad-words": "^4.0.0",
     "better-react-mathjax": "^2.0.3",
     "iron-session": "^8.0.3",
@@ -20,8 +21,11 @@
     "pg": "^8.13.0",
     "react": "^18",
     "react-dom": "^18",
+    "react-google-recaptcha-v3": "^1.10.1",
     "seedrandom": "^3.0.5",
-    "tailwind-merge": "^2.5.5"
+    "tailwind-merge": "^2.5.5",
+    "ws": "^8.18.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^20",

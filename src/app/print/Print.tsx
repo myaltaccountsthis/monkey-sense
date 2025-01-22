@@ -1,7 +1,7 @@
 "use client";
 
-import { QuestionGeneratorList, RNG } from "../../../backend/src/util/generator";
-import { defaultQuestion, gameModeMappings, gameModes, MathJaxConfig, Question } from "../../../backend/src/util/types";
+import { QuestionGeneratorList, RNG } from "@/../backend/src/util/generator";
+import { defaultQuestion, gameModeMappings, gameModes, MathJaxConfig, Question } from "@/../backend/src/util/types";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useSearchParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react";
@@ -28,10 +28,13 @@ export default function Print() {
     const seedRef = useRef<string | null>(seed);
     const [questions, setQuestions] = useState<Question[]>([]);
     const loadedRef = useRef(false);
+    const printedRef = useRef(false);
 
     const onLoaded = () => {
-        if (loadedRef.current)
+        if (loadedRef.current && !printedRef.current) {
+            printedRef.current = true;
             setTimeout(print, 500);
+        }
     };
 
     useEffect(() => {
@@ -62,7 +65,7 @@ export default function Print() {
         <div>
             <MathJaxContext config={MathJaxConfig}>
                 <MathJax onTypeset={onLoaded}>
-                    <h1 id="title">Monkey Sense {mode === "ns" ? "Number Sense" : mode === "zetamac" ? "Zetamac" : "Estimate"} — {seedRef.current}</h1>
+                    <h1>Monkey Sense {mode === "ns" ? "Number Sense" : mode === "zetamac" ? "Zetamac" : "Estimate"} — {seedRef.current}</h1>
                     <div>
                         { questions.length === 80 &&
                             Array(80 / QUESTIONS_PER_COL).fill(0).map((_, offset) =>
