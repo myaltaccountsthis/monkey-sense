@@ -33,7 +33,7 @@ export enum ServerState {
 export interface ChatMessage {
     userData: UserData;
     body: string;
-    // correct, incorrect, neutral
+    // correct, incorrect
     type: string;
   }
 

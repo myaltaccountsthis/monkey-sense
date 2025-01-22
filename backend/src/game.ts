@@ -81,6 +81,7 @@ export class Game {
                     if (!judgement.correct) {
                         this.players[id].tries--;
                         this.sendClient(id, [{ type: "players", data: { [id]: { tries: this.players[id].tries } }}, { type: "response", data: false, error: "Incorrect" }]);
+                        this.sendAllClients([{ type: "chat", data: { userData: this.players[id], body: data.data, type: "incorrect" }}]);
                         this.checkSkip();
                         break;
                     }
@@ -90,6 +91,7 @@ export class Game {
                     this.players[id].answeredCorrect = true;
                     this.players[id].delta = this.getGainedPoints(this.players[id].tries);
                     this.sendClient(id, [{ type: "response", data: { feedback: judgement.other || "Correct", time: (t - this.originalStartTime) / 1000 } }]);
+                    this.sendAllClients([{ type: "chat", data: { userData: this.players[id], body: "", type: "correct" }}]);
                     const messages: WSMessage[] = [];
                     messages.push({ type: "players", data: { [id]: this.players[id] }});
                     
@@ -183,11 +185,10 @@ export class Game {
     }
 
     getGainedPoints(tries: number) {
-        // TODO change to formula
         const totalT = ANSWER_TIME * 1000;
         const rawPointsFullAcc = FULL_POINTS * (1 - .5 * (Date.now() - this.originalStartTime) / totalT);
         const rawPoints = rawPointsFullAcc * tries / NUM_TRIES;
-        // this.prevPoints = Math.min(rawPointsFullAcc, this.prevPoints - 1);
+        this.prevPoints = Math.min(rawPointsFullAcc, this.prevPoints * (1 - .6 / Object.keys(this.players).length));
         const points = Math.round(Math.min(rawPoints, this.prevPoints) * 10) / 10;
         return points;
     }

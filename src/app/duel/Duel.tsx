@@ -4,13 +4,14 @@ import CheckmarkIcon from "@/components/checkmark";
 import TextBox from "@/components/textbox";
 import WrongIcon from "@/components/wrong";
 import { MathJaxConfig } from "../../../backend/src/util/types";
-import { FULL_POINTS, GameState, NUM_TRIES, ServerState, UserData, WSMessage } from "../../../backend/src/util/gametypes";
+import { ChatMessage, FULL_POINTS, GameState, NUM_TRIES, ServerState, UserData, WSMessage } from "../../../backend/src/util/gametypes";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { getTimeColor } from "@/components/game";
 import { getNumberRankStr } from "../../../backend/src/util/generator";
 import ChatLog from "@/components/ChatLog";
+import PlayerComponent from "@/components/PlayerComponent";
 
 const devMode = process.env.NODE_ENV === "development" && false
 
@@ -112,17 +113,21 @@ const getTriesColor = (tries: number) => {
 
 function Players({ usernameRef, playerData, serverState }: { usernameRef: React.MutableRefObject<string>, playerData: { [key: string]: UserData }, serverState: ServerState }) {
     return (
-        <div>
+        <div className="bg-zinc-700 max-w-lg w-2/5 m-auto p-6 pt-2 rounded-md border-2 border-solid border-black">
             <h2 className="mt-2 mb-1">Players</h2>
             <div className="flex flex-col items-center gap-y-0.5">
                 { Object.entries(playerData).sort((a, b) => a[1].points == b[1].points ? a[1].username.localeCompare(b[1].username) : b[1].points - a[1].points).map(([id, player], i) =>
                     <div key={id} className={twMerge("w-fit px-1.5 py-0.5 rounded-md", shouldShowCorrect(serverState) && player.answeredCorrect ? "border-green-600 border-3 border-solid" : "")}>
-                        <span>{getNumberRankStr(i + 1)}. </span>
+                        <PlayerComponent userData={player} rank={i + 1} isYou={player.username === usernameRef.current} isLoading={!player.inGame} />
+                        {
+                            // <span>{getNumberRankStr(i + 1)}. </span>
+                        }
                         { player.inGame
                             ? <span>
-                                {
+                                {/*{
                                     player.username === usernameRef.current ? player.username + " (You)" : player.username
-                                }: {player.points.toFixed(1)}
+                                }: {player.points.toFixed(1)*/}
+                                
                                 {
                                     serverState == ServerState.WAITING_NEXT && <span>
                                         <span style={{ color: getPointsColor(player.delta) }}> +{player.delta.toFixed(1)}</span>
@@ -131,6 +136,7 @@ function Players({ usernameRef, playerData, serverState }: { usernameRef: React.
                                         }
                                     </span>
                                 }
+                                
                                 </span>
                             : <span>(<span className="loading">Joining</span>)</span>
                         }
@@ -162,6 +168,7 @@ export default function Duel({ getHost, reset }: { getHost: () => Promise<string
     const serverState = serverStateRef.current;
     const answerRequestRef = useRef<number>(0);
     const responseRef = useRef<{ feedback: string, time: number }>({feedback: "", time: 0});
+    const chatMessagesRef = useRef<ChatMessage[]>([]);
 
     const textBoxRef = useRef<string>("");
 
@@ -216,6 +223,12 @@ export default function Duel({ getHost, reset }: { getHost: () => Promise<string
         errorMessageRef.current = "";
         setLoading(true);
     };
+
+    const addChatMessage = (message: ChatMessage) => {
+        chatMessagesRef.current.push(message);
+        chatMessagesRef.current = chatMessagesRef.current.slice(-20);
+        forceUpdate();
+    }
 
     useEffect(() => {
         let shouldClear = false;
@@ -277,6 +290,8 @@ export default function Duel({ getHost, reset }: { getHost: () => Promise<string
                         errorMessageRef.current = data;
                         forceUpdate();
                         break;
+                    case "chat":
+                        addChatMessage(data);
                     }
                     if (devMode)
                         console.log("Received", messageData);
@@ -337,7 +352,7 @@ export default function Duel({ getHost, reset }: { getHost: () => Promise<string
                         ) }
                         { devMode && <div>Game Data: {JSON.stringify(gameData)}</div> }
                         <br/>
-                        <ChatLog messages={} />
+                        <ChatLog messages={chatMessagesRef.current} />
                     </div>
             }
             { initialized && <Players usernameRef={usernameRef} playerData={playerData} serverState={serverState} /> }
