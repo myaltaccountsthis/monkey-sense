@@ -4,12 +4,10 @@ import CheckmarkIcon from "@/components/checkmark";
 import TextBox from "@/components/textbox";
 import WrongIcon from "@/components/wrong";
 import { MathJaxConfig } from "../../../backend/src/util/types";
-import { ChatMessage, FULL_POINTS, GameState, NUM_TRIES, ServerState, UserData, WSMessage } from "../../../backend/src/util/gametypes";
+import { ChatMessage, GameState, NUM_TRIES, ServerState, UserData, WSMessage } from "../../../backend/src/util/gametypes";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useEffect, useRef, useState } from "react";
-import { twMerge } from "tailwind-merge";
 import { getTimeColor } from "@/components/game";
-import { getNumberRankStr } from "../../../backend/src/util/generator";
 import ChatLog from "@/components/ChatLog";
 import PlayerComponent from "@/components/PlayerComponent";
 
@@ -92,57 +90,17 @@ function DuelTimer({ startTime, timer, text, showTime }: { startTime: number, ti
     );
 }
 
-const getPointsColor = (points: number) => {
-    const ratio = points / FULL_POINTS;
-    const blueEnd = .9, green = .75, yellow = .5, redEnd = 0;
-    const r = Math.max(0, Math.min(1, (green - ratio) / (green - yellow))) * 0xff;
-    const g = Math.max(0, Math.min(1, 1 - (yellow - ratio) / (yellow - redEnd))) * 0xff;
-    const b = Math.max(0, Math.min(1, 1 - (blueEnd - ratio) / (blueEnd - green))) * 0xff;
-    return `rgb(${r}, ${g}, ${b})`;
-};
-
-const getTriesColor = (tries: number) => {
-    if (tries == NUM_TRIES)
-        return "";
-    if (tries == NUM_TRIES - 1)
-        return "#ff0";
-    if (tries == NUM_TRIES - 2)
-        return "#f80";
-    return "#f00";
-}
-
 function Players({ usernameRef, playerData, serverState }: { usernameRef: React.MutableRefObject<string>, playerData: { [key: string]: UserData }, serverState: ServerState }) {
     return (
-        <div className="bg-zinc-700 max-w-lg w-2/5 m-auto p-6 pt-2 rounded-md border-2 border-solid border-black">
+        <div className="bg-zinc-700 pt-2 rounded-md border-2 border-solid border-black min-w-24 w-2/5">
             <h2 className="mt-2 mb-1">Players</h2>
-            <div className="flex flex-col items-center gap-y-0.5">
+            <br />
+            <div className="flex flex-col items-center gap-y-2">
                 { Object.entries(playerData).sort((a, b) => a[1].points == b[1].points ? a[1].username.localeCompare(b[1].username) : b[1].points - a[1].points).map(([id, player], i) =>
-                    <div key={id} className={twMerge("w-fit px-1.5 py-0.5 rounded-md", shouldShowCorrect(serverState) && player.answeredCorrect ? "border-green-600 border-3 border-solid" : "")}>
-                        <PlayerComponent userData={player} rank={i + 1} isYou={player.username === usernameRef.current} isLoading={!player.inGame} />
-                        {
-                            // <span>{getNumberRankStr(i + 1)}. </span>
-                        }
-                        { player.inGame
-                            ? <span>
-                                {/*{
-                                    player.username === usernameRef.current ? player.username + " (You)" : player.username
-                                }: {player.points.toFixed(1)*/}
-                                
-                                {
-                                    serverState == ServerState.WAITING_NEXT && <span>
-                                        <span style={{ color: getPointsColor(player.delta) }}> +{player.delta.toFixed(1)}</span>
-                                        {
-                                            player.answeredCorrect && <span> — <span style={{ color: getTriesColor(player.tries) }}>{getNumberRankStr(NUM_TRIES + 1 - player.tries)} try</span></span>
-                                        }
-                                    </span>
-                                }
-                                
-                                </span>
-                            : <span>(<span className="loading">Joining</span>)</span>
-                        }
-                    </div>
+                        <PlayerComponent userData={player} rank={i + 1} isYou={player.username === usernameRef.current} isLoading={!player.inGame} showDelta={serverState == ServerState.WAITING_NEXT} />
                 ) }
             </div>
+            <div className="h-16" />
         </div>
     )
 }
@@ -226,7 +184,7 @@ export default function Duel({ getHost, reset }: { getHost: () => Promise<string
 
     const addChatMessage = (message: ChatMessage) => {
         chatMessagesRef.current.push(message);
-        chatMessagesRef.current = chatMessagesRef.current.slice(-20);
+        chatMessagesRef.current = chatMessagesRef.current.slice(-100);
         forceUpdate();
     }
 
@@ -325,37 +283,46 @@ export default function Duel({ getHost, reset }: { getHost: () => Promise<string
         <div>
             <h1>Monkey Sense</h1>
             {
-                !initialized ? <Initializing /> : 
-                !inGame ? <EnteringGame usernameRef={usernameRef} onJoinGame={onJoinGame} errorMessageRef={errorMessageRef} loading={loading} /> :
-                    <div>
-                        { [ServerState.WAITING_QUESTION, ServerState.IN_PROGRESS, ServerState.WAITING_NEXT].includes(serverState) && <div className="text-3xl">Round {gameData.rounds}</div> }
-                        <DuelTimer startTime={startTimeRef.current} timer={gameData.timer} text="Time:" showTime={serverState !== ServerState.CANNOT_START} />
-                        <MathJaxContext config={MathJaxConfig}>
-                            <MathJax id="question" className="my-4" dynamic>{
-                                serverState === ServerState.IN_PROGRESS
+                !initialized ? <Initializing /> :
+                <>
+                    {!inGame ? <EnteringGame usernameRef={usernameRef} onJoinGame={onJoinGame} errorMessageRef={errorMessageRef} loading={loading} /> :
+            
+                        <div>
+                            { [ServerState.WAITING_QUESTION, ServerState.IN_PROGRESS, ServerState.WAITING_NEXT].includes(serverState) && <div className="text-3xl">Round {gameData.rounds}</div> }
+                            <DuelTimer startTime={startTimeRef.current} timer={gameData.timer} text="Time:" showTime={serverState !== ServerState.CANNOT_START} />
+                            <MathJaxContext config={MathJaxConfig}>
+                                <MathJax id="question" className="my-4" dynamic>{
+                                    serverState === ServerState.IN_PROGRESS
                                     ? gameData.question
                                     : serverState === ServerState.WAITING_NEXT
-                                        ? "Answer: " + gameData.question
-                                        : statusTexts[serverState]
-                            }</MathJax>
-                        </MathJaxContext>
-                        <div className="flex-center my-2">
-                            <TextBox className={
-                                isCorrect ? "bg-green-100 hover:bg-green-100" : answerRequestRef.current === 0 && isWrong ? "bg-red-100 hover:bg-red-100" : ""
-                            } valueRef={textBoxRef} onEnter={onEnterPressed} endContent={textboxEndContent} />
-                        </div>
-                        { errorMessageRef.current && <div className="text-red-500">{errorMessageRef.current}</div> }
-                        { shouldShowCorrect(serverState) && (
-                            isCorrect
+                                    ? "Answer: " + gameData.question
+                                    : statusTexts[serverState]
+                                }</MathJax>
+                            </MathJaxContext>
+                            <div className="flex-center my-2">
+                                <TextBox className={
+                                    isCorrect ? "bg-green-100 hover:bg-green-100" : answerRequestRef.current === 0 && isWrong ? "bg-red-100 hover:bg-red-100" : ""
+                                } valueRef={textBoxRef} onEnter={onEnterPressed} endContent={textboxEndContent} />
+                            </div>
+                            { errorMessageRef.current && <div className="text-red-500">{errorMessageRef.current}</div> }
+                            { shouldShowCorrect(serverState) && (
+                                isCorrect
                                 ? <div>{responseRef.current.feedback} <span style={{ color: getTimeColor(responseRef.current.time * 1000) }}>({responseRef.current.time.toFixed(1)}s)</span></div>
                                 : <div>{myPlayerData ? myPlayerData.tries : "?"} {myPlayerData?.tries !== 1 ? "tries" : "try"} left</div>
-                        ) }
-                        { devMode && <div>Game Data: {JSON.stringify(gameData)}</div> }
-                        <br/>
-                        <ChatLog messages={chatMessagesRef.current} />
+                            ) }
+                            { devMode && <div>Game Data: {JSON.stringify(gameData)}</div> }
+                            <br/>
+                        </div>
+                    }
+                    <div className="h-16" />
+                    <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start gap-x-32 gap-y-16 max-w-4xl m-auto">
+                        <Players usernameRef={usernameRef} playerData={playerData} serverState={serverState} />
+                        { serverState !== ServerState.CANNOT_START &&
+                            <ChatLog messages={chatMessagesRef.current} />
+                        }
                     </div>
+                </>
             }
-            { initialized && <Players usernameRef={usernameRef} playerData={playerData} serverState={serverState} /> }
             { devMode && <button onClick={doLog}>Log</button> }
             { disconnected &&
                 <div className="absolute m-auto top-0 w-full h-full bg-[rgba(0,0,0,.7)] py-8 box-border">
