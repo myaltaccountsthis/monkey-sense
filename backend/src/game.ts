@@ -80,7 +80,7 @@ export class Game {
                     const judgement = judgeQuestion(this.currentQuestion, data.data);
                     if (!judgement.correct) {
                         this.players[id].tries--;
-                        this.sendClient(id, [{ type: "players", data: { [id]: { tries: this.players[id].tries } }}, { type: "response", data: false, error: "Incorrect" }]);
+                        this.sendAllClients([{ type: "players", data: { [id]: { tries: this.players[id].tries } }}, { type: "response", data: false, error: "Incorrect" }]);
                         this.sendAllClients([{ type: "chat", data: { userData: this.players[id], body: data.data, type: "incorrect" }}]);
                         this.checkSkip();
                         break;
