@@ -1,4 +1,4 @@
-FROM node:17-slim AS base
+FROM node:22-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -6,7 +6,7 @@ FROM base AS deps
 # RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# RUN apk add --no-cache build-base python3 libffi-dev bash gcc make
+RUN apk add --no-cache build-base python3 bash gcc make
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
@@ -14,7 +14,7 @@ RUN npm ci
 
 # RUN CXX=g++ npm install argon2
 
-# RUN CXX=g++ npm rebuild argon2 --build-from-source
+RUN CXX=g++ npm rebuild argon2 --build-from-source
 
 # Rebuild the source code only when needed
 FROM base AS builder

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { passwordRegex, usernameRegex } from "@/../backend/src/util/types";
+import { passwordRegex, usernameRegex } from "@/util/types";
 import { useSearchParams } from "next/navigation";
 import { onSignIn } from "../../authhelper";
 

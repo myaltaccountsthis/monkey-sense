@@ -1,5 +1,5 @@
 import { getLeaderboard } from "../../../backend/src/util/database";
-import { GameMode, gameModeMappings, gameModes, LeaderboardEntry, testLengths } from "@/../backend/src/util/types";
+import { GameMode, gameModeMappings, gameModes, LeaderboardEntry, testLengths } from "@/util/types";
 import { NextRequest, NextResponse } from "next/server";
 
 const cacheLifetime = 60000;

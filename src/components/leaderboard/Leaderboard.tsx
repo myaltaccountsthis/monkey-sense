@@ -1,4 +1,4 @@
-import { GameMode, testLengths, ViewableLeadeboardEntry } from "@/../backend/src/util/types"
+import { GameMode, testLengths, ViewableLeadeboardEntry } from "@/util/types"
 import LeaderboardEntryComponent from "./LeaderboardEntryComponent";
 
 interface LeaderboardProps {
@@ -37,7 +37,7 @@ export default function Leaderboard({ leaderboardEntries, gameMode, testLength, 
         </div>
         <div className="flex flex-row gap-x-1 justify-center items-center w-full *:bg-transparent *:text-white *:m-1">
             <div>Test Length</div>
-            { testLengths.map(length => <button key={length} onClick={() => setTestLength(length)}>{length}</button>) }
+            { testLengths.map(length => <button className={testLength === length ? "border-gray-300" : ""} key={length} onClick={() => setTestLength(length)}>{length}</button>) }
         </div>
     </div>
 }

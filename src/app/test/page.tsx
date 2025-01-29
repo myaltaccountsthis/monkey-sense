@@ -1,15 +1,15 @@
 import { getTestQuestions, handleSubmit } from "../../../backend/src/util/database";
 import { encryptSeed } from "../../../backend/src/util/encrypt";
-import { randomSeed } from "@/../backend/src/util/Base64";
-import { TestOptions, gameModes, gameModeMappings, TestResults } from "@/../backend/src/util/types";
+import { randomSeed } from "@/util/Base64";
+import { TestOptions, gameModes, gameModeMappings, TestResults } from "@/util/types";
 import TestClient from "@/components/test/TestClient";
-import { useUser } from "@/app/(AUTH)/authhelper";
+import { getUser } from "@/app/(AUTH)/authhelper";
 
 export default async function Test({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     let testOptions: TestOptions | null = null;
     const seed = randomSeed();
     const encrypted = encryptSeed(seed);
-    const user = await useUser();
+    const user = await getUser();
     const user_id = user ? user.user_id : 0;
     
     try {

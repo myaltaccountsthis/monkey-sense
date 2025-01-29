@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
-import { passwordRegex, usernameRegex } from "@/../backend/src/util/types";
+import { passwordRegex, usernameRegex } from "@/util/types";
 import { onSignUp } from "../authhelper";
 import { useSearchParams } from "next/navigation";
 

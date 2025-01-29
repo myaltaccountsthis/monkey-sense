@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { useUser } from "../authhelper";
+import { getUser } from "../authhelper";
 
 export default async function LoginLayout({ children }: Readonly<{children: React.ReactNode}>) {
-    const user = await useUser();
+    const user = await getUser();
     if (user)
         redirect("/");
 

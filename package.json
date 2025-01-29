@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "cpenvwin": "copy backend\\*.env . /y",
-    "cpenv": "cp backend/*.env .",
+    "cpenv": "cp ./backend/*.env . || copy .\\backend\\*.env . /y > NUL",
+    "cpfiles": "npm run cpenv && cp ./backend/src/util/* src/util || copy .\\backend\\src\\util\\* src\\util /y > NUL",
+    "predev": "npm run cpfiles",
     "dev": "next dev",
+    "prebuild": "npm run cpfiles",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -32,6 +34,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/seedrandom": "^3.0.8",
+    "@types/ws": "^8.5.14",
     "eslint": "^8",
     "eslint-config-next": "14.2.12",
     "postcss": "^8",

@@ -3,13 +3,13 @@
 import CheckmarkIcon from "@/components/common/checkmark";
 import TextBox from "@/components/common/textbox";
 import WrongIcon from "@/components/common/wrong";
-import { MathJaxConfig } from "@/../backend/src/util/types";
-import { FULL_POINTS, GameState, NUM_TRIES, ServerState, DuelUserData, WSMessage } from "@/../backend/src/util/gametypes";
+import { MathJaxConfig } from "@/util/types";
+import { FULL_POINTS, GameState, NUM_TRIES, ServerState, DuelUserData, WSMessage } from "@/util/gametypes";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { getTimeColor } from "@/components/game";
-import { getNumberRankStr } from "@/../backend/src/util/generator";
+import { getNumberRankStr } from "@/util/generator";
 import { getHost } from "./duelhelper";
 import { useRouter } from "next/navigation";
 
