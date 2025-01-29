@@ -1,6 +1,6 @@
 import QuestionInfo from "./QuestionInfo";
 import { FormEvent, useState } from "react";
-import { QuestionGeneratorList } from "@/../backend/src/util/generator";
+import { QuestionGeneratorList } from "@/util/generator";
 import Button from "../common/Button";
 import { twMerge } from "tailwind-merge";
 

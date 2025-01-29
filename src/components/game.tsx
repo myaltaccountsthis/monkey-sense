@@ -1,7 +1,7 @@
 "use client"
 
-import { getAnswerDisplay, judgeQuestion, QuestionGeneratorList, RNG } from "@/../backend/src/util/generator";
-import { AnsweredQuestion, defaultQuestion, defaultTestLength, EnterMode, enterModes, GameMode, gameModeMappings, gameModes, MathJaxConfig, Message, MessageExtra, Question, TestLength, testLengths, timePerQuestion, ViewableLeadeboardEntry } from "@/../backend/src/util/types";
+import { getAnswerDisplay, judgeQuestion, QuestionGeneratorList, RNG } from "@/util/generator";
+import { AnsweredQuestion, defaultQuestion, defaultTestLength, EnterMode, enterModes, GameMode, gameModeMappings, gameModes, MathJaxConfig, Message, MessageExtra, Question, TestLength, testLengths, timePerQuestion, ViewableLeadeboardEntry } from "@/util/types";
 import { useEffect, useRef, useState } from "react";
 import TextBox from "./common/textbox";
 import Timer from "./common/timer";
@@ -386,7 +386,7 @@ export default function Game({ isSignedIn }: GameProps) {
             }
             <br/>
             <div className={active ? "hidden" : ""}>
-                <Leaderboard leaderboardEntries={leaderboardEntries} gameMode={gameMode} testLength={testLength} />
+                <Leaderboard leaderboardEntries={leaderboardEntries} gameMode={gameMode} testLength={testLength} setTestLength={setTestLength} />
             </div>
         </div>
     );

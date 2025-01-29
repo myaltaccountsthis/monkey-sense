@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: monkeysense:latest
-    env_file: "prod_env"
+    env_file: "backend/prod.env"
     ports:
       - "3000:3000"
     networks:
@@ -17,6 +17,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     image: monkeysense-server:latest
+    env_file: "backend/prod.env"
     environment:
       - NODE_ENV=production
     ports:

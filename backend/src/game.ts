@@ -1,9 +1,9 @@
 import { WebSocket, RawData } from "ws";
-import { randomUUID } from "crypto";
 import EventEmitter from "events";
 import { getAnswerDisplay, judgeQuestion, QuestionGeneratorList, RNG } from "./util/generator";
-import { defaultQuestion, Question } from "./util/types";
-import { UserData, GameState, ServerState, WSMessage, NUM_TRIES, FULL_POINTS } from "./util/gametypes";
+import { defaultQuestion, Question, User } from "./util/types";
+import { DuelUserData, GameState, ServerState, WSMessage, NUM_TRIES, FULL_POINTS } from "./util/gametypes";
+import { pool } from "./util/database";
 
 const MIN_PLAYERS = 2;
 const MAX_PLAYERS = 50;
@@ -12,7 +12,7 @@ const WAIT_TIME = 3, ANSWER_TIME = 30, ANSWER_TIME_SKIPPED = 10, RESULTS_TIME = 
 
 export class Game {
     clients: {[key: string]: WebSocket};
-    players: {[key: string]: UserData};
+    players: {[key: string]: DuelUserData};
     gameState: GameState;
     currentState: ServerState;
     currentQuestion: Question;
@@ -34,49 +34,42 @@ export class Game {
     }
 
     async start() {
-        this.events.on("connect", (id: string) => {
-            this.updatePlayer(id);
-            this.sendAllClients([{ type: "players", data: { [id]: this.players[id] }}], id);
-        });
-        this.events.on("disconnect", (id: string) => {
-            this.sendAllClients([{ type: "players", data: { [id]: null }}]);
-        });
+        // this.events.on("connect", (id: string) => {
+        //     this.updatePlayer(id);
+        //     this.sendAllClients([{ type: "players", data: { [id]: this.players[id] }}], id);
+        // });
+        // this.events.on("disconnect", (id: string) => {
+        //     this.sendAllClients([{ type: "players", data: { [id]: null }}]);
+        // });
         this.events.on("message", (id: string, data: WSMessage) => {
             try {
                 switch (data.type) {
-                case "username": {
-                    if (this.players[id].username) {
-                        console.warn("Username already set to", this.players[id].username);
-                        this.sendClient("Username already set", [{ type: "username", data: false, error: "Username already set" }]);
-                        break;
-                    }
-                    if (data.data.length === 0) {
-                        this.sendClient(id, [{ type: "username", data: false, error: "Username is empty" }]);
-                        break;
-                    }
-                    if (Object.values(this.players).map(user => user.username).includes(data.data)) {
-                        this.sendClient(id, [{ type: "username", data: false, error: "Username already taken" }]);
-                        break;
-                    }
-                    this.players[id].username = data.data;
-                    this.players[id].inGame = true;
-                    this.sendClient(id, [{ type: "username", data: data.data }, { type: "players", data: { [id]: this.players[id] }}]);
-                    this.sendAllClients([{ type: "players", data: { [id]: this.players[id] }}], id);
-                    this.checkMinPlayers();
-                    console.log("Set %s's username to %s", id, data.data);
-                    break;
-                }
                 case "response": {
+                    // Make sure game is in progress
                     if (this.currentState !== ServerState.IN_PROGRESS) {
                         console.warn("Received response when not in progress");
                         this.sendClient(id, [{ type: "response", data: false, error: "Not in progress" }]);
                         break;
                     }
+                    // Make sure player has tries left
                     if (this.players[id].tries <= 0) {
                         console.warn("Received response when out of tries");
                         this.sendClient(id, [{ type: "response", data: false, error: "Out of tries" }]);
                         break;
                     }
+                    // Make sure player has not already answered
+                    if (this.players[id].answeredCorrect) {
+                        console.warn("Received response when already answered");
+                        this.sendClient(id, [{ type: "response", data: false, error: "Already answered" }]);
+                        break;
+                    }
+                    
+                    // Increment player answered stat if first time answering this question
+                    // Only runs once since either tries-- or answeredCorrect = true
+                    if (this.players[id].tries === NUM_TRIES)
+                        this.players[id].sessionAnswered++;
+
+                    // Check answer, decrement tries and return if wrong
                     const judgement = judgeQuestion(this.currentQuestion, data.data);
                     if (!judgement.correct) {
                         this.players[id].tries--;
@@ -84,15 +77,19 @@ export class Game {
                         this.checkSkip();
                         break;
                     }
+
+                    // Player answered correctly
                     const t = Date.now();
                     const endT = t + ANSWER_TIME_SKIPPED * 1000;
-
+                    // Update player data
                     this.players[id].answeredCorrect = true;
                     this.players[id].delta = this.getGainedPoints(this.players[id].tries);
+                    this.players[id].sessionCorrect++;
+                    // Send response to player
                     this.sendClient(id, [{ type: "response", data: { feedback: judgement.other || "Correct", time: (t - this.originalStartTime) / 1000 } }]);
                     const messages: WSMessage[] = [];
                     messages.push({ type: "players", data: { [id]: this.players[id] }});
-                    
+                    // Update timer if time can be skipped
                     if (!this.checkSkip() && endT < this.gameState.startTime + this.gameState.timer * 1000) {
                         messages.push(...this.setTimer(ANSWER_TIME_SKIPPED));
                     }
@@ -143,10 +140,7 @@ export class Game {
     }
 
     // Game util
-
-    canJoin(id: string) {
-        return this.players[id].username !== "";
-    }
+    
 
     checkSkip() {
         if (Object.values(this.players).filter(player => player.inGame).every(player => player.answeredCorrect || player.tries === 0)) {
@@ -156,13 +150,17 @@ export class Game {
         return false;
     }
 
-    // Make sure player is up to date on everything (called when player joinds)
+    // Make sure player is up to date on everything (called when player joins)
     updatePlayer(id: string) {
         this.sendClient(id, [{ type: "players", data: this.players }, { type: "game", data: this.gameState }, { type: "state", data: this.currentState }]);
     }
 
     numPlayersInGame() {
         return Object.values(this.players).filter(player => player.inGame).length;
+    }
+
+    isFull() {
+        return Object.keys(this.clients).length >= MAX_PLAYERS;
     }
 
     setTimer(time: number) {
@@ -190,6 +188,18 @@ export class Game {
         // this.prevPoints = Math.min(rawPointsFullAcc, this.prevPoints - 1);
         const points = Math.round(Math.min(rawPoints, this.prevPoints) * 10) / 10;
         return points;
+    }
+
+    async updatePlayerData(player: DuelUserData, didWin: boolean) {
+        if (player.user_id <= 0)
+            return;
+        // Try to update database
+        pool.query("UPDATE user_data SET questions_answered = questions_answered + $1, questions_correct = questions_correct + $2, wins = wins + $3 WHERE user_id = $4", [player.sessionAnswered, player.sessionCorrect, Number(didWin), player.user_id]).then(() => {
+            player.sessionAnswered = 0;
+            player.sessionCorrect = 0;
+        }).catch(e => {
+            console.warn("Could not update user data for user", player.user_id, e);
+        });
     }
 
     changeServerState(newState: ServerState) {
@@ -245,6 +255,21 @@ export class Game {
             break;
 
         case ServerState.ENDING_GAME:
+            // Decide winner
+            const playerArr = Object.values(this.players);
+            playerArr.sort((a, b) => b.points - a.points);
+            let winnerId = -1;
+            // Don't do anything if there are no players
+            if (playerArr.length > 0) {
+                const winner = playerArr[0];
+                // Only set winner user_id if winner is signed in
+                if (winner.user_id > 0)
+                    winnerId = winner.user_id;
+            }
+            // Update player data
+            for (const player of playerArr) {
+                this.updatePlayerData(player, player.user_id === winnerId);
+            }
             messages.push(...this.setTimer(ENDING_GAME_TIME));
             break;
         }
@@ -255,24 +280,43 @@ export class Game {
 
     // WebSocket util
 
-    connect(ws: WebSocket) {
-        if (Object.keys(this.clients).length >= MAX_PLAYERS)
-            return "";
-        
-        const id = randomUUID();
+    connect(ws: WebSocket, user: User) {
+        const id = this.getUserKey(user.user_id);
         this.clients[id] = ws;
-        this.players[id] = { username: "", inGame: false, tries: NUM_TRIES, answeredCorrect: false, points: 0, delta: 0 };
-        this.events.emit("connect", id);
+        this.players[id] = { user_id: user.user_id, username: user.username, inGame: true, tries: NUM_TRIES, answeredCorrect: false, points: 0, delta: 0, sessionAnswered: 0, sessionCorrect: 0 };
+
+        this.updatePlayer(id);
+        this.sendClient(id, [{ type: "username", data: user.username }]);
+        this.sendAllClients([{ type: "players", data: { [id]: this.players[id] }}], id);
+
+        this.checkMinPlayers();
+        console.log("%s signed in with username %s", id, user.username);
+        
+        // this.events.emit("connect", id);
         // setTimeout(() => this.players[id] && !this.players[id].inGame && ws.close(), 60000);
         
         return id;
     }
 
     disconnect(id: string) {
+        // Async save player data
+        this.updatePlayerData(this.players[id], false);
+        // Delete player from tables
         delete this.clients[id];
         delete this.players[id];
+        // Check min players, update player list
         this.checkMinPlayers();
-        this.events.emit("disconnect", id);
+        this.sendAllClients([{ type: "players", data: { [id]: null }}]);
+
+        // this.events.emit("disconnect", id);
+    }
+
+    isPlayerConnected(user_id: number) {
+        return this.players[this.getUserKey(user_id)] !== undefined;
+    }
+
+    getUserKey(user_id: number) {
+        return `K=${user_id}`;
     }
 
     sendClient(id: string, messages: WSMessage[]) {
@@ -288,11 +332,18 @@ export class Game {
     bindOnMessage(id: string) {
         return (message: RawData) => {
             try {
-                this.events.emit("message", id, JSON.parse(Uint8Array.prototype.slice.call(message).toString()));
+                this.events.emit("message", id, parseWebSocketMessage(message));
             }
             catch (e) {
                 console.warn(e);
             }
         };
     }
+}
+
+export function parseWebSocketMessage(message: RawData): WSMessage {
+    const data = JSON.parse(Uint8Array.prototype.slice.call(message).toString());
+    if (typeof data.type !== "string")
+        throw "Type is not a string";
+    return data;
 }

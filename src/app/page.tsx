@@ -1,9 +1,9 @@
 import Game from "@/components/game";
 import Topbar from "@/components/Topbar";
-import { useUser } from "./(AUTH)/authhelper";
+import { getUser } from "./(AUTH)/authhelper";
 
 export default async function Home() {
-    const user = await useUser();
+    const user = await getUser();
     return (
         <div>
             <Topbar />

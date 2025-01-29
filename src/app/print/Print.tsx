@@ -1,7 +1,7 @@
 "use client";
 
-import { QuestionGeneratorList, RNG } from "@/../backend/src/util/generator";
-import { defaultQuestion, gameModeMappings, gameModes, MathJaxConfig, Question } from "@/../backend/src/util/types";
+import { QuestionGeneratorList, RNG } from "@/util/generator";
+import { defaultQuestion, gameModeMappings, gameModes, MathJaxConfig, Question } from "@/util/types";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useSearchParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react";

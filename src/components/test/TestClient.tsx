@@ -1,6 +1,6 @@
 "use client";
 
-import { getTestDuration, MathJaxConfig, TestOptions, TestResults } from "@/../backend/src/util/types";
+import { getTestDuration, MathJaxConfig, TestOptions, TestResults } from "@/util/types";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import TestTopBar from "@/components/test/TestTopBar";
 import { useCallback, useRef } from "react";

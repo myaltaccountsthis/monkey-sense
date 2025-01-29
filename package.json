@@ -3,19 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "cpenv": "cp ./backend/*.env . || copy .\\backend\\*.env . /y > NUL",
+    "cpfiles": "npm run cpenv && cp ./backend/src/util/* src/util || copy .\\backend\\src\\util\\* src\\util /y > NUL",
+    "predev": "npm run cpfiles",
     "dev": "next dev",
+    "prebuild": "npm run cpfiles",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@types/crypto-js": "^4.2.2",
-    "@types/pg": "^8.11.10",
-    "@types/seedrandom": "^3.0.8",
     "argon2": "^0.41.1",
     "bad-words": "^4.0.0",
     "better-react-mathjax": "^2.0.3",
-    "iron-session": "^8.0.3",
     "next": "^14.2.12",
     "nextjs": "^0.0.3",
     "pg": "^8.13.0",
@@ -28,9 +28,13 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
     "@types/node": "^20",
+    "@types/pg": "^8.11.11",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/seedrandom": "^3.0.8",
+    "@types/ws": "^8.5.14",
     "eslint": "^8",
     "eslint-config-next": "14.2.12",
     "postcss": "^8",
