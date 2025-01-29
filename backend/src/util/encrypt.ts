@@ -11,12 +11,12 @@ export function encrypt(message: string) {
 
 export function decrypt(encrypted: string) {
     const cipher = crypto.createDecipheriv(algorithm, AES_KEY, AES_IV);
-    return JSON.parse(cipher.update(encrypted, "base64", "ascii"));
+    return cipher.update(encrypted, "base64", "ascii");
 }
 
 export function encryptSeed(seed: string) {
     return encrypt(JSON.stringify({ seed: seed, time: Date.now() }));
 }
 export function decryptSeed(encrypted: string) {
-    return decrypt(encrypted);
+    return JSON.parse(decrypt(encrypted));
 }

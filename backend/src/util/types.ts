@@ -1,3 +1,5 @@
+import { ServerContextJSONValue } from "react";
+
 export const MathJaxConfig = {
     loader: { load: ['input/asciimath', 'output/svg'] },
     options: {
@@ -121,6 +123,22 @@ export interface TestResults {
     judgements: AnswerJudgement[];
     answers: string[];
     entry: LeaderboardEntry;
+}
+
+export interface User {
+    user_id: number;
+    username: string;
+    disabled: boolean;
+    [key: string]: ServerContextJSONValue;
+};
+
+export interface UserData {
+    user_id: number;
+    username: string;
+    tests_taken: number;
+    questions_answered: number;
+    questions_correct: number;
+    wins: number;
 }
 
 export const usernameRegex = /^\w{4,20}$/;

@@ -6,7 +6,7 @@ const Base64 = {
     if (typeof(value) !== 'number') {
       throw 'Value is not number!';
     }
-    let result = '', mod;
+    let result = '', mod: number;
     for (let i = 0; i < DIGITS; i++) {
       mod = value % 64;
       result = ALPHA.charAt(mod) + result;

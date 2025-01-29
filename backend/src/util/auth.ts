@@ -3,8 +3,8 @@ import { hash, verify } from "argon2";
 import { filter, pool } from "./database";
 import { decrypt, encrypt } from "./encrypt";
 import { z } from "zod";
-import { passwordRegex, usernameRegex } from "@/../backend/src/util/types";
-import { ServerContextJSONValue } from "react";
+import { passwordRegex, User, usernameRegex } from "./types";
+import { randomInt } from "crypto";
 
 const saltLength = 20;
 
@@ -28,12 +28,15 @@ export interface UserAuthRow {
     disabled: boolean;
 };
 
-export interface User {
-    user_id: number;
-    username: string;
-    disabled: boolean;
-    [key: string]: ServerContextJSONValue;
-};
+export const defaultUser: User = {user_id: 0, username: "", disabled: false};
+export function getGuestUser() {
+    const user_id = -randomInt(1e7, 1e8);
+    return {...defaultUser, user_id, username: `Guest ${-user_id}`}
+}
+
+export function isGuest(user: User) {
+    return user.user_id < 0;
+}
 
 export function getNextTokenExpiration() {
     return Date.now() + 30 * 24 * 60 * 60 * 1000;
@@ -55,7 +58,7 @@ export async function recaptchaIsGood(captcha: string, action: string) {
             response: captcha
         }).toString()
     }).then(res => res.json());
-    console.log(result);
+    console.log("Recaptcha:", result);
     return result.success && result.action === action && result.score >= .7;
 }
 
@@ -119,9 +122,10 @@ export interface AuthToken {
 };
 
 export async function isValidToken(token?: string): Promise<false | User> {
+    // If empty or falsy token, return false
     if (!token)
         return false;
-    const data: AuthToken = decrypt(token);
+    const data: AuthToken = JSON.parse(decrypt(token));
     if (data.expires < Date.now())
         return false;
     const rows = (await pool.query("SELECT user_id, username, disabled FROM user_auth WHERE user_id = $1 AND password_hash = $2", [data.user_id, data.password_hash])).rows;

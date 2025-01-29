@@ -1,6 +1,6 @@
 import { Pool } from "pg";
-import { GameMode, gameModeMappings, getNumQuestions, getTestDuration, LeaderboardEntry, ModeData, Question, TestResults } from "@/../backend/src/util/types";
-import { calculateAdjustedScore, judgeQuestion, QuestionGeneratorList, RNG } from "@/../backend/src/util/generator";
+import { AnswerJudgement, GameMode, gameModeMappings, getNumQuestions, getTestDuration, LeaderboardEntry, ModeData, Question, TestResults, UserData } from "./types";
+import { calculateAdjustedScore, judgeQuestion, QuestionGeneratorList, RNG } from "./generator";
 import { decryptSeed } from "./encrypt";
 import { Filter } from 'bad-words';
 
@@ -15,11 +15,19 @@ export async function getLeaderboard(leaderboardKey: string | null, test_length:
     return (await pool.query(`SELECT user_id, correct, answered, test_length, adjusted, time, username FROM leaderboard JOIN user_auth USING (user_id) WHERE mode = $1 AND test_length = $2 ORDER BY adjusted DESC, time ASC LIMIT 10`, [leaderboardKey, test_length])).rows;
 }
 
+// Fetch data of a user
+export async function getUserData(user_id: number): Promise<UserData | null> {
+    if (!user_id)
+        return null;
+    const result = await pool.query("SELECT user_id, tests_taken, questions_answered, questions_correct, wins, username FROM user_data JOIN user_auth USING (user_id) WHERE user_id = $1", [user_id]);
+    return result.rows.length ? result.rows[0] : null;
+}
+
 // Generate random test questions with the given seed
 export function getTestQuestions(seed: string, gameMode: GameMode, testLength: number) {
     const questionGen = new QuestionGeneratorList(new RNG(seed));
     const modeData: ModeData = {lastT: Date.now(), total: 0, testLength: testLength, question: {ans: 0, str: ""}, enterMode: "Test", gameMode: gameMode};
-    const questions = [];
+    const questions: Question[] = [];
     for (let offset = 0; offset < testLength; offset++) {
         const shouldBeEstimate = gameMode === "Estimate" || gameMode === "Number Sense" && (offset + 1) % 10 == 0;
         let question: Question;
@@ -41,7 +49,7 @@ export async function submitLeaderboardEntry(gameMode: GameMode, entry: Leaderbo
     // Do not add to leaderboard if user has not answered at least half of the questions or if the user gets less than 50% correct
     if (entry.answered * 2 >= entry.test_length && entry.correct * 2 >= entry.answered)
         await pool.query(`INSERT INTO leaderboard VALUES ($1, $2, $3, $4, $5, $6, $7)`, [entry.user_id, entry.correct, entry.answered, entry.test_length, entry.adjusted, entry.time, gameModeMappings[gameMode]]);
-    await pool.query("UPDATE user_data SET tests_taken = tests_taken + 1, SET questions_answered = questions_answered + $2, SET questions_correct = questions_correct + $3 WHERE user_id = $1", [entry.user_id, entry.answered, entry.correct]);
+    await pool.query("UPDATE user_data SET tests_taken = tests_taken + 1, questions_answered = questions_answered + $2, questions_correct = questions_correct + $3 WHERE user_id = $1", [entry.user_id, entry.answered, entry.correct]);
 }
 
 interface Submission {
@@ -85,7 +93,7 @@ export async function handleSubmit(body: FormData, user_id: number): Promise<Tes
     }
     const timeTaken = Math.min(Date.now() - time, testDuration) / 1000;
     const questions = getTestQuestions(seed, submission.gameMode, getNumQuestions(submission.gameMode, submission.testLength));
-    const judgements = [];
+    const judgements: AnswerJudgement[] = [];
     for (let i = submission.testLength - 1; i >= 0; i--) {
         hasAnsweredQuestion ||= submission.answers[i].length > 0;
         if (hasAnsweredQuestion) {

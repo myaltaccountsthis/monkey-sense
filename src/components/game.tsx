@@ -386,7 +386,7 @@ export default function Game({ isSignedIn }: GameProps) {
             }
             <br/>
             <div className={active ? "hidden" : ""}>
-                <Leaderboard leaderboardEntries={leaderboardEntries} gameMode={gameMode} testLength={testLength} />
+                <Leaderboard leaderboardEntries={leaderboardEntries} gameMode={gameMode} testLength={testLength} setTestLength={setTestLength} />
             </div>
         </div>
     );

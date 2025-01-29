@@ -1,12 +1,14 @@
 import Topbar from "@/components/Topbar";
 import DuelResetter from "./DuelResetter";
-import { useUser } from "../(AUTH)/authhelper";
+import { getSecureToken, useUser } from "../(AUTH)/authhelper";
 
 export default async function DuelPage() {
-	const user = await useUser();
+	await useUser();
+	const secureToken = await getSecureToken();
+
 	return <>
 		<Topbar />
 		<br/>
-		<DuelResetter isSignedIn={user !== false} />
+		<DuelResetter token={secureToken} />
 	</>
 }

@@ -4,7 +4,8 @@ export interface WSMessage {
     error?: string;
 }
 
-export interface UserData {
+export interface DuelUserData {
+    user_id: number;
     username: string;
     inGame: boolean;
 
@@ -12,6 +13,8 @@ export interface UserData {
     answeredCorrect: boolean;
     points: number;
     delta: number;
+    sessionAnswered: number;
+    sessionCorrect: number;
 }
 
 export interface GameState {

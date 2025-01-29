@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { passwordRegex, usernameRegex } from "@/../backend/src/util/types";
 import { useSearchParams } from "next/navigation";
-import { onSignIn } from "../authhelper";
+import { onSignIn } from "../../authhelper";
 
 export default function SignUp() {
     const params = useSearchParams();
@@ -18,7 +18,7 @@ export default function SignUp() {
         if (isLoggingIn)
             return;
         startLogIn(async () => {
-            const message = await onSignIn(username, password, params.get("redirect") || "/");
+            const message = await onSignIn(username, password, decodeURIComponent(params.get("redirect") ?? "/"));
             // If successful, there will not be an error message
             if (message) {
                 setErrorMessage(message);

@@ -1,6 +1,9 @@
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
-import { Game } from "./game";
+import { Game, parseWebSocketMessage } from "./game";
+import { decrypt } from "./util/encrypt";
+import { getGuestUser, isValidToken } from "./util/auth";
+import { User } from "./util/types";
 
 const server = createServer((req, res) => {
 	res.writeHead(200, { "Content-Type": "application/json" });
@@ -8,16 +11,67 @@ const server = createServer((req, res) => {
 });
 const wss = new WebSocketServer({ server });
 
-const game = new Game();
+const singletonGame = new Game();
 
-wss.on("connection", (ws) => {
-	const id = game.connect(ws);
-	if (!id) {
-		ws.send(JSON.stringify({ type: "error", data: "Server full" }));
+const getAvailableGame = () => singletonGame.isFull() ? null : singletonGame;
+
+wss.on("connection", async (ws) => {
+	const sendError = (message: string) => {
+		ws.send(JSON.stringify([{ type: "error", data: message }]));
 		ws.close();
-		console.log("Server full");
-		return;
+	};
+
+	// Check auth
+	let useGuest = false;
+	const user = await new Promise<User>((res, rej) => {
+		ws.once("message", async (message) => {
+			try {
+				const data = parseWebSocketMessage(message);
+				if (data.type !== "auth")
+					throw "Type is not auth";
+				if (data.data === "") {
+					useGuest = true;
+					res(getGuestUser());
+					return;
+				}
+				const secureToken = data.data;
+				if (typeof secureToken !== "string")
+					throw "Token is not a string";
+				const token = decrypt(secureToken);
+				const user = await isValidToken(token);
+				if (!user)
+					throw "No user found with token " + token.substring(0, 20) + "...";
+				res(user);
+			}
+			catch (e) {
+				console.log("Invalid auth message", e);
+				rej(e);
+			}
+		});
+	}).catch(() => null);
+
+	// Make sure user is authenticated or guest
+	if (!user)
+		return sendError("Invalid auth message");
+	
+	// Check for available game (singleton rn)
+	const game = getAvailableGame();
+	if (!game)
+		return sendError("Server full");
+
+	if (game.isPlayerConnected(user.user_id)) {
+		// If user is signed in, do not allow them to connect twice
+		if (user.user_id > 0)
+			return sendError("Already connected");
+		// If user is guest, regenerate user_id until it is unique
+		do {
+			user.user_id = getGuestUser().user_id;
+		}
+		while (game.isPlayerConnected(user.user_id));
 	}
+	
+	// Connect to available game
+	const id = game.connect(ws, user);
 
 	ws.on("error", console.error);
 	ws.on("message", game.bindOnMessage(id));
@@ -27,7 +81,7 @@ wss.on("connection", (ws) => {
 });
 
 server.listen(process.env.NODE_ENV === "production" ? 8080 : 8081);
-game.start();
+singletonGame.start();
 
 console.log("Listening on port", server.address());
 

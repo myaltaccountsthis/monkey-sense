@@ -2,15 +2,19 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
+  "private": true,
   "scripts": {
-    "dev": "npx tsx watch --include src/*.ts src/server.ts",
-    "start": "npx tsx src/server.ts"
+    "dev": "npx tsx watch --env-file=.env --include src/**/*.ts src/server.ts",
+    "start": "npx tsx --env-file=prod.env src/server.ts"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "argon2": "^0.41.1",
+    "bad-words": "^4.0.0",
+    "dotenv": "^16.4.7",
+    "pg": "^8.13.1",
     "seedrandom": "^3.0.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
@@ -18,6 +22,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "@types/pg": "^8.11.10",
     "@types/ws": "^8.5.13",
     "eslint": "^9.15.0",
     "globals": "^15.12.0",

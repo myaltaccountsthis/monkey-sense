@@ -31,7 +31,7 @@ export default function SignUp() {
         if (isSigningUp)
             return;
         startSignUp(async () => {
-            const message = await onSignUp(username, password, captchaToken, params.get("redirect") || "/");
+            const message = await onSignUp(username, password, captchaToken, decodeURIComponent(params.get("redirect") ?? "/"));
             // If successful, there will not be an error message
             if (message) {
                 setErrorMessage(message);
@@ -50,7 +50,7 @@ export default function SignUp() {
             <input className="text-black" type="password" pattern={passwordRegex.source} value={password} onChange={e => setPassword(e.target.value)} />
             <br/>
             <label>{ isExecutingRecaptcha ? "⏳" : captchaToken ? "✅" : "👉" }</label>
-            <button onClick={handleRecaptcha}>I'm not a robot</button>
+            <button onClick={handleRecaptcha}>I&apos;m not a robot</button>
             <br/>
             <button onClick={trySignUp}>Sign Up</button>
             <br/>
