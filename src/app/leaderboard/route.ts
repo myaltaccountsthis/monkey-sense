@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
     const t = Date.now();
     if (t - prevCacheTime > cacheLifetime) {
-        console.log("Refreshing leaderboard cache");
+        // console.log("Refreshing leaderboard cache");
         prevCacheTime = t;
         const data: { [key: GameMode]: LeaderboardEntry[][] } = {};
         // Fetch leaderboards for all game modes and test lengths

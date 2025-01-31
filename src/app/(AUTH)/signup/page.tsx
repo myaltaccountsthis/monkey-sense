@@ -25,6 +25,7 @@ export default function SignUp() {
         if (isExecutingRecaptcha)
             return;
         startExecutingRecaptcha(() => executeRecaptcha("signup").then(setCaptchaToken));
+        console.log(process.env);
     }, [executeRecaptcha]);
 
     const trySignUp = () => {

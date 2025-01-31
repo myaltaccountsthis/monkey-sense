@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "cpenv": "cp ./backend/*.env . || copy .\\backend\\*.env . /y > NUL",
+    "cpenv": "cp ./backend/*.env ./backend/\\.env . || copy .\\backend\\*.env . /y > NUL",
     "cpfiles": "npm run cpenv && cp ./backend/src/util/* src/util || copy .\\backend\\src\\util\\* src\\util /y > NUL",
     "predev": "npm run cpfiles",
     "dev": "next dev",
