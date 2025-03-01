@@ -73,7 +73,8 @@ export class Game {
                     const judgement = judgeQuestion(this.currentQuestion, data.data);
                     if (!judgement.correct) {
                         this.players[id].tries--;
-                        this.sendClient(id, [{ type: "players", data: { [id]: { tries: this.players[id].tries } }}, { type: "response", data: false, error: "Incorrect" }]);
+                        this.sendAllClients([{ type: "players", data: { [id]: { tries: this.players[id].tries } }}, { type: "response", data: false, error: "Incorrect" }]);
+                        this.sendAllClients([{ type: "chat", data: { userData: this.players[id], body: data.data, type: "incorrect" }}]);
                         this.checkSkip();
                         break;
                     }
@@ -87,6 +88,7 @@ export class Game {
                     this.players[id].sessionCorrect++;
                     // Send response to player
                     this.sendClient(id, [{ type: "response", data: { feedback: judgement.other || "Correct", time: (t - this.originalStartTime) / 1000 } }]);
+                    this.sendAllClients([{ type: "chat", data: { userData: this.players[id], body: "", type: "correct" }}]);
                     const messages: WSMessage[] = [];
                     messages.push({ type: "players", data: { [id]: this.players[id] }});
                     // Update timer if time can be skipped
@@ -181,11 +183,10 @@ export class Game {
     }
 
     getGainedPoints(tries: number) {
-        // TODO change to formula
         const totalT = ANSWER_TIME * 1000;
         const rawPointsFullAcc = FULL_POINTS * (1 - .5 * (Date.now() - this.originalStartTime) / totalT);
         const rawPoints = rawPointsFullAcc * tries / NUM_TRIES;
-        // this.prevPoints = Math.min(rawPointsFullAcc, this.prevPoints - 1);
+        this.prevPoints = Math.min(rawPointsFullAcc, this.prevPoints * (1 - .6 / Object.keys(this.players).length));
         const points = Math.round(Math.min(rawPoints, this.prevPoints) * 10) / 10;
         return points;
     }
@@ -223,23 +224,23 @@ export class Game {
 
         case ServerState.WAITING_QUESTION:
             this.gameState.rounds++;
-            messages.push({ type: "game", data: { rounds: this.gameState.rounds } });
-            messages.push(...this.setTimer(WAIT_TIME));
-            break;
-
-        case ServerState.IN_PROGRESS:
-            this.currentQuestion = this.questionGen.generateQuestion({ gameMode: "Number Sense", lastT: 0, total: 0, testLength: 0, question: defaultQuestion, enterMode: "Default" }).question;
             for (const user of Object.values(this.players)) {
                 user.tries = NUM_TRIES;
                 user.answeredCorrect = false;
                 user.delta = 0;
             }
+            messages.push({ type: "game", data: { rounds: this.gameState.rounds } });
+            messages.push({ type: "players", data: this.players });
+            messages.push(...this.setTimer(WAIT_TIME));
+            break;
+
+        case ServerState.IN_PROGRESS:
+            this.currentQuestion = this.questionGen.generateQuestion({ gameMode: "Number Sense", lastT: 0, total: 0, testLength: 0, question: defaultQuestion, enterMode: "Default" }).question;
             // Set prev points to a large number
             this.prevPoints = FULL_POINTS * 100;
             this.originalStartTime = Date.now();
             this.gameState.question = this.currentQuestion.str;
             messages.push({ type: "game", data: { question: this.currentQuestion.str } });
-            messages.push({ type: "players", data: this.players });
             messages.push(...this.setTimer(ANSWER_TIME));
             break;
 

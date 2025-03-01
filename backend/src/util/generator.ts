@@ -2217,6 +2217,9 @@ export class QuestionGeneratorList {
                 nums[i + 1] += Math.sign(random() - 0.5);
               }
             }
+            while (nums[5] == nums[7] && nums[4] == nums[6]) {
+              nums[5] += Math.sign(random() - 0.5);
+            }
           }
           const xStrs = nums.filter((_, i) => i % 2 == 0).map((n, i) => `${n > 1 ? n : ""}x ${nums[i * 2 + 1] > 0 ? "+" : "-"} ${Math.abs(nums[i * 2 + 1])}`);
           // Sum of the pairs
