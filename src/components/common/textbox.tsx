@@ -9,9 +9,10 @@ interface TextBoxProps {
     startContent?: React.ReactNode;
     endContent?: React.ReactNode;
     className?: string;
+    disabled?: boolean;
 }
 
-const TextBox = forwardRef(({ onChange = () => {}, onEnter = () => {}, valueRef, placeholder, startContent, endContent, className }: TextBoxProps, ref: React.LegacyRef<HTMLInputElement>) => {
+const TextBox = forwardRef(({ onChange = () => {}, onEnter = () => {}, valueRef, placeholder, startContent, endContent, className, disabled = false }: TextBoxProps, ref: React.LegacyRef<HTMLInputElement>) => {
     const [_, forceUpdate] = useState(0);
     const onInput = (e: React.FormEvent<HTMLInputElement>) => {
         valueRef.current = e.currentTarget.value;
@@ -29,7 +30,7 @@ const TextBox = forwardRef(({ onChange = () => {}, onEnter = () => {}, valueRef,
                     {startContent}
                 </div>
             </div>
-            <input className={twMerge("rounded-md border-2 border-black border-solid bg-gray-100 hover:bg-gray-200 transition-colors duration-75", className)} ref={ref} name="inputbox" id="inputbox" type="text" onInput={onInput} onKeyDown={onKeyDown} value={valueRef.current} placeholder={placeholder} autoComplete="off" />
+            <input className={twMerge("rounded-md border-2 border-black border-solid bg-gray-100 hover:bg-gray-200 transition-colors duration-75", className)} ref={ref} disabled={disabled} name="inputbox" id="inputbox" type="text" onInput={onInput} onKeyDown={onKeyDown} value={valueRef.current} placeholder={placeholder} autoComplete="off" />
             <div className="w-0 h-full relative">
                 <div className="absolute right-0 h-full flex flex-col justify-center">
                     {endContent}

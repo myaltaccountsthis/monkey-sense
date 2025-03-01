@@ -36,7 +36,7 @@ export enum ServerState {
 }
 
 export interface ChatMessage {
-    userData: UserData;
+    userData: DuelUserData;
     body: string;
     // correct, incorrect
     type: string;

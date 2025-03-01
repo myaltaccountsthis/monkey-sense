@@ -3,8 +3,8 @@
 import CheckmarkIcon from "@/components/common/checkmark";
 import TextBox from "@/components/common/textbox";
 import WrongIcon from "@/components/common/wrong";
-import { MathJaxConfig } from "@/util/types";
-import { FULL_POINTS, GameState, NUM_TRIES, ServerState, DuelUserData, WSMessage } from "@/util/gametypes";
+import { MathJaxConfig, UserData } from "@/util/types";
+import { FULL_POINTS, GameState, NUM_TRIES, ServerState, DuelUserData, WSMessage, ChatMessage } from "@/util/gametypes";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
@@ -12,7 +12,8 @@ import { getHost } from "./duelhelper";
 import { useRouter } from "next/navigation";
 import ChatLog from "@/components/ChatLog";
 import PlayerComponent from "@/components/PlayerComponent";
-        
+import { getTimeColor } from "@/components/game";
+
 const devMode = process.env.NODE_ENV === "development" && false
 
 const shouldShowCorrect = (serverState: ServerState) => {
@@ -34,7 +35,7 @@ const recursiveUpdate = (obj: any, newObj: any) => {
     }
 };
 
-const statusTexts: {[key: number]: string} = {
+const statusTexts: { [key: number]: string } = {
     [ServerState.CANNOT_START]: "Waiting for players",
     [ServerState.WAITING_START]: "Starting soon",
     [ServerState.WAITING_QUESTION]: "Get ready",
@@ -52,23 +53,23 @@ function Initializing() {
     );
 }
 
-function EnteringGame({ onJoinGame, onJoinGameAsGuest, errorMessageRef, loading, isSignedIn } : { onJoinGame: () => void, onJoinGameAsGuest: () => void, errorMessageRef: React.MutableRefObject<string | undefined>, loading: boolean, isSignedIn: boolean }) {
+function EnteringGame({ onJoinGame, onJoinGameAsGuest, errorMessageRef, loading, isSignedIn }: { onJoinGame: () => void, onJoinGameAsGuest: () => void, errorMessageRef: React.MutableRefObject<string | undefined>, loading: boolean, isSignedIn: boolean }) {
     return (
         <div>
             <h2>Choose an option</h2>
             <div className="flex flex-row gap-x-4 my-4 justify-center">
-                <button onClick={onJoinGame}>{ isSignedIn ? "Enter" : "Login" }</button>
+                <button onClick={onJoinGame}>{isSignedIn ? "Enter" : "Login"}</button>
                 <button onClick={onJoinGameAsGuest}>Play as Guest</button>
             </div>
-            { loading && <div className="loading">Loading</div> }
-            { errorMessageRef.current && <div className="text-red-500">{errorMessageRef.current}</div> }
+            {loading && <div className="loading">Loading</div>}
+            {errorMessageRef.current && <div className="text-red-500">{errorMessageRef.current}</div>}
         </div>
     );
 }
 
 function DuelTimer({ startTime, timer, text, showTime }: { startTime: number, timer: number, text: string, showTime: boolean }) {
     const [time, setTime] = useState(timer);
-    
+
     useEffect(() => {
         setTime(timer);
         const interval = setInterval(() => {
@@ -80,20 +81,20 @@ function DuelTimer({ startTime, timer, text, showTime }: { startTime: number, ti
     return (
         <div className="flex flex-row gap-x-2 justify-center">
             <div>{text}</div>
-            <div>{ showTime && time && time !== 0 ? time.toFixed(1) : "..." }</div>
+            <div>{showTime && time && time !== 0 ? time.toFixed(1) : "..."}</div>
         </div>
     );
 }
 
-function Players({ usernameRef, playerData, serverState }: { usernameRef: React.MutableRefObject<string>, playerData: { [key: string]: UserData }, serverState: ServerState }) {
+function Players({ usernameRef, playerData, serverState }: { usernameRef: React.MutableRefObject<string>, playerData: { [key: string]: DuelUserData }, serverState: ServerState }) {
     return (
         <div className="bg-zinc-700 pt-2 rounded-md border-2 border-solid border-black min-w-24 w-2/5">
             <h2 className="mt-2 mb-1">Players</h2>
             <br />
-            <div className="flex flex-col items-center gap-y-2">
-                { Object.entries(playerData).sort((a, b) => a[1].points == b[1].points ? a[1].username.localeCompare(b[1].username) : b[1].points - a[1].points).map(([id, player], i) =>
-                        <PlayerComponent userData={player} rank={i + 1} isYou={player.username === usernameRef.current} isLoading={!player.inGame} showDelta={serverState == ServerState.WAITING_NEXT} />
-                ) }
+            <div className="flex flex-col items-stretch gap-y-2 px-6">
+                {Object.entries(playerData).sort((a, b) => a[1].points == b[1].points ? a[1].username.localeCompare(b[1].username) : b[1].points - a[1].points).map(([id, player], i) =>
+                    <PlayerComponent userData={player} rank={i + 1} isYou={player.username === usernameRef.current} isLoading={!player.inGame} showDelta={serverState == ServerState.WAITING_NEXT} />
+                )}
             </div>
             <div className="h-16" />
         </div>
@@ -121,7 +122,7 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
     const serverStateRef = useRef<ServerState>(ServerState.CANNOT_START);
     const serverState = serverStateRef.current;
     const answerRequestRef = useRef<number>(0);
-    const responseRef = useRef<{ feedback: string, time: number }>({feedback: "", time: 0});
+    const responseRef = useRef<{ feedback: string, time: number }>({ feedback: "", time: 0 });
     const chatMessagesRef = useRef<ChatMessage[]>([]);
 
     const textBoxRef = useRef<string>("");
@@ -151,8 +152,9 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
             return;
         // Show error message if player is out of tries
         if (myPlayerData && myPlayerData.tries <= 0) {
-            errorMessageRef.current = "No more tries";
-            forceUpdate();
+            // Already done in response so this is commented out
+            // errorMessageRef.current = "No more tries";
+            // forceUpdate();
             return;
         }
         if (wsRef.current)
@@ -163,12 +165,18 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
     };
 
     const forceUpdate = () => _upd(x => x + 1);
-    
+
     const sendMessage = useCallback((message: WSMessage) => {
         const ws = wsRef.current;
         if (ws && ws.readyState === ws.OPEN)
             ws.send(JSON.stringify(message));
     }, []);
+
+    const addChatMessage = (message: ChatMessage) => {
+        chatMessagesRef.current.push(message);
+        chatMessagesRef.current = chatMessagesRef.current.slice(-100);
+        forceUpdate();
+    };
 
     const connectToWebSocket: (token: string) => Promise<boolean> = async (token) => {
         if (wsRef.current || !getHost || inGame)
@@ -184,45 +192,51 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
             for (const messageData of eventData) {
                 const { type, data, error } = messageData;
                 switch (type) {
-                case "username":
-                    if (!data) {
-                        errorMessageRef.current = error;
+                    case "username":
+                        if (!data) {
+                            errorMessageRef.current = error;
+                            setLoading(false);
+                            return;
+                        }
+                        usernameRef.current = data;
+                        setInGame(true);
                         setLoading(false);
-                        return;
-                    }
-                    usernameRef.current = data;
-                    setInGame(true);
-                    setLoading(false);
-                    break;
-                case "players":
-                    recursiveUpdate(playerDataRef.current, data);
-                    break;
-                case "game":
-                    recursiveUpdate(gameDataRef.current, data);
-                    if (data.startTime && Math.abs(Date.now() - data.startTime) < 1000)
-                        startTimeRef.current = Date.now();
-                    else
-                        startTimeRef.current = data.startTime;
-                    break;
-                case "state":
-                    serverStateRef.current = data;
-                    errorMessageRef.current = "";
-                    break;
-                case "response":
-                    if (data) {
-                        responseRef.current = data;
-                        // If answered correctly
-                        // TODO correct effects
-                    }
-                    else {
-                        // If answered incorrectly or error
-                        // warn(data.error!);
-                    }
-                    answerRequestRef.current--;
-                    break;
-                case "error":
-                    errorMessageRef.current = data;
-                    break;
+                        break;
+                    case "players":
+                        recursiveUpdate(playerDataRef.current, data);
+                        break;
+                    case "game":
+                        recursiveUpdate(gameDataRef.current, data);
+                        if (data.startTime && Math.abs(Date.now() - data.startTime) < 1000)
+                            startTimeRef.current = Date.now();
+                        else
+                            startTimeRef.current = data.startTime;
+                        break;
+                    case "state":
+                        serverStateRef.current = data;
+                        errorMessageRef.current = "";
+                        break;
+                    case "response":
+                        if (data) {
+                            responseRef.current = data;
+                            // If answered correctly
+                            // TODO correct effects
+                        }
+                        else {
+                            // If answered incorrectly or error
+                            // warn(data.error!);
+                            // myPlayerData.tries should be updated before this response is received
+                            const newMyPlayerData = Object.values(playerDataRef.current).find(player => player.username === usernameRef.current);
+                            if (newMyPlayerData && newMyPlayerData.tries <= 0)
+                                errorMessageRef.current = "No more tries";
+                        }
+                        answerRequestRef.current--;
+                        break;
+                    case "error":
+                        errorMessageRef.current = data;
+                        break;
+                    case "chat":
+                        addChatMessage(data);
                 }
                 if (devMode)
                     console.log("Received", messageData);
@@ -267,12 +281,6 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
         onJoinGame("");
     };
 
-    const addChatMessage = (message: ChatMessage) => {
-        chatMessagesRef.current.push(message);
-        chatMessagesRef.current = chatMessagesRef.current.slice(-100);
-        forceUpdate();
-    }
-
     useEffect(() => {
         return () => wsRef.current?.close();
     }, []);
@@ -285,50 +293,52 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
         <div>
             {
                 // !initialized ? <Initializing /> : 
-                !inGame ? <EnteringGame onJoinGame={onJoinGameUser} onJoinGameAsGuest={onJoinGameAsGuest} errorMessageRef={errorMessageRef} loading={loading} isSignedIn={token !== undefined} /> :
-                    <div>
-                        { [ServerState.WAITING_QUESTION, ServerState.IN_PROGRESS, ServerState.WAITING_NEXT].includes(serverState) && <div className="text-3xl">Round {gameData.rounds}</div> }
-                        <DuelTimer startTime={startTimeRef.current} timer={gameData.timer} text="Time:" showTime={serverState !== ServerState.CANNOT_START} />
-                        <MathJaxContext config={MathJaxConfig}>
-                            <MathJax id="question" className="my-4" dynamic>{
-                                serverState === ServerState.IN_PROGRESS
-                                    ? gameData.question
-                                    : serverState === ServerState.WAITING_NEXT
-                                    ? "Answer: " + gameData.question
-                                    : statusTexts[serverState]
-                                }</MathJax>
-                            </MathJaxContext>
-                            <div className="flex-center my-2">
-                                <TextBox className={
-                                    isCorrect ? "bg-green-100 hover:bg-green-100" : answerRequestRef.current === 0 && isWrong ? "bg-red-100 hover:bg-red-100" : ""
-                                } valueRef={textBoxRef} onEnter={onEnterPressed} endContent={textboxEndContent} />
+                <>
+                    {
+                        !inGame
+                            ? <EnteringGame onJoinGame={onJoinGameUser} onJoinGameAsGuest={onJoinGameAsGuest} errorMessageRef={errorMessageRef} loading={loading} isSignedIn={token !== undefined} />
+                            : <div>
+                                {[ServerState.WAITING_QUESTION, ServerState.IN_PROGRESS, ServerState.WAITING_NEXT].includes(serverState) && <div className="text-3xl">Round {gameData.rounds}</div>}
+                                <DuelTimer startTime={startTimeRef.current} timer={gameData.timer} text="Time:" showTime={serverState !== ServerState.CANNOT_START} />
+                                <MathJaxContext config={MathJaxConfig}>
+                                    <MathJax id="question" className="my-4" dynamic>{
+                                        serverState === ServerState.IN_PROGRESS
+                                            ? gameData.question
+                                            : serverState === ServerState.WAITING_NEXT
+                                                ? "Answer: " + gameData.question
+                                                : statusTexts[serverState]
+                                    }</MathJax>
+                                </MathJaxContext>
+                                <div className="flex-center my-2">
+                                    <TextBox className={
+                                        isCorrect ? "bg-green-100 hover:bg-green-100" : answerRequestRef.current === 0 && isWrong ? "bg-red-100 hover:bg-red-100" : ""
+                                    } valueRef={textBoxRef} onEnter={onEnterPressed} endContent={textboxEndContent} />
+                                </div>
+                                {errorMessageRef.current && <div className="text-red-500">{errorMessageRef.current}</div>}
+                                {shouldShowCorrect(serverState) && (
+                                    isCorrect
+                                        ? <div>{responseRef.current.feedback} <span style={{ color: getTimeColor(responseRef.current.time * 1000) }}>({responseRef.current.time.toFixed(1)}s)</span></div>
+                                        : <div>{myPlayerData ? myPlayerData.tries : "?"} {myPlayerData?.tries !== 1 ? "tries" : "try"} left</div>
+                                )}
+                                {devMode && <div>Game Data: {JSON.stringify(gameData)}</div>}
+                                <br />
+                                <div className="h-16" />
+                                <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start gap-x-32 gap-y-16 max-w-4xl m-auto">
+                                    <Players usernameRef={usernameRef} playerData={playerData} serverState={serverState} />
+                                    {serverState !== ServerState.CANNOT_START &&
+                                        <ChatLog messages={chatMessagesRef.current} />
+                                    }
+                                </div>
                             </div>
-                            { errorMessageRef.current && <div className="text-red-500">{errorMessageRef.current}</div> }
-                            { shouldShowCorrect(serverState) && (
-                                isCorrect
-                                ? <div>{responseRef.current.feedback} <span style={{ color: getTimeColor(responseRef.current.time * 1000) }}>({responseRef.current.time.toFixed(1)}s)</span></div>
-                                : <div>{myPlayerData ? myPlayerData.tries : "?"} {myPlayerData?.tries !== 1 ? "tries" : "try"} left</div>
-                            ) }
-                            { devMode && <div>Game Data: {JSON.stringify(gameData)}</div> }
-                            <br/>
-                        </div>
                     }
-                    <div className="h-16" />
-                    <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start gap-x-32 gap-y-16 max-w-4xl m-auto">
-                        <Players usernameRef={usernameRef} playerData={playerData} serverState={serverState} />
-                        { serverState !== ServerState.CANNOT_START &&
-                            <ChatLog messages={chatMessagesRef.current} />
-                        }
-                    </div>
                 </>
             }
-            { /*initialized &&*/ <Players usernameRef={usernameRef} playerData={playerData} serverState={serverState} /> }
-            { devMode && <button onClick={doLog}>Log</button> }
-            { disconnected &&
+            {devMode && <button onClick={doLog}>Log</button>}
+            {disconnected &&
                 <div className="absolute m-auto top-0 w-full h-full bg-[rgba(0,0,0,.7)] py-8 box-border">
                     <div className="text-red-400 text-4xl font-bold">Disconnected from server</div>
                     <div>Error Message: {errorMessageRef.current || "none"}</div>
-                    <br/>
+                    <br />
                     <button onClick={reset}>Refresh</button>
                 </div>
             }

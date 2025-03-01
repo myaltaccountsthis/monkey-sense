@@ -224,23 +224,23 @@ export class Game {
 
         case ServerState.WAITING_QUESTION:
             this.gameState.rounds++;
-            messages.push({ type: "game", data: { rounds: this.gameState.rounds } });
-            messages.push(...this.setTimer(WAIT_TIME));
-            break;
-
-        case ServerState.IN_PROGRESS:
-            this.currentQuestion = this.questionGen.generateQuestion({ gameMode: "Number Sense", lastT: 0, total: 0, testLength: 0, question: defaultQuestion, enterMode: "Default" }).question;
             for (const user of Object.values(this.players)) {
                 user.tries = NUM_TRIES;
                 user.answeredCorrect = false;
                 user.delta = 0;
             }
+            messages.push({ type: "game", data: { rounds: this.gameState.rounds } });
+            messages.push({ type: "players", data: this.players });
+            messages.push(...this.setTimer(WAIT_TIME));
+            break;
+
+        case ServerState.IN_PROGRESS:
+            this.currentQuestion = this.questionGen.generateQuestion({ gameMode: "Number Sense", lastT: 0, total: 0, testLength: 0, question: defaultQuestion, enterMode: "Default" }).question;
             // Set prev points to a large number
             this.prevPoints = FULL_POINTS * 100;
             this.originalStartTime = Date.now();
             this.gameState.question = this.currentQuestion.str;
             messages.push({ type: "game", data: { question: this.currentQuestion.str } });
-            messages.push({ type: "players", data: this.players });
             messages.push(...this.setTimer(ANSWER_TIME));
             break;
 
