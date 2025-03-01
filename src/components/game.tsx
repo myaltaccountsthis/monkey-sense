@@ -1,17 +1,16 @@
 "use client"
 
-import { getAnswerDisplay, judgeQuestion, QuestionGeneratorList, RNG } from "../../backend/src/util/generator";
-import { AnsweredQuestion, defaultQuestion, EnterMode, enterModes, GameMode, gameModeMappings, gameModes, LeaderboardEntry, MathJaxConfig, Message, MessageExtra, Question, TestLength, testLengths, timePerQuestion } from "../../backend/src/util/types";
+import { getAnswerDisplay, judgeQuestion, QuestionGeneratorList, RNG } from "@/util/generator";
+import { AnsweredQuestion, defaultQuestion, defaultTestLength, EnterMode, enterModes, GameMode, gameModeMappings, gameModes, MathJaxConfig, Message, MessageExtra, Question, TestLength, testLengths, timePerQuestion, ViewableLeadeboardEntry } from "@/util/types";
 import { useEffect, useRef, useState } from "react";
-import TextBox from "./textbox";
-import Timer from "./timer";
-// import { MathJax, MathJaxContext } from "better-react-mathjax";
+import TextBox from "./common/textbox";
+import Timer from "./common/timer";
 import { useRouter } from "next/navigation"
-import Leaderboard from "./Leaderboard";
+import Leaderboard from "./leaderboard/Leaderboard";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import QuestionList from "./QuestionList";
-import Button from "./Button";
-import { QuestionInfoDropdown } from "./QuestionInfoDropdown";
+import QuestionList from "./questions/QuestionList";
+import Button from "./common/Button";
+import { QuestionInfoDropdown } from "./questions/QuestionInfoDropdown";
 
 export const getTimeColorBounds = (gameMode: string) => {
     if (gameMode === "Zetamac")
@@ -37,11 +36,15 @@ export const getAccuracyColor = (accuracy: number) => {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
-export default function Game() {
+interface GameProps {
+    isSignedIn: boolean;
+};
+
+export default function Game({ isSignedIn }: GameProps) {
     const router = useRouter();
     const [lastT, setLastT] = useState(0);
     const [total, setTotal] = useState(0);
-    const [testLength, setTestLength] = useState<TestLength>(80);
+    const [testLength, setTestLength] = useState<TestLength>(defaultTestLength);
     const [question, setQuestion] = useState<Question>(defaultQuestion);
     const [enterMode, setEnterMode] = useState<EnterMode>("Default");
     const [gameMode, setGameMode] = useState<GameMode>("Number Sense");
@@ -54,7 +57,7 @@ export default function Game() {
     const [lastAnswer, setLastAnswer] = useState("");
     const [scoreStr, setScoreStr] = useState("");
     const [accuracy, setAccuracy] = useState(-1);
-    const [leaderboardEntries, setLeaderboardEntries] = useState<{[key: GameMode]: LeaderboardEntry[]}>({});
+    const [leaderboardEntries, setLeaderboardEntries] = useState<{[key: GameMode]: ViewableLeadeboardEntry[][]}>({});
     
     const questionGenRef = useRef<QuestionGeneratorList>(new QuestionGeneratorList(new RNG()));
     const questionGen = questionGenRef.current;
@@ -165,10 +168,11 @@ export default function Game() {
         if (enterMode === "Test") {
             setActive(false);
             setStartingTest(true);
-            fetch(`/test/new?mode=${gameModeMappings[gameMode]}&testLength=${testLength}`).then(res => res.json()).then(data => {
-                sessionStorage.setItem("TestData", JSON.stringify(Object.assign(data, {gameMode: gameMode, testLength: testLength})));
-                router.push("/test");
-            });
+            router.push(`/test?mode=${gameModeMappings[gameMode]}&testLength=${testLength}`);
+            // fetch(`/test/new?mode=${gameModeMappings[gameMode]}&testLength=${testLength}`).then(res => res.json()).then(data => {
+            //     sessionStorage.setItem("TestData", JSON.stringify(Object.assign(data, {gameMode: gameMode, testLength: testLength})));
+            //     router.push("/test");
+            // });
             return;
         }
 
@@ -312,26 +316,28 @@ export default function Game() {
             </div>
             <div className="my-4" style={{display: !active ? "block" : "none"}}>
                 <label htmlFor="mode" className="mr-2">Mode</label>
-                <select name="mode" id="mode" tabIndex={-1} value={gameMode} onChange={(e) => setGameMode(e.target.value)}>
+                <select name="mode" tabIndex={-1} value={gameMode} onChange={(e) => setGameMode(e.target.value)}>
                     { gameModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) }
                 </select>
                 <br/>
                 <label htmlFor="entermode" className="mr-2">Behavior</label>
-                <select name="entermode" id="entermode" tabIndex={-1} value={enterMode} onChange={(e) => setEnterMode(e.target.value)}>
+                <select name="entermode" tabIndex={-1} value={enterMode} onChange={(e) => setEnterMode(e.target.value)}>
                     { enterModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) }
                 </select>
+                <br/>
 
                 { enterMode === "Test" && (
                     <>
-                        <br/>
                         <label htmlFor="testmode" className="mr-2">Test Length</label>
-                        <select id="testlength" tabIndex={-1} value={testLength} onChange={(e) => setTestLength(parseInt(e.target.value))}>
+                        <select tabIndex={-1} value={testLength} onChange={(e) => setTestLength(parseInt(e.target.value))}>
                             { testLengths.map((length) => <option key={length} value={length}>{length}</option>) }
                         </select>
+                        <br/>
+                        { !isSignedIn &&
+                            <div className="text-base my-1 text-red-500">Sign in to save your score</div>
+                        }
                     </>
                 )}
-                
-                <br/>
             </div>
             <div className="flex-center my-4">
                 <Button className="start" onClick={doStart}>Start</Button>
@@ -345,29 +351,29 @@ export default function Game() {
                 <div>
                     <div className="flex-center">
                         <div>Last Time:</div>
-                        <div id="answertime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(answerTime, gameMode) : ""}}>
+                        <div style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(answerTime, gameMode) : ""}}>
                             {questionCount > 0 && enterMode !== "Test" ? `${Math.round(answerTime)}ms` : ""}
                         </div>
                     </div>
-                    <div id="lastanswer">{lastAnswer}</div>
-                    <div id="data">
+                    <div>{lastAnswer}</div>
+                    <div>
                         <div className="flex-center">
                             <div>Question Count:</div>
-                            <div id="questioncount">{questionCount}</div>
+                            <div>{questionCount}</div>
                         </div>
                         <div className="flex-center">
                             <div>Average Time:</div>
-                            <div id="averagetime" style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(time / questionCount, gameMode) : ""}}>
+                            <div style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(time / questionCount, gameMode) : ""}}>
                                 {questionCount > 0 && enterMode !== "Test" ? `${Math.round(time / questionCount)}ms` : ""}
                             </div>
                         </div>
                         <div className="flex-center">
                             <div>Accuracy:</div>
-                            <div id="accuracy" style={{color: getAccuracyColor(Math.max(0, accuracy / 100))}}>{questionCount > 0 && accuracy !== -1 ? accuracy.toFixed(1) + "%" : ""}</div>
+                            <div style={{color: getAccuracyColor(Math.max(0, accuracy / 100))}}>{questionCount > 0 && accuracy !== -1 ? accuracy.toFixed(1) + "%" : ""}</div>
                         </div>
                         <div className="flex-center">
                             <div>Score:</div>
-                            <div id="score">{scoreStr}</div>
+                            <div>{scoreStr}</div>
                         </div>
                         <div className="flex-center">
                             <div>Total Time:</div>
@@ -380,7 +386,7 @@ export default function Game() {
             }
             <br/>
             <div className={active ? "hidden" : ""}>
-                <Leaderboard leaderboardEntries={leaderboardEntries} gameMode={gameMode} />
+                <Leaderboard leaderboardEntries={leaderboardEntries} gameMode={gameMode} testLength={testLength} setTestLength={setTestLength} />
             </div>
         </div>
     );

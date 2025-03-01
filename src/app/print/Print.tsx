@@ -1,7 +1,7 @@
 "use client";
 
-import { QuestionGeneratorList, RNG } from "../../../backend/src/util/generator";
-import { defaultQuestion, gameModeMappings, gameModes, MathJaxConfig, Question } from "../../../backend/src/util/types";
+import { QuestionGeneratorList, RNG } from "@/util/generator";
+import { defaultQuestion, gameModeMappings, gameModes, MathJaxConfig, Question } from "@/util/types";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useSearchParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react";
@@ -26,13 +26,16 @@ export default function Print() {
     const mode = params.get("mode") || "ns";
     const seed = params.get("seed");
     const seedRef = useRef<string | null>(seed);
-    const [shouldPrint, setShouldPrint] = useState(false);
     const [questions, setQuestions] = useState<Question[]>([]);
+    const loadedRef = useRef(false);
+    const printedRef = useRef(false);
 
-    if (shouldPrint) {
-        setShouldPrint(false);
-        setTimeout(() => print(), 1000);
-    }
+    const onLoaded = () => {
+        if (loadedRef.current && !printedRef.current) {
+            printedRef.current = true;
+            setTimeout(print, 500);
+        }
+    };
 
     useEffect(() => {
         if (questions.length === 0) {
@@ -53,15 +56,16 @@ export default function Print() {
                 }
             }
             setQuestions(newQuestions);
+            loadedRef.current = true;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
         <div>
-            <MathJaxContext config={MathJaxConfig} onLoad={() => setShouldPrint(true)}>
-                <MathJax>
-                    <h1 id="title">Monkey Sense {mode === "ns" ? "Number Sense" : mode === "zetamac" ? "Zetamac" : "Estimate"} — {seedRef.current}</h1>
+            <MathJaxContext config={MathJaxConfig}>
+                <MathJax onTypeset={onLoaded}>
+                    <h1>Monkey Sense {mode === "ns" ? "Number Sense" : mode === "zetamac" ? "Zetamac" : "Estimate"} — {seedRef.current}</h1>
                     <div>
                         { questions.length === 80 &&
                             Array(80 / QUESTIONS_PER_COL).fill(0).map((_, offset) =>

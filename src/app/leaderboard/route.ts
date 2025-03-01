@@ -1,13 +1,33 @@
-import { getLeaderboard } from "@/util/database";
-import { GameMode, gameModeMappings, gameModes, LeaderboardEntry } from "../../../backend/src/util/types";
-import { NextRequest } from "next/server";
+import { getLeaderboard } from "../../../backend/src/util/database";
+import { GameMode, gameModeMappings, gameModes, LeaderboardEntry, testLengths } from "@/util/types";
+import { NextRequest, NextResponse } from "next/server";
+
+const cacheLifetime = 60000;
+let prevCache: { [key: GameMode]: LeaderboardEntry[][] } = {};
+let prevCacheTime = 0;
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-    const gameMode = request.nextUrl.searchParams.get("mode");
-    if (gameMode === "all") {
-        const data: {[key: GameMode]: LeaderboardEntry[]} = {};
-        (await Promise.all(gameModes.map(gameMode => getLeaderboard(gameModeMappings[gameMode])))).forEach((val, i) => data[gameModes[i]] = val);
-        return Response.json(data);
+    const t = Date.now();
+    if (t - prevCacheTime > cacheLifetime) {
+        // console.log("Refreshing leaderboard cache");
+        prevCacheTime = t;
+        const data: { [key: GameMode]: LeaderboardEntry[][] } = {};
+        // Fetch leaderboards for all game modes and test lengths
+        ( await Promise.all(
+            gameModes.map(async gameMode => 
+                await Promise.all(testLengths.map(length =>
+                    getLeaderboard(gameModeMappings[gameMode], length)
+                ))
+            )
+        )).forEach((val, i) => data[gameModes[i]] = val);
+        prevCache = data;
     }
-    return Response.json(await getLeaderboard(gameMode));
+    const gameMode = request.nextUrl.searchParams.get("mode");
+    if (gameMode === "all")
+        return NextResponse.json(prevCache);
+    else if (!gameMode)
+        return NextResponse.json("Invalid game mode", {status: 400});
+    return NextResponse.json(prevCache[gameMode]);
 }
