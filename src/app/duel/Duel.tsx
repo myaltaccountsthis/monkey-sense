@@ -3,11 +3,10 @@
 import CheckmarkIcon from "@/components/common/checkmark";
 import TextBox from "@/components/common/textbox";
 import WrongIcon from "@/components/common/wrong";
-import { MathJaxConfig, UserData } from "@/util/types";
-import { FULL_POINTS, GameState, NUM_TRIES, ServerState, DuelUserData, WSMessage, ChatMessage } from "@/util/gametypes";
+import { MathJaxConfig } from "@/util/types";
+import { GameState, NUM_TRIES, ServerState, DuelUserData, WSMessage, ChatMessage } from "@/util/gametypes";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { twMerge } from "tailwind-merge";
 import { getHost } from "./duelhelper";
 import { useRouter } from "next/navigation";
 import ChatLog from "@/components/ChatLog";
@@ -93,7 +92,7 @@ function Players({ usernameRef, playerData, serverState }: { usernameRef: React.
             <br />
             <div className="flex flex-col items-stretch gap-y-2 px-6">
                 {Object.entries(playerData).sort((a, b) => a[1].points == b[1].points ? a[1].username.localeCompare(b[1].username) : b[1].points - a[1].points).map(([id, player], i) =>
-                    <PlayerComponent userData={player} rank={i + 1} isYou={player.username === usernameRef.current} isLoading={!player.inGame} showDelta={serverState == ServerState.WAITING_NEXT} />
+                    <PlayerComponent key={id} userData={player} rank={i + 1} isYou={player.username === usernameRef.current} isLoading={!player.inGame} showDelta={serverState == ServerState.WAITING_NEXT} />
                 )}
             </div>
             <div className="h-16" />

@@ -1,10 +1,10 @@
 import { twMerge } from "tailwind-merge";
-import { FULL_POINTS, NUM_TRIES, UserData } from "../../backend/src/util/gametypes";
+import { FULL_POINTS, NUM_TRIES, DuelUserData } from "../../backend/src/util/gametypes";
 import { getNumberRankStr } from "../../backend/src/util/generator";
 import Ring from "./AttemptsRing";
 
 interface PlayerComponentProps {
-    userData: UserData;
+    userData: DuelUserData;
     rank: number;
     isYou: boolean;
     isLoading?: boolean;
