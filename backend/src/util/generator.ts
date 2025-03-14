@@ -105,11 +105,15 @@ const convs = [
 ];
 const units2 = [
   ["gallons", "cubic inches"],
-  ["leagues of land", "acres"]
+  ["leagues of land", "acres"],
+  ["varas", "yards"],
+  ["varas", "feet"]
 ];
 const convs2 = [
   [1, 231],
   [1, 4428.4]
+  [1, 0.925926],
+  [1, 33.333333]
 ];
 for (let i = 0; i < units.length; i++) {
   units2.push(units[i]);
@@ -2360,7 +2364,7 @@ export class QuestionGeneratorList {
       },
       unitconvest: {
         name: "Unit Conversion Estimation",
-        description: "Estimate common unit conversions. 1 league of land = 4428.4 acres. 1 gallon = 231 in^3. For more conversions, see Unit Conversion section.",
+        description: "Estimate common unit conversions. 1 league of land = 4428.4 acres. 1 gallon = 231 in^3. 1 varas in Texas is 100/3 feet or 25/27 yards. For more conversions, see Unit Conversion section.",
         weight: 5,
         tier: 2,
         func: () => {
