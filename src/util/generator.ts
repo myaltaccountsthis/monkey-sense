@@ -649,7 +649,7 @@ export class QuestionGeneratorList {
       },
       ngonal: {
         name: "Polygonal Numbers",
-        description: "Find the xth ngonal number where x corresponds to the sides of the shape. Formula is `n((g - 2)n - (g - 4)) / 2`.",
+        description: "Find the nth ngonal number where x corresponds to the sides of the shape. Formula is `x((n - 2)x - (n - 4)) / 2`.",
         weight: 20,
         tier: 1,
         func: () => {
