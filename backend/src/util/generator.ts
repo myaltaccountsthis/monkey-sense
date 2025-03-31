@@ -2399,6 +2399,55 @@ export class QuestionGeneratorList {
           }
         }
       },
+
+      linereflect: {
+        name: "Line Reflection",
+        description: "Reflect a point (a,b) across the x axis, y axis, or y = x, and finding the sum/difference of a and b. The reflection across the x axis is (a,-b), the y axis is (-a,b), and y = x is (b,a).",
+        weight: 5,
+        tier: 2,
+        func: () => {
+          const lines = ["x-axis", "y-axis", "y = x"];
+          const operations = ["a - b", "a + b", "b - a", "b + a"];
+          let a = randomInt(-10, 10);
+          let b = randomInt(-10, 10);
+          const line = lines[randomInt(0, lines.length - 1)];
+          const operation = operations[randomInt(0, operations.length - 1)];
+          let ans = 0;
+          let str = `Reflect the point (${a}, ${b}) across the ${line} and find the value of ${operation}.`;
+          switch (line) {
+            case "x-axis":
+              b = -b;
+              break;
+            case "y-axis":
+              a = -a;
+              break;
+            case "y = x":
+              let temp = b;
+              b = a;
+              a = temp;
+              break;
+          }
+          switch (operation) {
+            case "a - b":
+              ans = a - b;
+              break;
+            case "a + b":
+              ans = a + b;
+              break;
+            case "b - a":
+              ans = b - a;
+              break;
+            case "b + a":
+              ans = b + a;
+              break;
+          }
+          return{
+             ans: ans,
+             str: str,
+
+          }
+        }
+      },
     };
 
     const keys = Object.keys(this.questionGens);
