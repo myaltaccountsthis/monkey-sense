@@ -107,22 +107,20 @@ const units2 = [
   ["gallons", "cubic inches"],
   ["leagues of land", "acres"],
   ["varas", "yards"],
-  ["varas", "inches"]
-  ["chains", "feet"]
-  ["caballerias", "acres"]
-  ["labor", "square varas"]
+  ["varas", "inches"],
+  ["chains", "feet"],
+  ["caballerias", "acres"],
+  ["labor", "square varas"],
 ];
-
 const convs2 = [
   [1, 231],
-  [1, 4428.4]
+  [1, 4428.4],
   [1, 0.925926],
   [1, 33.333333],
   [1, 66],
   [1, 108],
-  [1, 1000]
+  [1, 1000],
 ];
-
 for (let i = 0; i < units.length; i++) {
   units2.push(units[i]);
   convs2.push(convs[i]);
@@ -2383,6 +2381,21 @@ export class QuestionGeneratorList {
             ans: val * convs[index][main],
             str: `${val * convs[index][main ^ 1]} ${units[index][main ^ 1]} \`=\` ? ${units[index][main]}`,
             guess: true,
+          }
+        }
+      },
+      digitsum: {
+        name: "3 Digit Sum",
+        description: "The number of 3 digit numbers that have a digit sum to n. For 1 through 9, the answer is its triangular number. For 10 - 14, its 54, 61, 66, 69, and 70. Note that number of 3 digit numbers that have a digit sum of n is the same as that of 28 - n.",
+        weight: 5,
+        tier: 2,
+        func: () => {
+          const num = Math.floor(Math.random() * 27);
+          const values = [1, 3, 6, 10, 15, 21, 28, 36, 45, 54, 61, 66, 69, 70];
+          return{
+             ans: num < 14 ? values[num] : values[26 - num],
+             str: "The sum of the digits of a 3 digit number is " + (num + 1) + ". How many such numbers exist?",
+
           }
         }
       },
