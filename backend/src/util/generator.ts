@@ -2448,6 +2448,34 @@ export class QuestionGeneratorList {
           }
         }
       },
+
+      fermatlittle: 
+      {
+        name: "Fermat's Little Theorem",
+        description: "If p is prime, then a^(p - 1) = 1 (mod p). Additionally, for specific prime p, a^((p-1)/2) = -1 (mod p)" ,
+        weight: 5,
+        tier: 2,
+        func: () => {
+          const primes = [17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59];
+          const prime = primes[randomInt(0, primes.length - 1)];
+          const exp = (prime - 1) / 2;
+          const add = randomInt(0, 2);
+          const quadres = new Set<number>();
+          for (let i = 1; i < prime; i++) 
+          {
+            quadres.add((i * i) % prime);
+          }
+          let a = 0;
+          do {
+            a = randomInt((prime - 1)/2, prime - 1);
+          } while (quadres.has((a * a) % prime));
+          const ans = -1 * Math.pow(a, add) + prime % prime + prime;
+          return{
+              ans: ans,
+              str: `Find the value of ${a}^(${exp} + ${add}) mod ${prime}.`,
+          }
+        }
+      }
     };
 
     const keys = Object.keys(this.questionGens);
