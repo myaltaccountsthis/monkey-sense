@@ -2465,14 +2465,18 @@ export class QuestionGeneratorList {
           {
             quadres.add((i * i) % prime);
           }
-          let a = 0;
-          do {
-            a = randomInt((prime - 1)/2, prime - 1);
-          } while (quadres.has((a * a) % prime));
-          const ans = -1 * Math.pow(a, add) + prime % prime + prime;
+          let nums: number[] = [];
+          for(let i = 1; i < prime; i++)
+          {
+            if(!quadres.has(i)) nums.push(i);
+          }
+          const num = nums[randomInt(0, nums.length - 1)];
+          const exp2 = exp + add;
+          let ans = (-1 * Math.pow(num, add)) % prime;
+          if (ans < 0) ans += prime;
           return{
               ans: ans,
-              str: `Find the value of ${a}^(${exp} + ${add}) mod ${prime}.`,
+              str: `Find the value of ${num}^(${exp2}) mod ${prime}.`,
           }
         }
       }
