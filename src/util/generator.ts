@@ -2394,7 +2394,7 @@ export class QuestionGeneratorList {
           const values = [1, 3, 6, 10, 15, 21, 28, 36, 45, 54, 61, 66, 69, 70];
           return{
              ans: num < 14 ? values[num] : values[26 - num],
-             str: "The sum of the digits of a 3 digit number is " + num + ". How many such numbers exist?",
+             str: `The sum of the digits of a 3 digit number is ${num + 1}. How many such numbers exist?`,
 
           }
         }
