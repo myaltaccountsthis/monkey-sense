@@ -2412,7 +2412,7 @@ export class QuestionGeneratorList {
           const line = lines[randomInt(0, lines.length - 1)];
           const operation = operations[randomInt(0, operations.length - 1)];
           let ans = 0;
-          let str = `Reflect the point (${a}, ${b}) across the ${line} and find the value of ${operation}.`;
+          const str = `Reflect the point (${a}, ${b}) across the ${line} and find the value of ${operation}.`;
           switch (line) {
             case "x-axis":
               b = -b;
@@ -2421,7 +2421,7 @@ export class QuestionGeneratorList {
               a = -a;
               break;
             case "y = x":
-              let temp = b;
+              const temp = b;
               b = a;
               a = temp;
               break;
@@ -2464,7 +2464,7 @@ export class QuestionGeneratorList {
           {
             quadres.add((i * i) % prime);
           }
-          let nums: number[] = [];
+          const nums: number[] = [];
           for(let i = 1; i < prime; i++)
           {
             if(!quadres.has(i)) nums.push(i);

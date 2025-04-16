@@ -14,6 +14,7 @@ RUN npm ci
 
 # RUN CXX=g++ npm install argon2
 
+# Required so argon2 runs properly on server
 RUN CXX=g++ npm rebuild argon2 --build-from-source
 
 # Rebuild the source code only when needed
