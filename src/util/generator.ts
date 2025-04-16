@@ -2398,6 +2398,87 @@ export class QuestionGeneratorList {
           }
         }
       },
+
+      linereflect: {
+        name: "Line Reflection",
+        description: "Reflect a point (a,b) across the x axis, y axis, or y = x, and finding the sum/difference of a and b. The reflection across the x axis is (a,-b), the y axis is (-a,b), and y = x is (b,a).",
+        weight: 5,
+        tier: 2,
+        func: () => {
+          const lines = ["x-axis", "y-axis", "y = x"];
+          const operations = ["a - b", "a + b", "b - a", "b + a"];
+          let a = randomInt(-10, 10);
+          let b = randomInt(-10, 10);
+          const line = lines[randomInt(0, lines.length - 1)];
+          const operation = operations[randomInt(0, operations.length - 1)];
+          let ans = 0;
+          let str = `Reflect the point (${a}, ${b}) across the ${line} and find the value of ${operation}.`;
+          switch (line) {
+            case "x-axis":
+              b = -b;
+              break;
+            case "y-axis":
+              a = -a;
+              break;
+            case "y = x":
+              let temp = b;
+              b = a;
+              a = temp;
+              break;
+          }
+          switch (operation) {
+            case "a - b":
+              ans = a - b;
+              break;
+            case "a + b":
+              ans = a + b;
+              break;
+            case "b - a":
+              ans = b - a;
+              break;
+            case "b + a":
+              ans = b + a;
+              break;
+          }
+          return{
+             ans: ans,
+             str: str,
+
+          }
+        }
+      },
+
+      fermatlittle: 
+      {
+        name: "Fermat's Little Theorem",
+        description: "If p is prime, then a^(p - 1) = 1 (mod p). Additionally, for specific prime p, a^((p-1)/2) = -1 (mod p)" ,
+        weight: 5,
+        tier: 2,
+        func: () => {
+          const primes = [17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59];
+          const prime = primes[randomInt(0, primes.length - 1)];
+          const exp = (prime - 1) / 2;
+          const add = randomInt(0, 2);
+          const quadres = new Set<number>();
+          for (let i = 1; i < prime; i++) 
+          {
+            quadres.add((i * i) % prime);
+          }
+          let nums: number[] = [];
+          for(let i = 1; i < prime; i++)
+          {
+            if(!quadres.has(i)) nums.push(i);
+          }
+          const num = nums[randomInt(0, nums.length - 1)];
+          const exp2 = exp + add;
+          let ans = (-1 * Math.pow(num, add)) % prime;
+          if (ans < 0) ans += prime;
+          return{
+              ans: ans,
+              str: `Find the value of ${num}^(${exp2}) mod ${prime}.`,
+          }
+        }
+      }
     };
 
     const keys = Object.keys(this.questionGens);
