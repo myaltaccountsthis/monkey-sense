@@ -2394,7 +2394,7 @@ export class QuestionGeneratorList {
           const values = [1, 3, 6, 10, 15, 21, 28, 36, 45, 54, 61, 66, 69, 70];
           return{
              ans: num < 14 ? values[num] : values[26 - num],
-             str: `The sum of the digits of a 3 digit number is ${num + 1}. How many such numbers exist?`,
+             str: `The sum of the digits of a 3 digit number is \`${num + 1}\`. How many such numbers exist?`,
 
           }
         }
@@ -2413,7 +2413,7 @@ export class QuestionGeneratorList {
           const line = lines[randomInt(0, lines.length - 1)];
           const operation = operations[randomInt(0, operations.length - 1)];
           let ans = 0;
-          let str = `Reflect the point (${a}, ${b}) across the ${line} and find the value of ${operation}.`;
+          let str = `Reflect the point \`(${a}, ${b})\` across the \`${line}\` and find the value of ${operation}.`;
           switch (line) {
             case "x-axis":
               b = -b;
@@ -2476,7 +2476,7 @@ export class QuestionGeneratorList {
           if (ans < 0) ans += prime;
           return{
               ans: ans,
-              str: `Find the value of ${num}^(${exp2}) mod ${prime}.`,
+              str: `Find the value of \`${num}^(${exp2}) \`mod ${prime}.\``,
           }
         }
       }
