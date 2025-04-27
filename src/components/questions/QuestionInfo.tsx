@@ -36,8 +36,8 @@ export default function QuestionInfo({ questionGens, selected, practice }: Quest
                     Tier: {questionGen.tier + 1}
                     <div className="h-4" />
                     <Button onClick={practice}>Practice</Button>
-                    <div className="h-12" />
-                    <div className="bg-zinc-500 w-fit m-auto p-4 rounded-md border-2 border-black border-solid">
+                    <div className="h-8 md:h-12" />
+                    <div className="bg-zinc-500 w-fit m-auto p-4 px-12 rounded-lg border-2 border-black border-solid">
                         <div className="text-2xl">Sample Problem:</div>
                         <br />
                         <MathJax dynamic>

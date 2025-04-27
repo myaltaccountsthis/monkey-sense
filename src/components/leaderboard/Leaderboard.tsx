@@ -23,7 +23,6 @@ export default function Leaderboard({ leaderboardEntries, gameMode, testLength, 
                             <th>Username</th>
                             <th>Correct</th>
                             <th>Total</th>
-                            <th>Length</th>
                             <th>Adj. Score</th>
                             <th>Time</th>
                         </tr>
