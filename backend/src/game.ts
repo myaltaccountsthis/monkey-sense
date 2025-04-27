@@ -182,12 +182,15 @@ export class Game {
         }
     }
 
+    // Tries goes from 3 to 1, higher is better
     getGainedPoints(tries: number) {
         const totalT = ANSWER_TIME * 1000;
         const rawPointsFullAcc = FULL_POINTS * (1 - .5 * (Date.now() - this.originalStartTime) / totalT);
-        const rawPoints = rawPointsFullAcc * tries / NUM_TRIES;
+        // Give less points to every next player
         this.prevPoints = Math.min(rawPointsFullAcc, this.prevPoints * (1 - .6 / Object.keys(this.players).length));
-        const points = Math.round(Math.min(rawPoints, this.prevPoints) * 10) / 10;
+        // Punish accuracy hard
+        const rawPoints = this.prevPoints * (tries / NUM_TRIES);
+        const points = Math.round(rawPoints * 10) / 10;
         return points;
     }
 
@@ -270,6 +273,10 @@ export class Game {
             // Update player data
             for (const player of playerArr) {
                 this.updatePlayerData(player, player.user_id === winnerId);
+                const id = this.getUserKey(player.user_id);
+                this.players[id].points = 0;
+                this.players[id].sessionAnswered = 0;
+                this.players[id].sessionCorrect = 0;
             }
             messages.push(...this.setTimer(ENDING_GAME_TIME));
             break;
