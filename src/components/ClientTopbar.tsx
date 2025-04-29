@@ -20,13 +20,13 @@ export default function ClientTopbar({ user }: { user: User | false }) {
         <div className="sticky m-0 pl-2 pr-4 box-border top-0 bg-[#282828] w-full h-11 flex flex-row justify-center items-center">
             <div className="flex-grow basis-1 text-left h-full">
                 <Link href="/">
-                    <button className="h-full px-2 bg-inherit hover:bg-[#111] transition-colors border-none text-white text-2xl font-bold">Monkey Sense</button>
+                    <button className="h-full px-2 bg-inherit hover:bg-[#111] transition-colors border-none text-white text-2xl font-bold hover:cursor-pointer">Monkey Sense</button>
                 </Link>
             </div>
             <div className="flex-grow hidden lg:flex lg:flex-row lg:justify-center lg:h-full lg:box-border">
                 { links.map(({ href, label }) =>
                     <a key={label} href={href}>
-                        <button className="h-full px-3 bg-inherit hover:bg-[#111] transition-colors border-none text-white">{label}</button>
+                        <button className="h-full px-3 bg-inherit hover:bg-[#111] transition-colors border-none text-white hover:cursor-pointer">{label}</button>
                     </a>
                 ) }
             </div>
