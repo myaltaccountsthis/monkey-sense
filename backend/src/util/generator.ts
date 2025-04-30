@@ -2290,7 +2290,7 @@ export class QuestionGeneratorList {
       },
       perfect: {
         name: "Perfect Numbers",
-        description: "Memorize your perfect numbers. 6, 28, 496, 8148, ...",
+        description: "Memorize your perfect numbers. 6, 28, 496, 8128, ...",
         weight: 4,
         tier: 1,
         func: () => {
