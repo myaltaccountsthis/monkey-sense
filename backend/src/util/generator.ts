@@ -662,7 +662,7 @@ export class QuestionGeneratorList {
       },
       modexp: {
         name: "Modular Exponentiation",
-        description: "Use Fermat's Little Theorem when possible. Questions contain some that can't be solved normally, so practice brute force.",
+        description: "Use Fermat's Little Theorem when possible. Sometimes, square/negate to get small base. Questions contain some that can't be solved normally, so practice brute force.",
         weight: 10,
         tier: 3,
         func: () => {
@@ -2290,7 +2290,7 @@ export class QuestionGeneratorList {
       },
       perfect: {
         name: "Perfect Numbers",
-        description: "Memorize your perfect numbers. 6, 28, 496, 8148, ...",
+        description: "Memorize your perfect numbers. 6, 28, 496, 8128, ...",
         weight: 4,
         tier: 1,
         func: () => {
@@ -2392,10 +2392,9 @@ export class QuestionGeneratorList {
         func: () => {
           const num = Math.floor(Math.random() * 27);
           const values = [1, 3, 6, 10, 15, 21, 28, 36, 45, 54, 61, 66, 69, 70];
-          return{
-             ans: num < 14 ? values[num] : values[26 - num],
-             str: `The sum of the digits of a 3 digit number is \`${num + 1}\`. How many such numbers exist?`,
-
+          return {
+            ans: num < 14 ? values[num] : values[26 - num],
+            str: `The sum of the digits of a 3 digit number is ${num + 1}. How many such numbers exist?`,
           }
         }
       },
@@ -2406,14 +2405,14 @@ export class QuestionGeneratorList {
         weight: 5,
         tier: 2,
         func: () => {
-          const lines = ["x-axis", "y-axis", "y = x"];
+          const lines = ["the x-axis", "the y-axis", "`y = x`"];
           const operations = ["a - b", "a + b", "b - a", "b + a"];
           let a = randomInt(-10, 10);
           let b = randomInt(-10, 10);
           const line = lines[randomInt(0, lines.length - 1)];
           const operation = operations[randomInt(0, operations.length - 1)];
           let ans = 0;
-          let str = `Reflect the point \`(${a}, ${b})\` across the \`${line}\` and find the value of ${operation}.`;
+          const str = `Reflect the point \`(${a}, ${b})\` across ${line} and find the value of \`${operation}\`.`;
           switch (line) {
             case "x-axis":
               b = -b;
@@ -2441,10 +2440,9 @@ export class QuestionGeneratorList {
               ans = b + a;
               break;
           }
-          return{
-             ans: ans,
-             str: str,
-
+          return {
+            ans: ans,
+            str: str,
           }
         }
       },
@@ -2452,7 +2450,7 @@ export class QuestionGeneratorList {
       fermatlittle: 
       {
         name: "Fermat's Little Theorem",
-        description: "If p is prime, then a^(p - 1) = 1 (mod p). Additionally, for specific prime p, a^((p-1)/2) = -1 (mod p)" ,
+        description: "If p is prime, then `a^(p - 1) = 1 (mod p)`. Additionally, for specific prime p, `a^((p-1)/2) = +-1 (mod p)` (you have to guess the sign or memorize quadratic residues).",
         weight: 5,
         tier: 2,
         func: () => {
@@ -2460,23 +2458,34 @@ export class QuestionGeneratorList {
           const prime = primes[randomInt(0, primes.length - 1)];
           const exp = (prime - 1) / 2;
           const add = randomInt(0, 2);
-          const quadres = new Set<number>();
-          for (let i = 1; i < prime; i++) 
-          {
-            quadres.add((i * i) % prime);
-          }
-          let nums: number[] = [];
-          for(let i = 1; i < prime; i++)
-          {
-            if(!quadres.has(i)) nums.push(i);
-          }
-          const num = nums[randomInt(0, nums.length - 1)];
           const exp2 = exp + add;
-          let ans = (-1 * Math.pow(num, add)) % prime;
-          if (ans < 0) ans += prime;
-          return{
-              ans: ans,
-              str: `Find the value of \`${num}^(${exp2}) \`mod ${prime}.\``,
+
+          // const quadres = new Set<number>();
+          // for (let i = 1; i < prime; i++) 
+          // {
+          //   quadres.add((i * i) % prime);
+          // }
+          // const nums: number[] = [];
+          // for(let i = 1; i < prime; i++)
+          // {
+          //   if(!quadres.has(i)) nums.push(i);
+          // }
+          // const num = nums[randomInt(0, nums.length - 1)];
+          // let ans = (-1 * Math.pow(num, add)) % prime;
+          // if (ans < 0) ans += prime;
+
+          const num = randomInt(prime + 2, 2 * prime - 2);
+          let ans = 1;
+          for (let a = num, b = exp2; b > 0; b = Math.floor(b / 2)) {
+            if (b % 2 == 1) {
+              ans = (ans * a) % prime;
+            }
+            a = (a * a) % prime;
+          }
+
+          return {
+            ans: ans,
+            str: `Find the value of \`${num}^(${exp2}) mod ${prime}\`.`,
           }
         }
       }

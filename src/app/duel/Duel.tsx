@@ -87,15 +87,13 @@ function DuelTimer({ startTime, timer, text, showTime }: { startTime: number, ti
 
 function Players({ usernameRef, playerData, serverState }: { usernameRef: React.MutableRefObject<string>, playerData: { [key: string]: DuelUserData }, serverState: ServerState }) {
     return (
-        <div className="bg-zinc-700 pt-2 rounded-md border-2 border-solid border-black min-w-24 w-2/5">
-            <h2 className="mt-2 mb-1">Players</h2>
-            <br />
-            <div className="flex flex-col items-stretch gap-y-2 px-6">
+        <div className="bg-zinc-700 rounded-md border-2 border-solid border-black min-w-24 w-2/5 pb-4">
+            <h2 className="my-4">Players</h2>
+            <div className="flex flex-col items-stretch gap-y-4 px-6">
                 {Object.entries(playerData).sort((a, b) => a[1].points == b[1].points ? a[1].username.localeCompare(b[1].username) : b[1].points - a[1].points).map(([id, player], i) =>
                     <PlayerComponent key={id} userData={player} rank={i + 1} isYou={player.username === usernameRef.current} isLoading={!player.inGame} showDelta={serverState == ServerState.WAITING_NEXT} />
                 )}
             </div>
-            <div className="h-16" />
         </div>
     )
 }
@@ -317,7 +315,8 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
                                 {shouldShowCorrect(serverState) && (
                                     isCorrect
                                         ? <div>{responseRef.current.feedback} <span style={{ color: getTimeColor(responseRef.current.time * 1000) }}>({responseRef.current.time.toFixed(1)}s)</span></div>
-                                        : <div>{myPlayerData ? myPlayerData.tries : "?"} {myPlayerData?.tries !== 1 ? "tries" : "try"} left</div>
+                                        : // Shows the number of tries left, ? if not found, try/tries based on 1 or more, yellow if 2 tries left, red if 1 try left
+                                        <div className={`${myPlayerData && (myPlayerData.tries == 2 ? 'text-yellow-400' : myPlayerData.tries == 1 && 'text-red-500')}`}>{myPlayerData ? `${myPlayerData && myPlayerData.tries > 0 ? `${myPlayerData.tries} ${myPlayerData.tries !== 1 ? "tries" : "try"} left` : ""}` : "?"}</div>
                                 )}
                                 {devMode && <div>Game Data: {JSON.stringify(gameData)}</div>}
                                 <br />
