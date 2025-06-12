@@ -48,8 +48,8 @@ export async function getTokenCookie() {
 export async function isSignedIn() {
     const cookie = await getTokenCookie();
     const result = await isValidToken(cookie);
-    if (cookie && !result)
-        cookies().delete("token");
+    // if (cookie && !result)
+        // cookies().delete("token");
     return result;
 }
 
