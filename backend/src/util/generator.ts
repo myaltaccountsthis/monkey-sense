@@ -2376,21 +2376,19 @@ export class QuestionGeneratorList {
                     const operations = ["a - b", "a + b", "b - a", "b + a"];
                     let a = randomInt(-10, 10);
                     let b = randomInt(-10, 10);
-                    const line = lines[randomInt(0, lines.length - 1)];
+                    const lineIndex = randomInt(0, lines.length - 1);
                     const operation = operations[randomInt(0, operations.length - 1)];
                     let ans = 0;
-                    const str = `Reflect the point \`(${a}, ${b})\` across ${line} and find the value of \`${operation}\`.`;
-                    switch (line) {
-                        case "x-axis":
+                    const str = `Reflect the point \`(${a}, ${b})\` across ${lines[lineIndex]} and find the value of \`${operation}\` where the new coordinates are (a, b).`;
+                    switch (lineIndex) {
+                        case 0: // x-axis
                             b = -b;
                             break;
-                        case "y-axis":
+                        case 1: // y-axis
                             a = -a;
                             break;
-                        case "y = x":
-                            const temp = b;
-                            b = a;
-                            a = temp;
+                        case 2: // y = x
+                            [a, b] = [b, a];
                             break;
                     }
                     switch (operation) {
