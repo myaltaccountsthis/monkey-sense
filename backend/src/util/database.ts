@@ -14,7 +14,16 @@ export const filter = new Filter();
 export async function getLeaderboard(leaderboardKey: string | null, test_length: number): Promise<LeaderboardEntry[]> {
     if (!leaderboardKey || !Object.values(gameModeMappings).includes(leaderboardKey))
         return [];
-    return (await pool.query(`SELECT user_id, correct, answered, test_length, adjusted, time, username FROM leaderboard JOIN user_auth USING (user_id) WHERE mode = $1 AND test_length = $2 ORDER BY adjusted DESC, time ASC LIMIT 10`, [leaderboardKey, test_length])).rows;
+    return (await pool.query(`
+        SELECT user_id, correct, answered, test_length, adjusted, time, username FROM (
+            SELECT DISTINCT ON (user_id) user_id, adjusted, time FROM leaderboard WHERE mode = $1 AND test_length = $2 ORDER BY user_id, adjusted DESC, time ASC
+        ) AS top_entries
+        JOIN leaderboard USING (user_id, adjusted, time)
+        JOIN user_auth USING (user_id)
+        ORDER BY adjusted DESC, time ASC
+        LIMIT 10
+        `,
+        [leaderboardKey, test_length])).rows;
 }
 
 // Fetch data of a user

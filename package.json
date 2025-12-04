@@ -3,18 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "cpenv": "cp ./backend/*.env ./backend/\\.env . || copy .\\backend\\*.env . /y > NUL",
-    "cpfiles": "npm run cpenv && mkdir src\\util && cp ./backend/src/util/* src/util || copy .\\backend\\src\\util\\* src\\util /y > NUL",
-    "predev": "npm run cpfiles",
+    "cpfiles": "node cpfiles.js -v",
+    "predev": "node cpfiles.js",
     "dev": "next dev",
-    "prebuild": "npm run cpfiles",
+    "prebuild": "node cpfiles.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "node --test --env-file=.env --import tsx ./src/test/**/*.test.ts"
   },
   "dependencies": {
-    "argon2": "^0.41.1",
+    "argon2": "^0.44.0",
     "bad-words": "^4.0.0",
     "better-react-mathjax": "^2.0.3",
     "next": "^14.2.12",

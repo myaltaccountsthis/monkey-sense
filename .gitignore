@@ -39,6 +39,6 @@ deploy.sh
 next-env.d.ts
 
 # copied files
-/src/util/*
+/src/util
 !/backend/src/util/*
 !src/util/temp
