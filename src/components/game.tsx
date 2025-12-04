@@ -156,10 +156,11 @@ export default function Game({ isSignedIn }: GameProps) {
     const time = timeRef.current;
 
     const checkForTestEnd = () => {
-        if (enterMode !== "Test" && gameMode !== "Zetamac" && questionCount >= testLength) {
-            doStop();
-            return true;
-        }
+        // Test is its own page now
+        // if (enterMode !== "Test" && gameMode !== "Zetamac" && questionCount >= testLength) {
+        //     doStop();
+        //     return true;
+        // }
         return false;
     }
 
