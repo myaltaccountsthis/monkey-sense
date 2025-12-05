@@ -143,16 +143,12 @@ export default function Game({ isSignedIn }: GameProps) {
         advanceQuestion();
     };
 
-    // NEW STUFF
-
-    
+    // NEW STUFF    
 
     const shouldRequireEnter = () => {
         return ["Default", "Hardcore", "TestMode"].includes(enterMode);
     }
 
-    if (active)
-        timeRef.current = Date.now() - startT;
     const time = timeRef.current;
 
     const checkForTestEnd = () => {
@@ -265,12 +261,15 @@ export default function Game({ isSignedIn }: GameProps) {
                 console.log("Accuracy is too low!");
         }
         const score = total * 5 - (total - correct) * 9;
-        if (total > 0 && enterMode != "Test") {
-            
-            if (gameMode === "Zetamac")
-                setScoreStr(`${correct} (${correct * 120 / testLength} adj.)`);
+        if (total > 0) {
+            if (enterMode === "Test") {
+                if (gameMode === "Zetamac")
+                    setScoreStr(`${correct} (${correct * 120 / testLength} adj.)`);
+                else
+                    setScoreStr(`${score} (${score * 80 / testLength} adj.)`);
+            }
             else
-                setScoreStr(`${score} (${score * 80 / testLength} adj.)`);
+                setScoreStr(`${score} (${Math.round(score * 80 / total)} adj.)`);
         }
         const acc = (correct / Math.max(total, 1) * 100);
         setAccuracy(acc);
@@ -279,6 +278,13 @@ export default function Game({ isSignedIn }: GameProps) {
         console.log(`Score: ${score} (${score * 80 / total} adj.)`);
         console.log("-----End-----");
     }
+    
+    const doStartStop = () => {
+        if (isInGame())
+            doStop();
+        else
+            doStart();
+    };
 
     const startPractice = (question: string) => {
         if (isInGame())
@@ -315,41 +321,70 @@ export default function Game({ isSignedIn }: GameProps) {
             <div className="flex-center my-4">
                 <TextBox ref={textBoxElementRef} valueRef={textBoxRef} onChange={onInputChange} onEnter={onEnterPressed} />
             </div>
-            <div className="my-4" style={{display: !active ? "block" : "none"}}>
-                <label htmlFor="mode" className="mr-2">Mode</label>
-                <select name="mode" tabIndex={-1} value={gameMode} onChange={(e) => setGameMode(e.target.value)}>
-                    { gameModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) }
-                </select>
-                <br/>
-                <label htmlFor="entermode" className="mr-2">Behavior</label>
-                <select name="entermode" tabIndex={-1} value={enterMode} onChange={(e) => setEnterMode(e.target.value)}>
-                    { enterModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) }
-                </select>
-                <br/>
+            <div className="flex-center my-4">
+                <Button className="px-4" onClick={doStartStop}>{active ? "Stop" : "Start"}</Button>
+            </div>
 
-                { enterMode === "Test" && (
-                    <>
-                        <label htmlFor="testmode" className="mr-2">Test Length</label>
-                        <select tabIndex={-1} value={testLength} onChange={(e) => setTestLength(parseInt(e.target.value))}>
-                            { testLengths.map((length) => <option key={length} value={length}>{length}</option>) }
+            {!active &&
+                <>
+                    <div className="my-4">
+                        <label htmlFor="mode" className="mr-2">Mode</label>
+                        <select name="mode" tabIndex={-1} value={gameMode} onChange={(e) => setGameMode(e.target.value)}>
+                            { gameModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) }
                         </select>
                         <br/>
-                        { !isSignedIn &&
-                            <div className="text-base my-1 text-red-500">Sign in to save your score</div>
-                        }
-                    </>
-                )}
-            </div>
-            <div className="flex-center my-4">
-                <Button className="start" onClick={doStart}>Start</Button>
-                <div></div>
-                <Button className="stop" onClick={doStop}>Stop</Button>
-            </div>
-            {!active &&
-                <QuestionList questionGens={questionGen} startPractice={startPractice} />
+                        <label htmlFor="entermode" className="mr-2">Behavior</label>
+                        <select name="entermode" tabIndex={-1} value={enterMode} onChange={(e) => setEnterMode(e.target.value)}>
+                            { enterModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) }
+                        </select>
+                        <br/>
+
+                        { enterMode === "Test" && (
+                            <>
+                                <label htmlFor="testmode" className="mr-2">Test Length</label>
+                                <select tabIndex={-1} value={testLength} onChange={(e) => setTestLength(parseInt(e.target.value))}>
+                                    { testLengths.map((length) => <option key={length} value={length}>{length}</option>) }
+                                </select>
+                                <br/>
+                                { !isSignedIn &&
+                                    <div className="text-base my-1 text-red-500">Sign in to save your score</div>
+                                }
+                            </>
+                        )}
+                    </div>
+
+                    <div style={{display: scoreStr !== "" ? "block" : "none"}}>
+                        <div>Session Stats:</div>
+                        <div className="flex-center">
+                            <div>Question Count:</div>
+                            <div>{questionCount}</div>
+                        </div>
+                        <div className="flex-center">
+                            <div>Accuracy:</div>
+                            <div style={{color: getAccuracyColor(Math.max(0, accuracy / 100))}}>{questionCount > 0 && accuracy !== -1 ? accuracy.toFixed(1) + "%" : ""}</div>
+                        </div>
+                        <div className="flex-center">
+                            <div>Score:</div>
+                            <div>{scoreStr}</div>
+                        </div>
+                        <div className="flex-center">
+                            <div>Average Time:</div>
+                            <div style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(time / questionCount, gameMode) : ""}}>
+                                {questionCount > 0 && enterMode !== "Test" ? `${Math.round(time / questionCount)}ms` : ""}
+                            </div>
+                        </div>
+                        <div className="flex-center">
+                            <div>Total Time:</div>
+                            <Timer startingTime={timeRef.current} timeRef={timeRef} intervalRef={intervalRef} shouldMakeInterval={false} doTimeUpdate={doTimeUpdate} />
+                        </div>
+                        <br/>
+                    </div>
+                    <QuestionList questionGens={questionGen} startPractice={startPractice} />
+                </>
             }
+
             {active &&
-                <div>
+                <>
                     <div className="flex-center">
                         <div>Last Time:</div>
                         <div style={{color: questionCount > 0 && enterMode !== "Test" ? getTimeColor(answerTime, gameMode) : ""}}>
@@ -369,22 +404,15 @@ export default function Game({ isSignedIn }: GameProps) {
                             </div>
                         </div>
                         <div className="flex-center">
-                            <div>Accuracy:</div>
-                            <div style={{color: getAccuracyColor(Math.max(0, accuracy / 100))}}>{questionCount > 0 && accuracy !== -1 ? accuracy.toFixed(1) + "%" : ""}</div>
-                        </div>
-                        <div className="flex-center">
-                            <div>Score:</div>
-                            <div>{scoreStr}</div>
-                        </div>
-                        <div className="flex-center">
                             <div>Total Time:</div>
-                            <Timer intervalRef={intervalRef} shouldMakeInterval={active} doTimeUpdate={doTimeUpdate} />
+                            <Timer timeRef={timeRef} intervalRef={intervalRef} shouldMakeInterval={active} doTimeUpdate={doTimeUpdate} />
                         </div>
                     </div>
                     <div className="h-4" />
                     <QuestionInfoDropdown questionGens={questionGen} selected={currentCategoryRef.current} startPractice={startPractice} />
-                </div>
+                </>
             }
+
             <br/>
             <div className={active ? "hidden" : ""}>
                 <Leaderboard leaderboardEntries={leaderboardEntries} gameMode={gameMode} testLength={testLength} setTestLength={setTestLength} />

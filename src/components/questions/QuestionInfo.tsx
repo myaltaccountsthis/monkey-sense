@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MathJaxConfig, Question } from "@/util/types";
 import { getGuessRange, QuestionGeneratorList } from "@/util/generator";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
@@ -13,13 +13,18 @@ interface QuestionInfoProps {
 export default function QuestionInfo({ questionGens, selected, practice }: QuestionInfoProps) {
     const questionGen = questionGens.questionGens[selected];
     const [question, setQuestion] = useState<Question>(questionGen.func());
+    const isMounted = useRef(false);
 
     const regenerate = () => {
         setQuestion(questionGen.func());
     }
 
     useEffect(() => {
-        setQuestion(questionGen.func());
+        if (isMounted.current) {
+            setQuestion(questionGen.func());
+        }
+        else
+            isMounted.current = true;
     }, [selected]);
 
     return (
