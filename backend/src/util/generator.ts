@@ -94,6 +94,7 @@ const units = [
     ["square miles", "acres"],
     ["fluid ounces", "gallons"],
     ["cups", "gallons"],
+    ["cubit", "inches"]
 ];
 const convs = [
     [1, 6],
@@ -102,6 +103,7 @@ const convs = [
     [1, 640],
     [128, 1],
     [16, 1],
+    [1, 18]
 ];
 const units2 = [
     ["gallons", "cubic inches"],
@@ -2322,7 +2324,7 @@ export class QuestionGeneratorList {
             },
             unitconv: {
                 name: "Unit Conversion",
-                description: "Common unit conversions. 1 fathom = 6 feet. 1 rod = 16.5 feet. 15 mph = 22 ft/s. 1 mile^2 = 640 acres.",
+                description: "Common unit conversions. 1 fathom = 6 feet. 1 rod = 16.5 feet. 15 mph = 22 ft/s. 1 mile^2 = 640 acres. 1 cubit = 18 in.",
                 weight: 5,
                 tier: 1,
                 func: () => {
@@ -2451,6 +2453,56 @@ export class QuestionGeneratorList {
                     return {
                         ans: ans,
                         str: `Find the value of \`${num}^(${exp2}) mod ${prime}\`.`,
+                    }
+                }
+            },
+
+            romanconv: {
+                name: "Roman Numeral Conversion",
+                description: "Convert a number from Roman numerals to digits. The basic symbols are I = 1, V = 5, X = 10, L = 50, C = 100, D = 500, and M = 1000. If a smaller symbol is before a larger symbol, subtract the smaller from the larger. Otherwise, add the symbols together. Line above a symbol means multiply it by 1000.",
+                weight: 4,
+                tier: 1,
+                func: () => {
+                    let num = 0;
+                    let str = "\`";
+                    const chance = .7;
+                    const digits = [1, 2, 4, 5, 6, 9];
+                    num = 0;
+                    if (random() < chance) {
+                        num += digits[randomInt(0, digits.length - 1)] * 10000;
+                    }
+                    if (num == 0 || random() < chance) {
+                        num += digits[randomInt(0, digits.length - 1)] * 1000;
+                    }
+                    let temp = toRoman(num / 1000);
+                    if (temp.length > 0) {
+                        str += `\overline{${temp}}`;
+                    }
+                    for (let d = 2; d >= 0; d--) {
+                        if (num == 0 || random() < chance) {
+                            num += digits[randomInt(0, digits.length - 1)] * Math.pow(10, d);
+                        }
+                    }
+                    str += toRoman(num % 1000);
+                    str += `\` = `;
+                    return {
+                        ans: num,
+                        str: str,
+                    };
+                }
+            },
+
+            pascalsrule: {
+                name: "Pascal's Rule",
+                description: "Use Pascal's rule to find a specific value in Pascal's triangle. Use the formula `C(n, k) = C(n - 1, k - 1) + C(n - 1, k)`.",
+                weight: 3,
+                tier: 2,
+                func: () => {
+                    const n = randomInt(5, 10);
+                    const k = randomInt(1, n - 1);
+                    return {
+                        ans: n + 1,
+                        str: `If \\({}_${n}C_${k - 1} + {}_${n}C_${k} = {}_nC_${k}\\), then \`n = \``,
                     }
                 }
             }
