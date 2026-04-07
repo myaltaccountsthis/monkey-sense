@@ -94,6 +94,7 @@ const units = [
     ["square miles", "acres"],
     ["fluid ounces", "gallons"],
     ["cups", "gallons"],
+    ["cubit", "inches"]
 ];
 const convs = [
     [1, 6],
@@ -102,6 +103,7 @@ const convs = [
     [1, 640],
     [128, 1],
     [16, 1],
+    [1, 18]
 ];
 const units2 = [
     ["gallons", "cubic inches"],
@@ -1966,7 +1968,7 @@ export class QuestionGeneratorList {
             fracest: {
                 name: "Fraction Estimation",
                 description: "Estimate an expression with fractions or decimals. The pure estimation test.",
-                weight: 20,
+                weight: 10,
                 tier: 3,
                 func: () => {
                     const a = randomInt(100, 900);
@@ -2172,6 +2174,20 @@ export class QuestionGeneratorList {
                     };
                 }
             },
+            squareperimeasy: {
+                name: "Square Area From Perimeter",
+                description: "Find the area of a square given its perimeter. The area is `(p/4)^2` where `p` is the perimeter.",
+                weight: 12,
+                tier: 1,
+                func: () => {
+                    const s = randomInt(13, 30);
+                    const p = s * 4;
+                    return {
+                        ans: s * s,
+                        str: `If the perimeter of a square is \`${p}\`, the area is`,
+                    };
+                }
+            },
             sumratcoef: {
                 name: "Sum of Rational Coefficients",
                 description: "Find the sum of the coefficients of a rational function. For each `(ax + b)` term, replace it with the sum `a + b`. Then add all terms as if they were fractions.",
@@ -2322,7 +2338,7 @@ export class QuestionGeneratorList {
             },
             unitconv: {
                 name: "Unit Conversion",
-                description: "Common unit conversions. 1 fathom = 6 feet. 1 rod = 16.5 feet. 15 mph = 22 ft/s. 1 mile^2 = 640 acres.",
+                description: "Common unit conversions. 1 fathom = 6 feet. 1 rod = 16.5 feet. 15 mph = 22 ft/s. 1 mile^2 = 640 acres. 1 cubit = 18 in.",
                 weight: 5,
                 tier: 1,
                 func: () => {
@@ -2337,7 +2353,7 @@ export class QuestionGeneratorList {
             },
             unitconvest: {
                 name: "Unit Conversion Estimation",
-                description: "Estimate common unit conversions. 1 league of land = 4428.4 acres. 1 gallon = 231 in^3. 1 vara in Texas is 100/3 inches or 25/27 yards. 1 chain is 66 feet. 1 caballerias is 108 acres. 1 labor is 1000 square varas. For more conversions, see Unit Conversion section.",
+                description: "Estimate common unit conversions. \`1\` league of land = \`4428.4\` acres. \`1\` gallon = \`231\` cubic inches. 1 vara in Texas is \`100/3\` inches or \`25/27\` yards. 1 chain is \`66\` feet. 1 caballerias is \`108\` acres. 1 labor is \`1000\` square varas. For more conversions, see Unit Conversion section.",
                 weight: 5,
                 tier: 2,
                 func: () => {
@@ -2346,7 +2362,7 @@ export class QuestionGeneratorList {
                     const main = randomInt(0, 1);
                     return {
                         ans: val * convs[index][main],
-                        str: `${val * convs[index][main ^ 1]} ${units[index][main ^ 1]} \`=\` ? ${units[index][main]}`,
+                        str: `*\`${val * convs[index][main ^ 1]}\` ${units[index][main ^ 1]} \`=\` ? ${units[index][main]}`,
                         guess: true,
                     }
                 }
@@ -2368,41 +2384,59 @@ export class QuestionGeneratorList {
 
             linereflect: {
                 name: "Line Reflection",
-                description: "Reflect a point (a,b) across the x axis, y axis, or y = x, and finding the sum/difference of a and b. The reflection across the x axis is (a,-b), the y axis is (-a,b), and y = x is (b,a).",
+                description: "Reflect a point \`(a,b)\` across the \`y = c\`, \`x = c\`, \`y = x + c\`, or \`y = -x + c\`, and finding the sum/difference of a and b. The reflection across \`y = c\` is \`(a, 2c - b)\`, \`x = c\` is \`(2c-a,b)\`, \`y = x + c\` is \`(b - c, a + c)\`, and \`y = -x + c\` is \`(-b - c,-a + c)\`.",
                 weight: 5,
                 tier: 2,
                 func: () => {
-                    const lines = ["the x-axis", "the y-axis", "`y = x`"];
-                    const operations = ["a - b", "a + b", "b - a", "b + a"];
-                    let a = randomInt(-10, 10);
-                    let b = randomInt(-10, 10);
+                    const lines = ["`y = c`", "`x = c`", "`y = x + c`", "`y = -x + c`"];
+                    const operations = ["h", "k", "h - k", "h + k", "k - h", "k + h"];
+                    const a = randomInt(-10, 10);
+                    const b = randomInt(-10, 10);
+                    let h = a;
+                    let k = b;
+                    const c = randomInt(-30, 30);
                     const lineIndex = randomInt(0, lines.length - 1);
                     const operation = operations[randomInt(0, operations.length - 1)];
                     let ans = 0;
-                    const str = `Reflect the point \`(${a}, ${b})\` across ${lines[lineIndex]} and find the value of \`${operation}\` where the new coordinates are (a, b).`;
+                    const formatSigned = (n: number) => n < 0 ? `- ${Math.abs(n)}` : `+ ${n}`;
+                    let lineText = "";
                     switch (lineIndex) {
-                        case 0: // x-axis
-                            b = -b;
+                        case 0: // y = c
+                            lineText = `\`y = ${c}\``;
+                            k = 2 * c - b;
                             break;
-                        case 1: // y-axis
-                            a = -a;
+                        case 1: // x = c
+                            lineText = `\`x = ${c}\``;
+                            h = 2 * c - a;
                             break;
-                        case 2: // y = x
-                            [a, b] = [b, a];
+                        case 2: // y = x + c
+                            lineText = `\`y = x ${formatSigned(c)}\``;
+                            [h, k] = [b - c, a + c];
+                            break;
+                        case 3: // y = -x + c
+                            lineText = `\`y = -x ${formatSigned(c)}\``;
+                            [h, k] = [-b + c, -a + c];
                             break;
                     }
+                    const str = `The point \`(${a}, ${b})\` is reflected across ${lineText} to the point \`(h, k)\`. Find \`${operation}\`.`
                     switch (operation) {
-                        case "a - b":
-                            ans = a - b;
+                        case "h":
+                            ans = h;
                             break;
-                        case "a + b":
-                            ans = a + b;
+                        case "k":
+                            ans = k;
                             break;
-                        case "b - a":
-                            ans = b - a;
+                        case "h - k":
+                            ans = h - k;
                             break;
-                        case "b + a":
-                            ans = b + a;
+                        case "h + k":
+                            ans = h + k;
+                            break;
+                        case "k - h":
+                            ans = k - h;
+                            break;
+                        case "k + h":
+                            ans = k + h;
                             break;
                     }
                     return {
@@ -2453,7 +2487,158 @@ export class QuestionGeneratorList {
                         str: `Find the value of \`${num}^(${exp2}) mod ${prime}\`.`,
                     }
                 }
+            },
+
+            romanconv: {
+                name: "Roman Numeral Conversion",
+                description: "Convert a number from Roman numerals to digits. The basic symbols are I = 1, V = 5, X = 10, L = 50, C = 100, D = 500, and M = 1000. If a smaller symbol is before a larger symbol, subtract the smaller from the larger. Otherwise, add the symbols together. Line above a symbol means multiply it by 1000.",
+                weight: 4,
+                tier: 1,
+                func: () => {
+                    let num = 0;
+                    let str = "\`";
+                    const chance = .7;
+                    const digits = [1, 2, 4, 5, 6, 9];
+                    num = 0;
+                    if (random() < chance) {
+                        num += digits[randomInt(0, digits.length - 1)] * 10000;
+                    }
+                    if (num == 0 || random() < chance) {
+                        num += digits[randomInt(0, digits.length - 1)] * 1000;
+                    }
+                    let temp = toRoman(num / 1000);
+                    if (temp.length > 0) {
+                        str += `\overline{${temp}}`;
+                    }
+                    for (let d = 2; d >= 0; d--) {
+                        if (num == 0 || random() < chance) {
+                            num += digits[randomInt(0, digits.length - 1)] * Math.pow(10, d);
+                        }
+                    }
+                    str += toRoman(num % 1000);
+                    str += `\` = `;
+                    return {
+                        ans: num,
+                        str: str,
+                    };
+                }
+            },
+
+            pascalsrule: {
+                name: "Pascal's Rule",
+                description: "Use Pascal's rule to find a specific value in Pascal's triangle. Use the formula `C(n, k) = C(n - 1, k - 1) + C(n - 1, k)`.",
+                weight: 3,
+                tier: 2,
+                func: () => {
+                    const n = randomInt(5, 10);
+                    const k = randomInt(1, n - 1);
+                    return {
+                        ans: n + 1,
+                        str: `If \\({}_${n}C_${k - 1} + {}_${n}C_${k} = {}_nC_${k}\\), then \`n = \``,
+                    }
+                }
+            },
+
+            gcdlcmsum: {
+                name: "GCD LCM Sum",
+                description: "Given two values, find the sum of their GCD and LCM. Either brute force or use \`(1 + a/g * b/g) * g\` where g is the GCD of numbers a and b.",
+                weight: 12,
+                tier: 0,
+                func: () => {
+                    const g = randomInt(2, 12);
+                    const a = randomInt(3, 12) * g;
+                    let b = 0;
+                    do {
+                        b = randomInt(3, 12) * g;
+                    } while (gcd(b, a) > g);
+                    const lcm = a * b / g;
+                    return {
+                        ans: g + lcm,
+                        str: `The sum of the GCD of \`${a}\` and \`${b}\` and the LCM of \`${a}\` and \`${b}\` is`,
+                    }
+                }
+            },
+            
+            thirtyseven: {
+                name: "111 Rule",
+                description: "\`37 * 3 = 111\`. Use this fact to perform multiplication/division.",
+                weight: 5,
+                tier: 0,
+                func: () => {
+                    const a = randomInt(2, 7);
+                    const b = randomInt(2, 7);
+                    return {
+                        ans: a * b * 3,
+                        str: `\`${a * 111} xx ${b} / 37 = \``
+                    }
+                }
+            },
+
+            foilpref: {
+                name: "3x3 FOIL With Same Prefix",
+                description: "Multiply a 3 digit number by another 3 digit number where the first 2 digits are the same. If the numbers are abc and abd, first write down \`c * d\`. Bring the carry to \`ab * (c + d)\`, write down the tens digit, then add the carry to \`(ab)^2\`.",
+                weight: 8,
+                tier: 3,
+                func: () => {
+                    const pref = randomInt(10, 60);
+                    const c = randomInt(0, 9);
+                    let d = randomInt(0, 9);
+                    while (d + c == 10) {
+                        d = randomInt(0, 9);
+                    }
+                    const num1 = pref * 10 + c;
+                    const num2 = pref * 10 + d;
+                    const ans = num1 * num2;
+                    return {
+                        ans: ans,
+                        str: `\`${num1} xx ${num2} =\``
+                    }
+                }
+            },
+
+            estsquare: {
+                name: "Square Estimation",
+                description: "Estimate the square of a number. Square normally on first ~2 digits, then adjust if needed. Also could be in the form \`a xx b + c\` where a and b are close to each other, adjust based on a and b more than c.",
+                weight: 20,
+                tier: 2,
+                func: () => {
+                    const pref = randomInt(10, 60);
+                    const n = pref * 100 + randomInt(-100, 100);
+                    if (random() < 0.5) {
+                        const a = n - randomInt(20, 100);
+                        const b = n + randomInt(20, 100);
+                        const c = randomInt(-5000, 5000);
+                        return {
+                            ans: a * b + c,
+                            str: `\`${a} xx ${b} ${c >= 0 ? "+ " : "- "}${Math.abs(c)} =\``,
+                            guess: true,
+                        }
+                    }
+                    return {
+                        ans: n * n,
+                        str: `*\`${n}^2 = \``,
+                        guess: true,
+                    }
+                }
+            },
+
+            est4rt: {
+                name: "4th Root Estimation",
+                description: "Estimate 4th root of a number. Roughly memorize \`1^4 = 1, 2^4 = 16, 3^4 = 81, 4^4 = 256\`, \`5^4 = 625, 6^4 = 1296, 7^4 = 2401\`, \`8^4 = 4096, 9^4 = 6561, 10^4 = 10000\`. Count 4 digits from back to get number of zeros, then adjust based on first digits. 2 times multiplier is around 1.2x after 4th root.",
+                weight: 15,
+                tier: 3,
+                func: () => {
+                    const pref = Math.ceil(Math.pow(10000, random()));
+                    const zeros = randomInt(1, 2);
+                    const num = pref * Math.pow(10000, zeros) + randomInt(-Math.pow(10000, zeros), Math.pow(10000, zeros));
+                    return {
+                        ans: Math.pow(num, 0.25),
+                        str: `*\`(${num})^{1/4} = \``,
+                        guess: true,
+                    };
+                }
             }
+
         };
 
         const keys = Object.keys(this.questionGens);
@@ -2496,10 +2681,12 @@ export class QuestionGeneratorList {
                 "estdiv",
                 "fracest",
                 "estadd",
+                "estsquare",
+                "est4rt",
             ].filter((key) => filterKeys.includes(key));
             if (available.length === 0)
                 available.push(
-                    ...["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd"]
+                    ...["sqrt", "cbrt", "estmult", "estdiv", "fracest", "estadd", "estsquare", "est4rt"]
                 );
             const rand = randomInt(1, available.length);
             key = available[rand - 1];
