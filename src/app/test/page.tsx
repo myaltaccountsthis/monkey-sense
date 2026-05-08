@@ -1,7 +1,7 @@
 import { getTestQuestions, handleSubmit } from "../../../backend/src/util/database";
 import { encryptSeed } from "../../../backend/src/util/encrypt";
 import { randomSeed } from "@/util/Base64";
-import { TestOptions, gameModes, gameModeMappings, TestResults } from "@/util/types";
+import { TestOptions, gameModes, gameModeMappings, TestResults, testLengths } from "@/util/types";
 import TestClient from "@/components/test/TestClient";
 import { getUser } from "@/app/(AUTH)/authhelper";
 
@@ -15,21 +15,26 @@ export default async function Test({ searchParams }: { searchParams: { [key: str
     try {
         if (!searchParams)
             return <div>Error this should not appear</div>
+
         const testLength = parseInt(searchParams.testLength as string || "");
-        if (isNaN(testLength))
+        if (isNaN(testLength) || !testLengths.includes(testLength))
             return <div>Invalid test length</div>
-        const gameMode = gameModes.find(gm => gameModeMappings[gm] === searchParams.mode) || "Number Sense";
+
+        const gameMode = gameModes.find(gm => gameModeMappings[gm] === searchParams.mode);
+        if (!gameMode)
+            return <div>Invalid game mode</div>
+
         testOptions = { id: encrypted.toString(), testLength: testLength, gameMode: gameMode };
     }
     catch (e) {
         console.log("err", e)
     }
-    if (!testOptions)
+    if (!testOptions) {
         return (
             <div>Invalid test options</div>
         );
+    }
 
-    
     const startT = Date.now();
     const questions = getTestQuestions(seed, testOptions.gameMode, testOptions.testLength).map(q => q.str);
     const onSubmit = async (formData: FormData) : Promise<TestResults | null> => {

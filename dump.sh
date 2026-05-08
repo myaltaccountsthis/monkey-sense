@@ -1,0 +1,1 @@
+pg_dump -U postgres -d monkey-sense --schema-only > db.sql

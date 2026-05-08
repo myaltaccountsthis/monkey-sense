@@ -112,6 +112,8 @@ export interface LeaderboardEntry {
     test_length: number;
     adjusted: number;
     time: number;
+    timestamp?: Date;
+    seed?: string;
 }
 
 export interface ViewableLeadeboardEntry extends LeaderboardEntry {
