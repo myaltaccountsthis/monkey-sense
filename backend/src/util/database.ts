@@ -68,7 +68,7 @@ interface Submission {
     id: string;
 };
 
-const minAvgTimePerQuestion = {
+const minAvgTimePerQuestion: {[gameMode: string]: number} = {
     "Number Sense": 1.8,
     "Zetamac": .58,
     "Estimate": 2.9
