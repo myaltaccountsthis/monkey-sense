@@ -1,8 +1,8 @@
-body {
+body:has(.print-page) {
   background-color: white;
 }
 
-div, h1, button, input {
+div:where(.print-page), :where(.print-page) div, :where(.print-page) h1, :where(.print-page) button, :where(.print-page) input {
   color: black;
   text-align: left;
   font-family: 'Times New Roman', Times, serif;
@@ -10,20 +10,20 @@ div, h1, button, input {
   word-wrap: normal;
 }
 
-h1 {
+:where(.print-page) h1 {
   font-size: xx-large;
   margin-bottom: 1.5em;
 }
 
-* {
+:where(.print-page, .print-page *) {
   font-weight: bold;
 }
 
-mjx-container * {
+:where(.print-page) mjx-container * {
   font-weight: normal;
 }
 
-.page-group {
+:where(.print-page) .page-group {
   column-count: 2;
   /* column-width: 35%; */
   column-gap: 10%;
@@ -31,17 +31,17 @@ mjx-container * {
   margin-right: 4%;
 }
 
-#answers {
+:where(.print-page) #answers {
   column-count: 4;
   column-gap: 3%;
   margin: 0px 2%;
 }
 
-#answers>div {
+:where(.print-page) #answers>div {
   margin-bottom: 1.5em;
 }
 
-.question {
+:where(.print-page) .question {
   margin-bottom: 1.2em;
   padding-left: 2.2em;
   line-height: 130%;
@@ -69,7 +69,7 @@ mjx-container * {
     background-color: black;
   } */
 
-.answer-blank {
+:where(.print-page) .answer-blank {
   font-weight: bold;
   margin-left: 6px;
   white-space: nowrap;
@@ -88,8 +88,3 @@ mjx-container * {
     font-weight: bold;
     margin-left: .5em;
   } */
-
-@page {
-  size: letter;
-  margin: .5in;
-}

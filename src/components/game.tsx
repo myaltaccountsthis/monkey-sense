@@ -11,6 +11,7 @@ import { MathJax, MathJaxContext } from "better-react-mathjax";
 import QuestionList from "./questions/QuestionList";
 import Button from "./common/Button";
 import { QuestionInfoDropdown } from "./questions/QuestionInfoDropdown";
+import { useUIMode } from "./UIModeProvider";
 
 export const getTimeColorBounds = (gameMode: string) => {
     if (gameMode === "Zetamac")
@@ -42,6 +43,7 @@ interface GameProps {
 
 export default function Game({ isSignedIn }: GameProps) {
     const router = useRouter();
+    const { mode: uiMode } = useUIMode();
     const [lastT, setLastT] = useState(0);
     const [total, setTotal] = useState(0);
     const [testLength, setTestLength] = useState<TestLength>(defaultTestLength);
@@ -182,11 +184,13 @@ export default function Game({ isSignedIn }: GameProps) {
         if (enterMode === "Print") {
             setActive(false);
             router.push(`/print?${keyStr == "" ? "" : `seed=${keyStr}&`}`)
+            return;
         }
         // Handle duel
         if (enterMode === "Duel") {
             setActive(false);
             router.push(`/duel`)
+            return;
         }
 
         if (keyStr.length == 0) {
@@ -313,48 +317,49 @@ export default function Game({ isSignedIn }: GameProps) {
     }
 
     return (
-        <div>
-            <MathJaxContext config={MathJaxConfig}>
-                <MathJax id="question" dynamic>{isInGame() ? getQuestionText() : "Click start"}</MathJax>
-            </MathJaxContext>
+        <div className="game-view max-w-4xl mx-auto px-4 pb-12">
+            <div className="game-intro px-2 py-4 mb-4">
+                <div className="modern-ui-only text-base text-gray-300 mb-2">{gameMode} / {active ? "In progress" : "Practice"}</div>
+                <MathJaxContext config={MathJaxConfig}>
+                    <MathJax id="question" className="overflow-x-auto py-3" dynamic>{isInGame() ? getQuestionText() : uiMode === "old" ? "Click start" : "Ready when you are."}</MathJax>
+                </MathJaxContext>
                 
-            <div className="flex-center my-4">
-                <TextBox ref={textBoxElementRef} valueRef={textBoxRef} onChange={onInputChange} onEnter={onEnterPressed} />
-            </div>
-            <div className="flex-center my-4">
-                <Button className="px-4" onClick={doStartStop}>{active ? "Stop" : "Start"}</Button>
+                <div className="flex-center my-4">
+                    <TextBox ref={textBoxElementRef} valueRef={textBoxRef} placeholder={uiMode === "old" ? undefined : active ? "Your answer" : "Optional question keys"} onChange={onInputChange} onEnter={onEnterPressed} />
+                </div>
+                <div className="flex-center my-4">
+                    <Button className="px-8" onClick={doStartStop}>{active ? "Stop" : "Start"}</Button>
+                </div>
+                <div className="modern-ui-only text-sm text-gray-300">{active ? (shouldRequireEnter() ? "Press Enter to submit your answer." : "Correct answers advance automatically.") : "Choose your mode below, then start a session."}</div>
             </div>
 
             {!active &&
                 <>
-                    <div className="my-4">
+                    <div className="game-settings grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 max-w-sm mx-auto my-6">
                         <label htmlFor="mode" className="mr-2">Mode</label>
-                        <select name="mode" tabIndex={-1} value={gameMode} onChange={(e) => setGameMode(e.target.value)}>
+                        <select id="mode" name="mode" className="field-control" value={gameMode} onChange={(e) => setGameMode(e.target.value)}>
                             { gameModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) }
                         </select>
-                        <br/>
                         <label htmlFor="entermode" className="mr-2">Behavior</label>
-                        <select name="entermode" tabIndex={-1} value={enterMode} onChange={(e) => setEnterMode(e.target.value)}>
+                        <select id="entermode" name="entermode" className="field-control" value={enterMode} onChange={(e) => setEnterMode(e.target.value)}>
                             { enterModes.map((mode) => <option key={mode} value={mode}>{mode}</option>) }
                         </select>
-                        <br/>
 
                         { enterMode === "Test" && (
                             <>
                                 <label htmlFor="testmode" className="mr-2">Test Length</label>
-                                <select tabIndex={-1} value={testLength} onChange={(e) => setTestLength(parseInt(e.target.value))}>
+                                <select id="testmode" className="field-control" value={testLength} onChange={(e) => setTestLength(parseInt(e.target.value))}>
                                     { testLengths.map((length) => <option key={length} value={length}>{length}</option>) }
                                 </select>
-                                <br/>
                                 { !isSignedIn &&
-                                    <div className="text-base my-1 text-red-500">Sign in to save your score</div>
+                                    <div className="col-span-2 text-sm my-1 text-amber-300">Sign in to save your score</div>
                                 }
                             </>
                         )}
                     </div>
 
-                    <div style={{display: scoreStr !== "" ? "block" : "none"}}>
-                        <div>Session Stats:</div>
+                    <div className="session-stats surface-panel max-w-md mx-auto p-5 mb-6 space-y-2 tabular-nums" style={{display: scoreStr !== "" ? "block" : "none"}}>
+                        <div className="text-lg font-semibold mb-3">Session Stats</div>
                         <div className="flex-center">
                             <div>Question Count:</div>
                             <div>{questionCount}</div>
@@ -377,7 +382,6 @@ export default function Game({ isSignedIn }: GameProps) {
                             <div>Total Time:</div>
                             <Timer startingTime={timeRef.current} timeRef={timeRef} intervalRef={intervalRef} shouldMakeInterval={false} doTimeUpdate={doTimeUpdate} />
                         </div>
-                        <br/>
                     </div>
                     <QuestionList questionGens={questionGen} startPractice={startPractice} />
                 </>

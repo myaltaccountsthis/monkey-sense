@@ -24,17 +24,13 @@ const TextBox = forwardRef(({ onChange = () => {}, onEnter = () => {}, valueRef,
             onEnter();
     };
     return (
-        <div className="flex flex-row">
-            <div className="w-0 h-full relative">
-                <div className="absolute left-0 h-full flex flex-col justify-center">
-                    {startContent}
-                </div>
+        <div className="answer-field relative flex flex-row w-80 max-w-full">
+            <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                {startContent}
             </div>
-            <input className={twMerge("rounded-md border-2 border-black border-solid bg-gray-100 hover:bg-gray-200 transition-colors duration-75", className)} ref={ref} disabled={disabled} name="inputbox" id="inputbox" type="text" onInput={onInput} onKeyDown={onKeyDown} value={valueRef.current} placeholder={placeholder} autoComplete="off" />
-            <div className="w-0 h-full relative">
-                <div className="absolute right-0 h-full flex flex-col justify-center">
-                    {endContent}
-                </div>
+            <input className={twMerge("box-border min-w-0 w-full rounded-md border border-black border-solid px-10 py-2 bg-gray-100 hover:bg-gray-200 placeholder:text-base transition-colors duration-150", className)} ref={ref} disabled={disabled} name="inputbox" id="inputbox" type="text" aria-label={placeholder || "Answer"} onInput={onInput} onKeyDown={onKeyDown} value={valueRef.current} placeholder={placeholder} autoComplete="off" />
+            <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                {endContent}
             </div>
         </div>
     );

@@ -34,13 +34,13 @@ export default function PlayerComponent({ userData, rank, isYou, isLoading, show
     const { username, points, tries } = userData;
     
     return (
-        <div className={twMerge("flex justify-center flex-row border-black border-solid border-2 p-2 gap-4 items-center", showDelta && userData.answeredCorrect && "border-green-600")}>
+        <div className={twMerge("player-card flex justify-center flex-row rounded-md bg-[#333] border-black border-solid border p-3 gap-3 items-center", isYou && "border-gray-300", showDelta && userData.answeredCorrect && "border-green-600")}>
             <div className="text-2xl font-bold">
                 {rank}.
             </div>
             {isLoading ? <div className="animate-pulse">Loading...</div> :
-                <div className="flex justify-center flex-row items-center gap-4 pr-2">
-                    <div>
+                <div className="flex min-w-0 justify-center flex-row items-center gap-3">
+                    <div className="min-w-0 break-words">
                         <div>
                             {username}{isYou ? " (You)" : ""}
                         </div>
@@ -57,7 +57,7 @@ export default function PlayerComponent({ userData, rank, isYou, isLoading, show
                             }
                         </div>
                     </div>
-                    <div>
+                    <div className="shrink-0">
                         <Ring ratio={tries / 3} />
                     </div>
                 </div>

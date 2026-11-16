@@ -22,8 +22,8 @@ export default function TestTopBar({ startT, testDuration, onSubmit }: TestTopBa
     };
 
     return (
-        <div className="overflow-hidden sticky bg-[#555] top-0 z-10">
-            <div>Monkey Sense Test</div>
+        <div className="test-topbar sticky bg-[#555] border-0 border-b border-solid border-zinc-700 top-0 z-10 px-4 py-3 flex flex-wrap justify-center gap-x-8 gap-y-2 tabular-nums">
+            <div className="font-semibold text-white">Monkey Sense Test</div>
             <Timer intervalRef={intervalRef} shouldMakeInterval={!done} doTimeUpdate={doTimeUpdate}></Timer>
         </div>
     )
