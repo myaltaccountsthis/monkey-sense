@@ -9,14 +9,14 @@
     "prebuild": "node cpfiles.js",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src",
     "test": "node --test --env-file=.env --import tsx ./src/test/**/*.test.ts"
   },
   "dependencies": {
     "argon2": "^0.44.0",
     "bad-words": "^4.0.0",
     "better-react-mathjax": "^2.0.3",
-    "next": "^14.2.12",
+    "next": "^16.4.6",
     "nextjs": "^0.0.3",
     "pg": "^8.13.0",
     "react": "^18",
@@ -24,8 +24,8 @@
     "react-google-recaptcha-v3": "^1.10.1",
     "seedrandom": "^3.0.5",
     "tailwind-merge": "^2.5.5",
-    "ws": "^8.18.0",
-    "zod": "^3.24.1"
+    "ws": "^8.21.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
@@ -35,11 +35,15 @@
     "@types/react-dom": "^18",
     "@types/seedrandom": "^3.0.8",
     "@types/ws": "^8.5.14",
-    "eslint": "^9.39.1",
-    "eslint-config-next": "^16.0.7",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.6",
     "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "tailwindcss": "^3.4.19",
     "tsx": "^4.20.1",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "argon2@0.44.0": true,
+    "esbuild@0.27.1": true
   }
 }

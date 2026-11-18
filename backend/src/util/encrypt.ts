@@ -4,16 +4,24 @@ import crypto from "crypto";
 
 const algorithm = "aes-256-gcm";
 const AES_KEY = new Uint8Array(Buffer.from(BigInt(process.env.AES_KEY!).toString(16), "hex"));
-const AES_IV = new Uint8Array(Buffer.from(BigInt(process.env.AES_IV!).toString(16), "hex"));
+const ivLength = 12;
+const tagLength = 16;
 
 export function encrypt(message: string) {
-    const cipher = crypto.createCipheriv(algorithm, AES_KEY, AES_IV);
-    return cipher.update(message, "utf8", "base64") + cipher.final("base64");
+    const iv = crypto.randomBytes(ivLength);
+    const cipher = crypto.createCipheriv(algorithm, AES_KEY, iv, { authTagLength: tagLength });
+    const encrypted = Buffer.concat([cipher.update(message, "utf8"), cipher.final()]);
+    // Store the IV and authentication tag with the ciphertext.
+    return Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString("base64");
 }
 
 export function decrypt(encrypted: string) {
-    const cipher = crypto.createDecipheriv(algorithm, AES_KEY, AES_IV);
-    return cipher.update(encrypted, "base64", "ascii");
+    const data = Buffer.from(encrypted, "base64");
+    if (data.length < ivLength + tagLength)
+        throw new Error("Invalid encrypted payload");
+    const decipher = crypto.createDecipheriv(algorithm, AES_KEY, data.subarray(0, ivLength), { authTagLength: tagLength });
+    decipher.setAuthTag(data.subarray(ivLength, ivLength + tagLength));
+    return Buffer.concat([decipher.update(data.subarray(ivLength + tagLength)), decipher.final()]).toString("utf8");
 }
 
 export function encryptSeed(seed: string) {

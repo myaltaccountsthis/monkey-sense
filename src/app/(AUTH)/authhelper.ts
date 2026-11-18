@@ -13,7 +13,7 @@ export const getUser = async () => await isSignedIn();
 export async function onSignUp(username: string, password: string, captcha: string, redirectUrl: string) : Promise<string> {
     const result = await signUp(username, password, captcha);
     if (result.success) {
-        cookies().set("token", result.message, {
+        (await cookies()).set("token", result.message, {
             httpOnly: true,
             secure: true,
             expires: getNextTokenExpiration()
@@ -26,7 +26,7 @@ export async function onSignUp(username: string, password: string, captcha: stri
 export async function onSignIn(username: string, password: string, redirectUrl: string) : Promise<string> {
     const result = await signIn(username, password);
     if (result.success) {
-        cookies().set("token", result.message, {
+        (await cookies()).set("token", result.message, {
             httpOnly: true,
             secure: true,
             expires: getNextTokenExpiration()
@@ -37,12 +37,12 @@ export async function onSignIn(username: string, password: string, redirectUrl: 
 }
 
 export async function onLogOut(redirectUrl: string) {
-    cookies().delete("token");
+    (await cookies()).delete("token");
     redirect(redirectUrl);
 }
 
 export async function getTokenCookie() {
-    return cookies().get("token")?.value;
+    return (await cookies()).get("token")?.value;
 }
 
 export async function isSignedIn() {
@@ -60,7 +60,7 @@ export async function getSecureToken() {
 
 export async function redirectIfNotSignedIn(user: false | User) : Promise<User> {
     if (!user) {
-        const redirectUrl = headers().get("x-current-path");
+        const redirectUrl = (await headers()).get("x-current-path");
         redirect(`/login${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ""}`);
     }
     return user;

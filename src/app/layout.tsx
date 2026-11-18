@@ -9,8 +9,8 @@ export const metadata: Metadata = {
     description: "Number Sense practice website",
 };
 
-export default function RootLayout({ children }: Readonly<{children: React.ReactNode}>) {
-    const uiMode = cookies().get("ui-mode")?.value === "old" ? "old" : "modern";
+export default async function RootLayout({ children }: Readonly<{children: React.ReactNode}>) {
+    const uiMode = (await cookies()).get("ui-mode")?.value === "old" ? "old" : "modern";
 
     return (
         <html lang="en">

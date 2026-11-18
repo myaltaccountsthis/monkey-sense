@@ -1,16 +1,16 @@
 import Topbar from "@/components/Topbar";
 import { getUserData } from "../../../../backend/src/util/database";
 
-export async function generateMetadata({ params }: { params: { user: string } }) {
-    const user_id = parseInt(params.user);
+export async function generateMetadata({ params }: { params: Promise<{ user: string }> }) {
+    const user_id = parseInt((await params).user);
     const user = await getUserData(user_id);
     if (!user)
         return { title: "User not found" };
     return { title: `${user.username}'s profile`, description: `View stats for ${user.username}` };
 }
 
-export default async function User({ params }: { params: { user: string } }) {
-    const user_id = parseInt(params.user);
+export default async function User({ params }: { params: Promise<{ user: string }> }) {
+    const user_id = parseInt((await params).user);
     const user = await getUserData(user_id);
     
     if (!user)

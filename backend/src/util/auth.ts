@@ -126,7 +126,12 @@ export async function isValidToken(token?: string): Promise<false | User> {
     // If empty or falsy token, return false
     if (!token)
         return false;
-    const data: AuthToken = JSON.parse(decrypt(token));
+    let data: AuthToken;
+    try {
+        data = JSON.parse(decrypt(token));
+    } catch {
+        return false;
+    }
     if (data.expires < Date.now())
         return false;
     const rows = (await pool.query("SELECT user_id, username, disabled FROM user_auth WHERE user_id = $1 AND password_hash = $2", [data.user_id, data.password_hash])).rows;
