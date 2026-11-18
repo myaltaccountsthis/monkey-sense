@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import ChatLog from "@/components/ChatLog";
 import PlayerComponent from "@/components/PlayerComponent";
 import { getTimeColor } from "@/components/game";
+import Button from "@/components/common/Button";
 
 const devMode = process.env.NODE_ENV === "development" && false
 
@@ -54,11 +55,12 @@ function Initializing() {
 
 function EnteringGame({ onJoinGame, onJoinGameAsGuest, errorMessageRef, loading, isSignedIn }: { onJoinGame: () => void, onJoinGameAsGuest: () => void, errorMessageRef: React.MutableRefObject<string | undefined>, loading: boolean, isSignedIn: boolean }) {
     return (
-        <div>
-            <h2>Choose an option</h2>
-            <div className="flex flex-row gap-x-4 my-4 justify-center">
-                <button onClick={onJoinGame}>{isSignedIn ? "Enter" : "Login"}</button>
-                <button onClick={onJoinGameAsGuest}>Play as Guest</button>
+        <div className="duel-entry surface-panel max-w-lg mx-auto my-6 p-6 sm:p-8">
+            <h2 className="text-3xl font-semibold mt-0 mb-2">Ready for a duel?</h2>
+            <p className="modern-ui-only text-gray-300 text-base leading-relaxed mt-0 mb-6">Put your number sense to the test against other players in real time.</p>
+            <div className="flex flex-row flex-wrap gap-3 justify-center">
+                <Button disabled={loading} onClick={onJoinGame}>{isSignedIn ? "Enter Duel" : "Login"}</Button>
+                <Button disabled={loading} onClick={onJoinGameAsGuest}>Play as Guest</Button>
             </div>
             {loading && <div className="loading">Loading</div>}
             {errorMessageRef.current && <div className="text-red-500">{errorMessageRef.current}</div>}
@@ -87,9 +89,9 @@ function DuelTimer({ startTime, timer, text, showTime }: { startTime: number, ti
 
 function Players({ usernameRef, playerData, serverState }: { usernameRef: React.MutableRefObject<string>, playerData: { [key: string]: DuelUserData }, serverState: ServerState }) {
     return (
-        <div className="bg-zinc-700 rounded-md border-2 border-solid border-black min-w-24 w-2/5 pb-4">
+        <div className="surface-panel min-w-0 w-full pb-4">
             <h2 className="my-4">Players</h2>
-            <div className="flex flex-col items-stretch gap-y-4 px-6">
+            <div className="flex flex-col items-stretch gap-y-3 px-4">
                 {Object.entries(playerData).sort((a, b) => a[1].points == b[1].points ? a[1].username.localeCompare(b[1].username) : b[1].points - a[1].points).map(([id, player], i) =>
                     <PlayerComponent key={id} userData={player} rank={i + 1} isYou={player.username === usernameRef.current} isLoading={!player.inGame} showDelta={serverState == ServerState.WAITING_NEXT} />
                 )}
@@ -287,7 +289,7 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
     };
 
     return (
-        <div>
+        <div className="duel-view max-w-5xl mx-auto px-4 pb-12">
             {
                 // !initialized ? <Initializing /> : 
                 <>
@@ -298,7 +300,7 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
                                 {[ServerState.WAITING_QUESTION, ServerState.IN_PROGRESS, ServerState.WAITING_NEXT].includes(serverState) && <div className="text-3xl">Round {gameData.rounds}</div>}
                                 <DuelTimer startTime={startTimeRef.current} timer={gameData.timer} text="Time:" showTime={serverState !== ServerState.CANNOT_START} />
                                 <MathJaxContext config={MathJaxConfig}>
-                                    <MathJax id="question" className="my-4" dynamic>{
+                                    <MathJax id="question" className="surface-panel my-4 p-6 overflow-x-auto" dynamic>{
                                         serverState === ServerState.IN_PROGRESS
                                             ? gameData.question
                                             : serverState === ServerState.WAITING_NEXT
@@ -320,8 +322,8 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
                                 )}
                                 {devMode && <div>Game Data: {JSON.stringify(gameData)}</div>}
                                 <br />
-                                <div className="h-16" />
-                                <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start gap-x-32 gap-y-16 max-w-4xl m-auto">
+                                <div className="h-6" />
+                                <div className={`duel-panels grid gap-6 max-w-4xl m-auto items-start ${serverState !== ServerState.CANNOT_START ? "md:grid-cols-2" : "max-w-lg"}`}>
                                     <Players usernameRef={usernameRef} playerData={playerData} serverState={serverState} />
                                     {serverState !== ServerState.CANNOT_START &&
                                         <ChatLog messages={chatMessagesRef.current} />
@@ -333,11 +335,11 @@ export default function Duel({ reset, token }: { reset: () => void, token?: stri
             }
             {devMode && <button onClick={doLog}>Log</button>}
             {disconnected &&
-                <div className="absolute m-auto top-0 w-full h-full bg-[rgba(0,0,0,.7)] py-8 box-border">
+                <div className="fixed z-30 inset-0 bg-black/80 px-4 py-16 box-border" role="alert">
                     <div className="text-red-400 text-4xl font-bold">Disconnected from server</div>
                     <div>Error Message: {errorMessageRef.current || "none"}</div>
                     <br />
-                    <button onClick={reset}>Refresh</button>
+                    <Button onClick={reset}>Reconnect</Button>
                 </div>
             }
         </div>

@@ -1,0 +1,170 @@
+.old-ui-only {
+    display: none;
+}
+
+[data-ui-mode="old"] .old-ui-only {
+    display: inline;
+}
+
+[data-ui-mode="old"] .modern-ui-only {
+    display: none;
+}
+
+[data-ui-mode="old"] .topbar {
+    padding: 0 16px 0 8px;
+    min-height: 44px;
+    border: 0;
+}
+
+[data-ui-mode="old"] .topbar nav a {
+    border-radius: 0;
+    padding: 10px 12px;
+    font-size: large;
+}
+
+[data-ui-mode="old"] .ui-button {
+    border-width: 2px;
+    padding: 4px 8px;
+}
+
+[data-ui-mode="old"] .answer-field {
+    width: 300px;
+}
+
+[data-ui-mode="old"] .answer-field input {
+    border-width: 2px;
+    padding: 1px 28px;
+}
+
+[data-ui-mode="old"] .game-view,
+[data-ui-mode="old"] .test-form {
+    max-width: none;
+}
+
+[data-ui-mode="old"] .game-view {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+[data-ui-mode="old"] .game-intro,
+[data-ui-mode="old"] .game-intro #question {
+    padding: 0;
+    margin: 0;
+}
+
+[data-ui-mode="old"] .game-settings {
+    grid-template-columns: auto auto;
+    justify-content: center;
+    gap: 0;
+    margin: 16px auto;
+}
+
+[data-ui-mode="old"] .game-settings select {
+    padding: 0;
+    border-radius: 0;
+    font: menu;
+    background: white;
+}
+
+[data-ui-mode="old"] .session-stats,
+[data-ui-mode="old"] .leaderboard-view,
+[data-ui-mode="old"] .duel-entry,
+[data-ui-mode="old"] .duel-view #question,
+[data-ui-mode="old"] .test-form .surface-panel {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+}
+
+[data-ui-mode="old"] .session-stats > * {
+    margin: 0;
+    font-size: large;
+    font-weight: normal;
+}
+
+[data-ui-mode="old"] .leaderboard-view {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+[data-ui-mode="old"] .leaderboard-header {
+    display: contents;
+}
+
+[data-ui-mode="old"] .leaderboard-header h2 {
+    text-align: center;
+    font-size: 30px;
+    font-weight: normal;
+}
+
+[data-ui-mode="old"] .leaderboard-controls {
+    order: 1;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    margin-top: 8px;
+}
+
+[data-ui-mode="old"] .leaderboard-controls button {
+    padding: 1px 6px;
+    border: 2px outset #555;
+    border-radius: 0;
+    color: white;
+    background: transparent;
+    font-size: large;
+}
+
+[data-ui-mode="old"] .leaderboard-controls button[aria-pressed="true"] {
+    border-color: #d1d5db;
+}
+
+[data-ui-mode="old"] .leaderboard-view table {
+    width: auto;
+    margin: 8px auto;
+    border-collapse: separate;
+    border-spacing: 8px 2px;
+    font-size: large;
+}
+
+[data-ui-mode="old"] .leaderboard-view :is(thead, tr, th, td) {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: white;
+    font-size: inherit;
+}
+
+[data-ui-mode="old"] .duel-entry h2 {
+    font-size: 27px;
+}
+
+[data-ui-mode="old"] .duel-panels {
+    margin-top: 64px;
+    gap: 64px;
+}
+
+[data-ui-mode="old"] .duel-panels .surface-panel,
+[data-ui-mode="old"] .player-card {
+    border-width: 2px;
+}
+
+[data-ui-mode="old"] .player-card {
+    border-radius: 0;
+    background: transparent;
+}
+
+[data-ui-mode="old"] .test-form .field-control {
+    border-radius: 0;
+    padding: 1px 2px;
+    background: white;
+}
+
+[data-ui-mode="old"] .test-topbar {
+    display: block;
+    padding: 0;
+    border: 0;
+}

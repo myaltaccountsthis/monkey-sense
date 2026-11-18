@@ -102,7 +102,13 @@ export async function handleSubmit(body: FormData, user_id: number): Promise<Tes
 
     // Check if submitted in time
     const testDuration = getTestDuration(submission.gameMode, submission.testLength);
-    const { seed, time } = decryptSeed(submission.id);
+    let decrypted;
+    try {
+        decrypted = decryptSeed(submission.id);
+    } catch {
+        return null;
+    }
+    const { seed, time } = decrypted;
     if (Date.now() - time > 10 * 1000 + testDuration) {
         console.warn(user_id, "took too long to submit");
         return null;

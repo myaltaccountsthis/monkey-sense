@@ -2506,7 +2506,7 @@ export class QuestionGeneratorList {
                     if (num == 0 || random() < chance) {
                         num += digits[randomInt(0, digits.length - 1)] * 1000;
                     }
-                    let temp = toRoman(num / 1000);
+                    const temp = toRoman(num / 1000);
                     if (temp.length > 0) {
                         str += `\overline{${temp}}`;
                     }

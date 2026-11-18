@@ -5,7 +5,8 @@ import { TestOptions, gameModes, gameModeMappings, TestResults, testLengths } fr
 import TestClient from "@/components/test/TestClient";
 import { getUser } from "@/app/(AUTH)/authhelper";
 
-export default async function Test({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function Test({ searchParams: searchParamsPromise }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+    const searchParams = await searchParamsPromise;
     let testOptions: TestOptions | null = null;
     const seed = randomSeed();
     const encrypted = encryptSeed(seed);

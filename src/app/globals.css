@@ -10,6 +10,23 @@
 body {
     color: var(--foreground);
     background: var(--background);
+    font-family: Calibri, sans-serif;
+}
+
+@layer components {
+    .surface-panel {
+        @apply box-border rounded-md border border-solid border-black bg-zinc-700;
+    }
+
+    .field-control {
+        @apply box-border min-w-0 rounded-md border border-solid border-black bg-gray-100 px-3 py-2 text-black;
+        font: inherit;
+    }
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid #d1d5db;
+    outline-offset: 3px;
 }
 
 @layer utilities {
@@ -21,7 +38,7 @@ body {
 div, h1, button, input {
     color: white;
     text-align: center;
-    font-family: Calibri;
+    font-family: inherit;
 }
 
 div {
